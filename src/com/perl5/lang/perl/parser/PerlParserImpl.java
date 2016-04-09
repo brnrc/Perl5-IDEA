@@ -16,6 +16,7 @@
 
 package com.perl5.lang.perl.parser;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.lang.PsiBuilder;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
@@ -43,6 +44,18 @@ public class PerlParserImpl extends PerlParserGenerated implements PerlParser
 		return super.parse(t, b);
 	}
 */
+
+	@Override
+	public ASTNode parse(IElementType root_, PsiBuilder builder_)
+	{
+		ASTNode result = super.parse(root_, builder_);
+		if (builder_ instanceof PerlBuilder)
+		{
+			((PerlBuilder) builder_).dumpMarkers();
+		}
+		return result;
+	}
+
 	public boolean parseStatement(PsiBuilder b, int l)
 	{
 		for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS)

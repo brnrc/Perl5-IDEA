@@ -34,6 +34,7 @@ import com.perl5.lang.perl.parser.elementTypes.PerlStringContentTokenType;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import com.perl5.lang.perl.util.PerlSubUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.HashSet;
@@ -2012,6 +2013,29 @@ public class PerlParserUtil extends GeneratedParserUtilBase implements PerlEleme
 			return true;
 		}
 		return false;
+	}
+
+	public static void exit_section_(PsiBuilder builder,
+									 int level,
+									 PsiBuilder.Marker marker,
+									 @Nullable IElementType elementType,
+									 boolean result,
+									 boolean pinned,
+									 @Nullable Parser eatMore)
+	{
+		assert builder instanceof PerlBuilder;
+		if (result)
+		{
+			((PerlBuilder) builder).registerMarker(elementType, marker);
+
+			if (elementType == PerlParserDefinition.FILE)
+			{
+				((PerlBuilder) builder).dumpMarkers();
+			}
+		}
+
+
+		GeneratedParserUtilBase.exit_section_(builder, level, marker, elementType, result, pinned, eatMore);
 	}
 
 }

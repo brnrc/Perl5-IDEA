@@ -18,8 +18,10 @@ package com.perl5.lang.perl.parser.builder;
 
 import com.intellij.lang.PsiBuilder;
 import com.intellij.lang.PsiParser;
+import com.intellij.lang.impl.PsiBuilderImpl;
 import com.intellij.lang.parser.GeneratedParserUtilBase;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.util.Pair;
 import com.intellij.psi.tree.IElementType;
 import com.perl5.lang.perl.PerlParserDefinition;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
@@ -27,8 +29,9 @@ import com.perl5.lang.perl.parser.PerlParserImpl;
 import com.perl5.lang.perl.parser.PerlTokenData;
 import com.perl5.lang.perl.psi.utils.PerlNamesCache;
 import com.perl5.lang.perl.util.PerlPackageUtil;
+import gnu.trove.THashMap;
 
-import java.util.Set;
+import java.util.*;
 
 /**
  * Created by hurricup on 04.05.2015.
@@ -36,11 +39,11 @@ import java.util.Set;
  */
 public class PerlBuilder extends GeneratedParserUtilBase.Builder implements PerlElementTypes
 {
+	private final Map<Pair<IElementType, Integer>, Integer> MARKERS_MAP = new THashMap<Pair<IElementType, Integer>, Integer>();
+
 	private final PerlParserImpl perlParser;
 	protected Set<String> KNOWN_SUBS;
 	protected Set<String> KNOWN_PACKAGES;
-	protected boolean recoveringStatement = false;
-	protected int bracesLevel = 0;
 	// flag forces stringification of -identifiers, required for use Package -option;
 	boolean stringify = false;
 	// flag shows that SQ strings should be re-parsed as QQ strings. Used in use vars expr
@@ -130,37 +133,6 @@ public class PerlBuilder extends GeneratedParserUtilBase.Builder implements Perl
 	public boolean isKnownPackage(String packageName)
 	{
 		return KNOWN_PACKAGES.contains(PerlPackageUtil.getCanonicalPackageName(packageName));
-	}
-
-	public void startRecovery()
-	{
-		recoveringStatement = true;
-		bracesLevel = 0;
-	}
-
-	public void stopRecovery()
-	{
-		recoveringStatement = false;
-	}
-
-	public boolean isRecovering()
-	{
-		return recoveringStatement;
-	}
-
-	public int getBracesLevel()
-	{
-		return bracesLevel;
-	}
-
-	public void openBrace()
-	{
-		bracesLevel++;
-	}
-
-	public void closeBrace()
-	{
-		bracesLevel--;
 	}
 
 	public boolean isStringify()
@@ -284,5 +256,49 @@ public class PerlBuilder extends GeneratedParserUtilBase.Builder implements Perl
 	public void setNextSubElementType(IElementType subElement)
 	{
 		this.mySubElementType = subElement;
+	}
+
+	@Override
+	public Marker mark()
+	{
+		return super.mark();
+	}
+
+	public void registerMarker(IElementType elementType, PsiBuilder.Marker marker)
+	{
+		if (elementType == null)
+			return;
+
+		assert marker instanceof PsiBuilderImpl.ProductionMarker;
+
+		Pair<IElementType, Integer> key = new Pair<IElementType, Integer>(elementType, ((PsiBuilderImpl.ProductionMarker) marker).getStartIndex());
+		Integer result = MARKERS_MAP.get(key);
+		if (result == null)
+		{
+			result = 0;
+		}
+		result++;
+		MARKERS_MAP.put(key, result);
+	}
+
+	public void dumpMarkers()
+	{
+		List<Map.Entry<Pair<IElementType, Integer>, Integer>> entryList = new ArrayList<Map.Entry<Pair<IElementType, Integer>, Integer>>(MARKERS_MAP.entrySet());
+		Collections.sort(entryList, new Comparator<Map.Entry<Pair<IElementType, Integer>, Integer>>()
+		{
+			@Override
+			public int compare(Map.Entry<Pair<IElementType, Integer>, Integer> o1, Map.Entry<Pair<IElementType, Integer>, Integer> o2)
+			{
+				return o1.getValue().compareTo(o2.getValue());
+			}
+		});
+
+		for (Map.Entry<Pair<IElementType, Integer>, Integer> entry : entryList)
+		{
+			if (entry.getValue() > 1)
+			{
+				System.err.println(entry.getKey().first + " at " + entry.getKey().second + " parsed " + entry.getValue() + " times");
+			}
+		}
 	}
 }
