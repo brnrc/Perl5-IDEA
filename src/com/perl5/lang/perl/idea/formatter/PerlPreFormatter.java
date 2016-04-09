@@ -19,11 +19,18 @@ package com.perl5.lang.perl.idea.formatter;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
+import com.intellij.pom.PomManager;
+import com.intellij.pom.PomModel;
+import com.intellij.pom.PomTransaction;
+import com.intellij.pom.event.PomModelEvent;
+import com.intellij.pom.impl.PomTransactionBase;
+import com.intellij.pom.tree.TreeAspect;
 import com.intellij.psi.PsiDocumentManager;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
 import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
 import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.util.IncorrectOperationException;
 import com.perl5.lang.perl.idea.formatter.operations.*;
 import com.perl5.lang.perl.idea.formatter.settings.PerlCodeStyleSettings;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
@@ -33,6 +40,7 @@ import com.perl5.lang.perl.psi.utils.PerlElementFactory;
 import com.perl5.lang.perl.psi.utils.PerlPsiUtil;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -95,7 +103,7 @@ public class PerlPreFormatter extends PerlRecursiveVisitor implements PerlCodeSt
 		myRange = range;
 		final PsiDocumentManager manager = PsiDocumentManager.getInstance(myProject);
 		final Document document = manager.getDocument(element.getContainingFile());
-		int myDelta = 0;
+		final int[] myDelta = new int[]{0};
 		if (document != null)
 		{
 			manager.doPostponedOperationsAndUnblockDocument(document);
@@ -105,9 +113,32 @@ public class PerlPreFormatter extends PerlRecursiveVisitor implements PerlCodeSt
 				// scan document
 				element.accept(this);
 
-				for (int i = myFormattingOperations.size() - 1; i >= 0; i--)
+				if( !myFormattingOperations.isEmpty())
 				{
-					myDelta += myFormattingOperations.get(i).apply();
+					final PomModel pomModel = PomManager.getModel(element.getProject());
+					final PomTransaction transaction = new PomTransactionBase(element, pomModel.getModelAspect(TreeAspect.class))
+					{
+						@Nullable
+						@Override
+						public PomModelEvent runInner() throws IncorrectOperationException
+						{
+							int counter = 0;
+							for (int i = myFormattingOperations.size() - 1; i >= 0 && counter++ < 100; i--)
+							{
+								long start = System.currentTimeMillis();
+								myDelta[0] += myFormattingOperations.get(i).apply();
+								System.err.println("Applied " + counter + " in " + (System.currentTimeMillis() - start) );
+							}
+							return null;
+						}
+					};
+					try{
+						pomModel.runTransaction(transaction);
+					}
+					catch (IncorrectOperationException e)
+					{
+						throw new RuntimeException(e);
+					}
 				}
 
 			} finally
@@ -116,7 +147,7 @@ public class PerlPreFormatter extends PerlRecursiveVisitor implements PerlCodeSt
 			}
 		}
 
-		return TextRange.create(range.getStartOffset(), range.getEndOffset() + myDelta);
+		return TextRange.create(range.getStartOffset(), range.getEndOffset() + myDelta[0]);
 	}
 
 	protected void removeElement(PsiElement o)

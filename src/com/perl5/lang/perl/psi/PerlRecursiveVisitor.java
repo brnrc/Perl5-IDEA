@@ -23,7 +23,7 @@ import com.intellij.psi.PsiElement;
  */
 public class PerlRecursiveVisitor extends PerlVisitor
 {
-	public StringBuilder log = new StringBuilder();
+//	public StringBuilder log = new StringBuilder();
 	@Override
 	public void visitElement(PsiElement element)
 	{
