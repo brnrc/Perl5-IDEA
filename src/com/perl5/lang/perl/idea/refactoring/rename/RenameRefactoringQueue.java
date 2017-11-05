@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.perl5.lang.perl.idea.refactoring.rename;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiNamedElement;
@@ -25,41 +26,32 @@ import com.intellij.refactoring.RenameRefactoring;
 /**
  * Created by hurricup on 29.05.2015.
  */
-public class RenameRefactoringQueue implements Runnable
-{
-	private Project myProject;
-	private RenameRefactoring myRefactoring;
+public class RenameRefactoringQueue implements Runnable {
+  private final RenameRefactoring[] myRefactoring = {null};
+  private Project myProject;
 
-	public RenameRefactoringQueue(Project project)
-	{
-		myProject = project;
-	}
+  public RenameRefactoringQueue(Project project) {
+    myProject = project;
+  }
 
-	public void addElement(PsiElement element, String newName)
-	{
-		if (element instanceof PsiNamedElement)
-		{
-			if (myRefactoring == null)
-			{
-				myRefactoring = RefactoringFactory.getInstance(myProject).createRename(element, newName);
-			}
-			else
-			{
-				myRefactoring.addElement(element, newName);
-			}
-		}
-	}
+  public void addElement(PsiElement element, String newName) {
+    if (element instanceof PsiNamedElement) {
+      if (myRefactoring[0] == null) {
+        myRefactoring[0] = RefactoringFactory.getInstance(myProject).createRename(element, newName);
+      }
+      else {
+        myRefactoring[0].addElement(element, newName);
+      }
+    }
+  }
 
-	public void run()
-	{
-		if (myRefactoring != null)
-		{
-			myRefactoring.run();
-		}
-	}
+  public void run() {
+    if (myRefactoring[0] != null) {
+      ApplicationManager.getApplication().invokeLater(myRefactoring[0]::run);
+    }
+  }
 
-	public Project getProject()
-	{
-		return myProject;
-	}
+  public Project getProject() {
+    return myProject;
+  }
 }

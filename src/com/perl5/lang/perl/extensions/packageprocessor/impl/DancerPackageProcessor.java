@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,8 +17,6 @@
 package com.perl5.lang.perl.extensions.packageprocessor.impl;
 
 import com.perl5.lang.perl.extensions.packageprocessor.*;
-import com.perl5.lang.perl.internals.PerlStrictMask;
-import com.perl5.lang.perl.internals.PerlWarningsMask;
 import com.perl5.lang.perl.psi.PerlUseStatement;
 import org.jetbrains.annotations.NotNull;
 
@@ -29,43 +27,24 @@ import java.util.List;
  * Created by hurricup on 29.03.2016.
  */
 public class DancerPackageProcessor extends PerlPackageProcessorBase implements
-		PerlStrictProvider,
-		PerlUtfProvider,
-		PerlWarningsProvider
-{
-	private static final List<PerlExportDescriptor> EXPORT_DESCRIPTORS = new ArrayList<PerlExportDescriptor>();
+                                                                     PerlStrictProvider,
+                                                                     PerlUtfProvider,
+                                                                     PerlWarningsProvider {
+  private static final List<PerlExportDescriptor> EXPORT_DESCRIPTORS = new ArrayList<>();
 
-	static
-	{
-		for (String keyword : PerlDancerDSL.DSL_KEYWORDS)
-		{
-			EXPORT_DESCRIPTORS.add(new PerlExportDescriptor(keyword, "Dancer"));
-		}
-	}
+  static {
+    for (String keyword : PerlDancerDSL.DSL_KEYWORDS) {
+      EXPORT_DESCRIPTORS.add(PerlExportDescriptor.create("Dancer", keyword));
+    }
+  }
 
-	@Override
-	public PerlStrictMask getStrictMask(PerlUseStatement useStatement, PerlStrictMask currentMask)
-	{
-		// fixme implement modification
-		return currentMask.clone();
-	}
+  @NotNull
+  @Override
+  public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement) {
+    return getExportDescriptors();
+  }
 
-	@Override
-	public PerlWarningsMask getWarningMask(PerlUseStatement useStatement, PerlWarningsMask currentMask)
-	{
-		// fixme implement modification
-		return currentMask.clone();
-	}
-
-	@NotNull
-	@Override
-	public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement)
-	{
-		return getExportDescriptors();
-	}
-
-	public List<PerlExportDescriptor> getExportDescriptors()
-	{
-		return EXPORT_DESCRIPTORS;
-	}
+  public List<PerlExportDescriptor> getExportDescriptors() {
+    return EXPORT_DESCRIPTORS;
+  }
 }

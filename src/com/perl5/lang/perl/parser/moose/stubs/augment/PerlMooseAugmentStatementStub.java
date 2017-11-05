@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ import com.perl5.lang.perl.parser.moose.psi.PerlMooseAugmentStatement;
 /**
  * Created by hurricup on 25.01.2016.
  */
-public interface PerlMooseAugmentStatementStub extends StubElement<PerlMooseAugmentStatement>
-{
-	/**
-	 * Returns augmented method name
-	 *
-	 * @return name
-	 */
-	String getSubName();
+public interface PerlMooseAugmentStatementStub extends StubElement<PerlMooseAugmentStatement> {
+  /**
+   * Returns augmented method name
+   *
+   * @return name
+   */
+  String getSubName();
 }

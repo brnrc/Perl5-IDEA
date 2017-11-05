@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,71 +16,54 @@
 
 package resolve.perl;
 
-import com.perl5.lang.perl.psi.PerlSubNameElement;
+import base.PerlLightTestCase;
 
 /**
  * Created by hurricup on 14.06.2016.
  */
-public class PerlMethodResolveTest extends PerlResolveTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/resolve/perl/methods";
-	}
+public class PerlMethodResolveTest extends PerlLightTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/resolve/perl/methods";
+  }
 
-	public void testViaSelf()
-	{
-		doTest();
-	}
+  public void testViaSelf() {
+    doTest();
+  }
 
-	public void testViaShift()
-	{
-		doTest();
-	}
+  public void testViaShift() {
+    doTest();
+  }
 
-	public void testViaDefault()
-	{
-		doTest();
-	}
+  public void testViaDefault() {
+    doTest();
+  }
 
-	public void testViaShiftInParens()
-	{
-		doTest();
-	}
+  public void testViaShiftInParens() {
+    doTest();
+  }
 
-	public void testViaDefaultInParens()
-	{
-		doTest();
-	}
+  public void testViaDefaultInParens() {
+    doTest();
+  }
 
-	public void testViaPackageVar()
-	{
-		doTest();
-	}
+  public void testViaPackageVar() {
+    doTest();
+  }
 
-	public void testViaPackageVarInParens()
-	{
-		doTest();
-	}
+  public void testViaPackageVarInParens() {
+    doTest();
+  }
 
-	public void testViaArbitraryVar()
-	{
-		doTest(false);
-	}
+  public void testViaArbitraryVar() {
+    doTestResolve();
+  }
 
-	public void testViaReturnResult()
-	{
-		doTest();
-	}
+  public void testViaReturnResult() {
+    doTest();
+  }
 
-	public void doTest()
-	{
-		doTest(true);
-	}
-
-	public void doTest(boolean success)
-	{
-		super.doTest(getTestName(false).toLowerCase(), success, PerlSubNameElement.class);
-	}
+  public void doTest() {
+    doTestResolve();
+  }
 }

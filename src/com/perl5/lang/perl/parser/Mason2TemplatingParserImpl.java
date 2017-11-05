@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,229 +23,182 @@ import com.intellij.psi.tree.IElementType;
 /**
  * Created by hurricup on 13.01.2016.
  */
-public class Mason2TemplatingParserImpl extends Mason2ParserImpl
-{
+public class Mason2TemplatingParserImpl extends Mason2ParserImpl {
 
-	public static boolean parseMasonMethod(PsiBuilder b, int l, IElementType closeToken, IElementType statementTokenType)
-	{
-		boolean r = false;
+  @Override
+  public boolean parseStatement(PsiBuilder b, int l) {
+    IElementType tokenType = b.getTokenType();
 
-		PsiBuilder.Marker methodMarker = b.mark();
-		b.advanceLexer();
-		PsiBuilder.Marker subMarker = b.mark();
-		if (PerlParserUtil.consumeToken(b, IDENTIFIER))
-		{
-			subMarker.collapse(SUB);
-			PerlParserImpl.method_signature(b, l);
-			if (PerlParserUtil.consumeToken(b, MASON_TAG_CLOSER))
-			{
-				PsiBuilder.Marker blockMarker = b.mark();
-				PerlParserImpl.block_content(b, l);
+    boolean r = false;
+    PsiBuilder.Marker m = b.mark();
 
-				if (b.getTokenType() == closeToken)
-				{
-					blockMarker.done(BLOCK);
-					blockMarker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_LEFT_BINDER, WhitespacesBinders.GREEDY_RIGHT_BINDER);
-					b.advanceLexer();
-					methodMarker.done(statementTokenType);
-					r = true;
-				}
-			}
+    if (tokenType == MASON_BLOCK_OPENER) {
+      PsiBuilder.Marker statementMarker = b.mark();
+      b.advanceLexer();
+      if (PerlParserImpl.expr(b, l, -1)) {
+        // parseStatement filter
+        if (PerlParserUtil.consumeToken(b, MASON_EXPR_FILTER_PIPE)) {
+          while (b.getTokenType() == IDENTIFIER) {
+            PsiBuilder.Marker fm = b.mark();
+            b.advanceLexer();
+            fm.collapse(SUB_NAME);
+            fm.precede().done(METHOD);
 
-		}
+            if (!PerlParserUtil.consumeToken(b, COMMA)) {
+              break;
+            }
+          }
+        }
+      }
+      if (r = MasonParserUtil.endOrRecover(b, MASON_BLOCK_CLOSER)) {
+        statementMarker.done(STATEMENT);
+      }
+    }
+    if (tokenType == MASON_CALL_OPENER) {
+      PsiBuilder.Marker statementMarker = b.mark();
+      b.advanceLexer();
+      PerlParserImpl.expr(b, l, -1);
+      if (r = MasonParserUtil.endOrRecover(b, MASON_CALL_CLOSER)) {
+        statementMarker.done(MASON_CALL_STATEMENT);
+      }
+    }
+    else if (tokenType == MASON_CLASS_OPENER) {
+      r = parsePerlBlock(b, l, MASON_CLASS_CLOSER);
+    }
+    else if (tokenType == MASON_INIT_OPENER) {
+      r = parsePerlBlock(b, l, MASON_INIT_CLOSER);
+    }
+    else if (tokenType == MASON_PERL_OPENER) {
+      r = parsePerlBlock(b, l, MASON_PERL_CLOSER);
+    }
+    else if (tokenType == MASON_FLAGS_OPENER) {
+      b.advanceLexer();
+      PsiBuilder.Marker statementMarker = b.mark();
 
-		if (!r)
-		{
-			methodMarker.rollbackTo();
-		}
+      while (!b.eof() && b.getTokenType() != MASON_FLAGS_CLOSER) {
+        if (!PerlParserImpl.expr(b, l, -1)) {
+          break;
+        }
+      }
+      statementMarker.done(MASON_FLAGS_STATEMENT);
 
-		return r || MasonParserUtil.recoverToGreedy(b, closeToken, "Error");
-	}
+      r = MasonParserUtil.endOrRecover(b, MASON_FLAGS_CLOSER);
+    }
+    else if (tokenType == MASON_DOC_OPENER) {
+      b.advanceLexer();
+      PerlParserUtil.consumeToken(b, COMMENT_BLOCK);
+      r = MasonParserUtil.endOrRecover(b, MASON_DOC_CLOSER);
+    }
+    else if (tokenType == MASON_TEXT_OPENER) {
+      b.advanceLexer();
+      PsiBuilder.Marker stringMarker = b.mark();
+      if (PerlParserUtil.consumeToken(b, STRING_CONTENT)) {
+        stringMarker.done(MASON_TEXT_BLOCK);
+      }
+      else {
+        stringMarker.drop();
+      }
+      r = MasonParserUtil.endOrRecover(b, MASON_TEXT_CLOSER);
+    }
+    else if (tokenType == MASON_METHOD_OPENER) {
+      r = parseMasonMethod(b, l, MASON_METHOD_CLOSER, MASON_METHOD_DEFINITION);
+    }
+    else if (tokenType == MASON_FILTER_OPENER) {
+      r = parseMasonMethod(b, l, MASON_FILTER_CLOSER, MASON_FILTER_DEFINITION);
+    }
+    else if (tokenType == MASON_OVERRIDE_OPENER) {
+      r = parseMasonMethod(b, l, MASON_OVERRIDE_CLOSER, MASON_OVERRIDE_DEFINITION);
+    }
+    else if (SIMPLE_MASON_NAMED_BLOCKS.contains(tokenType)) // simple named blocks
+    {
+      PsiBuilder.Marker statementMarker = b.mark();
+      b.advanceLexer();
+      IElementType closeToken = RESERVED_OPENER_TO_CLOSER_MAP.get(tokenType);
 
-	protected static boolean parsePerlBlock(PsiBuilder b, int l, IElementType closeToken)
-	{
-		return MasonParserUtil.parsePerlBlock(b, l, closeToken, MASON_ABSTRACT_BLOCK);
-	}
+      if (PerlParserUtil.consumeToken(b, SUB_NAME) && PerlParserUtil.consumeToken(b, MASON_TAG_CLOSER)) {
+        PsiBuilder.Marker blockMarker = b.mark();
+        PerlParserImpl.block_content(b, l);
+        blockMarker.done(BLOCK);
+        blockMarker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_LEFT_BINDER, WhitespacesBinders.GREEDY_RIGHT_BINDER);
 
+        if (r = PerlParserUtil.consumeToken(b, closeToken)) {
+          statementMarker.done(RESERVED_TO_STATEMENT_MAP.get(tokenType));
+          statementMarker = null;
+        }
+      }
 
-	@Override
-	public boolean parseStatement(PsiBuilder b, int l)
-	{
-		IElementType tokenType = b.getTokenType();
+      if (statementMarker != null) {
+        statementMarker.drop();
+      }
 
-		boolean r = false;
-		PsiBuilder.Marker m = b.mark();
+      r = r || MasonParserUtil.recoverToGreedy(b, closeToken, "Error");
+    }
 
-		if (tokenType == MASON_BLOCK_OPENER)
-		{
-			PsiBuilder.Marker statementMarker = b.mark();
-			b.advanceLexer();
-			if (PerlParserImpl.expr(b, l, -1))
-			{
-				// parseStatement filter
-				if (PerlParserUtil.consumeToken(b, MASON_EXPR_FILTER_PIPE))
-				{
-					while (b.getTokenType() == IDENTIFIER)
-					{
-						PsiBuilder.Marker fm = b.mark();
-						b.advanceLexer();
-						fm.collapse(SUB);
-						fm.precede().done(METHOD);
+    if (r) {
+      m.drop();
+    }
+    else {
+      m.rollbackTo();
+    }
 
-						if (!PerlParserUtil.consumeToken(b, OPERATOR_COMMA))
-						{
-							break;
-						}
-					}
-				}
-			}
-			if (r = MasonParserUtil.endOrRecover(b, MASON_BLOCK_CLOSER))
-			{
-				statementMarker.done(STATEMENT);
-			}
-		}
-		if (tokenType == MASON_CALL_OPENER)
-		{
-			PsiBuilder.Marker statementMarker = b.mark();
-			b.advanceLexer();
-			PerlParserImpl.expr(b, l, -1);
-			if (r = MasonParserUtil.endOrRecover(b, MASON_CALL_CLOSER))
-			{
-				statementMarker.done(MASON_CALL_STATEMENT);
-			}
-		}
-		else if (tokenType == MASON_CLASS_OPENER)
-		{
-			r = parsePerlBlock(b, l, MASON_CLASS_CLOSER);
-		}
-		else if (tokenType == MASON_INIT_OPENER)
-		{
-			r = parsePerlBlock(b, l, MASON_INIT_CLOSER);
-		}
-		else if (tokenType == MASON_PERL_OPENER)
-		{
-			r = parsePerlBlock(b, l, MASON_PERL_CLOSER);
-		}
-		else if (tokenType == MASON_FLAGS_OPENER)
-		{
-			b.advanceLexer();
-			PsiBuilder.Marker statementMarker = b.mark();
+    return r || super.parseStatement(b, l);
+  }
 
-			while (!b.eof() && b.getTokenType() != MASON_FLAGS_CLOSER)
-			{
-				if (!PerlParserImpl.expr(b, l, -1))
-				{
-					break;
-				}
-			}
-			statementMarker.done(MASON_FLAGS_STATEMENT);
+  @Override
+  public boolean parseStatementModifier(PsiBuilder b, int l) {
+    if (b.getTokenType() == MASON_FILTERED_BLOCK_OPENER) {
+      return MasonParserUtil.parsePerlBlock(b, l, MASON_FILTERED_BLOCK_CLOSER, MASON_FILTERED_BLOCK);
+    }
+    return super.parseStatementModifier(b, l);
+  }
 
-			r = MasonParserUtil.endOrRecover(b, MASON_FLAGS_CLOSER);
-		}
-		else if (tokenType == MASON_DOC_OPENER)
-		{
-			b.advanceLexer();
-			PerlParserUtil.consumeToken(b, COMMENT_BLOCK);
-			r = MasonParserUtil.endOrRecover(b, MASON_DOC_CLOSER);
-		}
-		else if (tokenType == MASON_TEXT_OPENER)
-		{
-			b.advanceLexer();
-			PsiBuilder.Marker stringMarker = b.mark();
-			if (PerlParserUtil.consumeToken(b, STRING_CONTENT))
-			{
-				stringMarker.done(MASON_TEXT_BLOCK);
-			}
-			else
-			{
-				stringMarker.drop();
-			}
-			r = MasonParserUtil.endOrRecover(b, MASON_TEXT_CLOSER);
-		}
-		else if (tokenType == MASON_METHOD_OPENER)
-		{
-			r = parseMasonMethod(b, l, MASON_METHOD_CLOSER, MASON_METHOD_DEFINITION);
-		}
-		else if (tokenType == MASON_FILTER_OPENER)
-		{
-			r = parseMasonMethod(b, l, MASON_FILTER_CLOSER, MASON_FILTER_DEFINITION);
-		}
-		else if (tokenType == MASON_OVERRIDE_OPENER)
-		{
-			r = parseMasonMethod(b, l, MASON_OVERRIDE_CLOSER, MASON_OVERRIDE_DEFINITION);
-		}
-		else if (SIMPLE_MASON_NAMED_BLOCKS.contains(tokenType)) // simple named blocks
-		{
-			PsiBuilder.Marker statementMarker = b.mark();
-			b.advanceLexer();
-			IElementType closeToken = RESERVED_OPENER_TO_CLOSER_MAP.get(tokenType);
+  @Override
+  public boolean parseTerm(PsiBuilder b, int l) {
+    if (b.getTokenType() == MASON_SELF_POINTER) {
+      PsiBuilder.Marker m = b.mark();
+      b.advanceLexer();
+      if (regular_nested_call(b, l)) {
+        m.done(MASON_SIMPLE_DEREF_EXPR);
+      }
+      else {
+        m.error("Error parsing filter expression");
+      }
+      return true;
+    }
+    return super.parseTerm(b, l);
+  }
 
-			if (PerlParserUtil.convertIdentifier(b, l, MASON_METHOD_MODIFIER_NAME))
-			{
-				if (PerlParserUtil.consumeToken(b, MASON_TAG_CLOSER))
-				{
-					PsiBuilder.Marker blockMarker = b.mark();
-					PerlParserImpl.block_content(b, l);
-					blockMarker.done(BLOCK);
-					blockMarker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_LEFT_BINDER, WhitespacesBinders.GREEDY_RIGHT_BINDER);
+  public static boolean parseMasonMethod(PsiBuilder b, int l, IElementType closeToken, IElementType statementTokenType) {
+    boolean r = false;
 
-					if (r = PerlParserUtil.consumeToken(b, closeToken))
-					{
-						statementMarker.done(RESERVED_TO_STATEMENT_MAP.get(tokenType));
-						statementMarker = null;
-					}
-				}
-			}
+    PsiBuilder.Marker methodMarker = b.mark();
+    b.advanceLexer();
+    PsiBuilder.Marker subMarker = b.mark();
+    if (PerlParserUtil.consumeToken(b, SUB_NAME)) {
+      subMarker.collapse(SUB_NAME);
+      PerlParserImpl.method_signature(b, l);
+      if (PerlParserUtil.consumeToken(b, MASON_TAG_CLOSER)) {
+        PsiBuilder.Marker blockMarker = b.mark();
+        PerlParserImpl.block_content(b, l);
 
-			if (statementMarker != null)
-			{
-				statementMarker.drop();
-			}
+        if (b.getTokenType() == closeToken) {
+          blockMarker.done(BLOCK);
+          blockMarker.setCustomEdgeTokenBinders(WhitespacesBinders.GREEDY_LEFT_BINDER, WhitespacesBinders.GREEDY_RIGHT_BINDER);
+          b.advanceLexer();
+          methodMarker.done(statementTokenType);
+          r = true;
+        }
+      }
+    }
 
-			r = r || MasonParserUtil.recoverToGreedy(b, closeToken, "Error");
-		}
+    if (!r) {
+      methodMarker.rollbackTo();
+    }
 
-		if (r)
-		{
-			m.drop();
-		}
-		else
-		{
-			m.rollbackTo();
-		}
+    return r || MasonParserUtil.recoverToGreedy(b, closeToken, "Error");
+  }
 
-		return r || super.parseStatement(b, l);
-	}
-
-	@Override
-	public boolean parseStatementModifier(PsiBuilder b, int l)
-	{
-		if (b.getTokenType() == MASON_FILTERED_BLOCK_OPENER)
-		{
-			return MasonParserUtil.parsePerlBlock(b, l, MASON_FILTERED_BLOCK_CLOSER, MASON_FILTERED_BLOCK);
-		}
-		return super.parseStatementModifier(b, l);
-	}
-
-	@Override
-	public boolean parseTerm(PsiBuilder b, int l)
-	{
-		if (b.getTokenType() == MASON_SELF_POINTER)
-		{
-			PsiBuilder.Marker m = b.mark();
-			b.advanceLexer();
-			if (nested_call(b, l))
-			{
-				m.done(MASON_SIMPLE_DEREF_EXPR);
-			}
-			else
-			{
-				m.error("Error parsing filter expression");
-			}
-			return true;
-		}
-		return super.parseTerm(b, l);
-	}
-
-
+  protected static boolean parsePerlBlock(PsiBuilder b, int l, IElementType closeToken) {
+    return MasonParserUtil.parsePerlBlock(b, l, closeToken, MASON_ABSTRACT_BLOCK);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,26 +22,22 @@ import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
 import com.perl5.lang.perl.idea.completion.util.PerlSubCompletionUtil;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 29.01.2016.
  */
-public class PerlSubNameElementCompletionProvider extends CompletionProvider<CompletionParameters>
-{
-	public void addCompletions(@NotNull CompletionParameters parameters,
-							   ProcessingContext context,
-							   @NotNull CompletionResultSet resultSet)
-	{
-		PsiElement element = parameters.getOriginalPosition();
+public class PerlSubNameElementCompletionProvider extends CompletionProvider<CompletionParameters> {
+  public void addCompletions(@NotNull CompletionParameters parameters,
+                             ProcessingContext context,
+                             @NotNull CompletionResultSet resultSet) {
+    PsiElement element = parameters.getPosition();
 
-		if (element != null && element.getParent() instanceof PerlSubDefinitionBase)
-		{
-			PerlSubDefinitionBase subDefinitionBase = (PerlSubDefinitionBase) element.getParent();
-			PerlSubCompletionUtil.fillWithUnresolvedSubs(subDefinitionBase, resultSet);
-			PerlSubCompletionUtil.fillWithNotOverridedSubs(subDefinitionBase, resultSet);
-		}
-
-	}
+    if (element.getParent() instanceof PerlSubElement) {
+      PerlSubElement subDefinitionBase = (PerlSubElement)element.getParent();
+      PerlSubCompletionUtil.fillWithUnresolvedSubs(subDefinitionBase, resultSet);
+      PerlSubCompletionUtil.fillWithNotOverridedSubs(subDefinitionBase, resultSet);
+    }
+  }
 }

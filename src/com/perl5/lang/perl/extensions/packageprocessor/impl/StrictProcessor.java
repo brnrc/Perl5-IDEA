@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,8 +19,6 @@ package com.perl5.lang.perl.extensions.packageprocessor.impl;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlPackageOptionsProvider;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlPragmaProcessorBase;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlStrictProvider;
-import com.perl5.lang.perl.internals.PerlStrictMask;
-import com.perl5.lang.perl.psi.PerlUseStatement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
@@ -30,35 +28,24 @@ import java.util.Map;
 /**
  * Created by hurricup on 18.08.2015.
  */
-public class StrictProcessor extends PerlPragmaProcessorBase implements PerlPackageOptionsProvider, PerlStrictProvider
-{
-	protected static final HashMap<String, String> OPTIONS = new HashMap<String, String>();
+public class StrictProcessor extends PerlPragmaProcessorBase implements PerlPackageOptionsProvider, PerlStrictProvider {
+  protected static final HashMap<String, String> OPTIONS = new HashMap<>();
 
-	static
-	{
-		OPTIONS.put("vars", "generates a compile-time error if you access a variable that was neither explicitly declared");
-		OPTIONS.put("refs", "generates a runtime error if you use symbolic references");
-		OPTIONS.put("subs", "generates a compile-time error if you try to use a bareword identifier that's not a subroutine");
-	}
+  static {
+    OPTIONS.put("vars", "generates a compile-time error if you access a variable that was neither explicitly declared");
+    OPTIONS.put("refs", "generates a runtime error if you use symbolic references");
+    OPTIONS.put("subs", "generates a compile-time error if you try to use a bareword identifier that's not a subroutine");
+  }
 
-	@NotNull
-	@Override
-	public Map<String, String> getOptions()
-	{
-		return OPTIONS;
-	}
+  @NotNull
+  @Override
+  public Map<String, String> getOptions() {
+    return OPTIONS;
+  }
 
-	@NotNull
-	@Override
-	public Map<String, String> getOptionsBundles()
-	{
-		return Collections.emptyMap();
-	}
-
-	@Override
-	public PerlStrictMask getStrictMask(PerlUseStatement useStatement, PerlStrictMask currentMask)
-	{
-		// fixme implement modification
-		return currentMask == null ? new PerlStrictMask() : currentMask.clone();
-	}
+  @NotNull
+  @Override
+  public Map<String, String> getOptionsBundles() {
+    return Collections.emptyMap();
+  }
 }

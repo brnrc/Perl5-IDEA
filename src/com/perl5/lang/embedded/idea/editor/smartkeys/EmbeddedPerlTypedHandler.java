@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,19 +26,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 07.01.2016.
  */
-public class EmbeddedPerlTypedHandler extends TypedHandlerDelegate
-{
-	@Override
-	public Result charTyped(char c, final Project project, @NotNull final Editor editor, @NotNull PsiFile file)
-	{
-		if (file.getViewProvider() instanceof EmbeddedPerlFileViewProvider)
-		{
-			if (c == ' ')
-			{
-				EmbeddedPerlSmartKeysUtils.addCloseMarker(editor, file, " ?>");
-			}
-		}
-		return super.charTyped(c, project, editor, file);
-	}
-
+public class EmbeddedPerlTypedHandler extends TypedHandlerDelegate {
+  @Override
+  public Result charTyped(char c, final Project project, @NotNull final Editor editor, @NotNull PsiFile file) {
+    if (file.getViewProvider() instanceof EmbeddedPerlFileViewProvider) {
+      if (c == ' ') {
+        EmbeddedPerlSmartKeysUtil.addCloseMarker(editor, file, " ?>");
+      }
+    }
+    return super.charTyped(c, project, editor, file);
+  }
 }

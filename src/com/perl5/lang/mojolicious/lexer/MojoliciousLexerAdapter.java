@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,16 +17,22 @@
 package com.perl5.lang.mojolicious.lexer;
 
 import com.intellij.openapi.project.Project;
-import com.perl5.lang.perl.lexer.PerlLexerWithCustomStatesAdapter;
+import com.intellij.psi.tree.TokenSet;
+import com.perl5.lang.mojolicious.MojoliciousElementTypes;
+import com.perl5.lang.perl.lexer.adapters.PerlMergingLexerAdapter;
+import com.perl5.lang.perl.lexer.adapters.PerlTemplatingMergingLexerAdapter;
 
 /**
  * Created by hurricup on 21.07.2015.
  * Copy-pasted FlexAdapter because of private variables and no setters
  */
-public class MojoliciousLexerAdapter extends PerlLexerWithCustomStatesAdapter
-{
-	public MojoliciousLexerAdapter(Project project)
-	{
-		super(new MojoliciousLexer(project));
-	}
+public class MojoliciousLexerAdapter extends PerlTemplatingMergingLexerAdapter implements MojoliciousElementTypes {
+  private final static TokenSet TOKENS_TO_MERGE = TokenSet.orSet(
+    PerlMergingLexerAdapter.TOKENS_TO_MERGE,
+    TokenSet.create(MOJO_TEMPLATE_BLOCK_HTML)
+  );
+
+  public MojoliciousLexerAdapter(Project project) {
+    super(project, new MojoliciousLexer(null).withProject(project), TOKENS_TO_MERGE);
+  }
 }

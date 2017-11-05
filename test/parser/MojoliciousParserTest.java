@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,29 +24,23 @@ import com.perl5.lang.mojolicious.psi.MojoliciousFileViewProviderFactory;
 /**
  * Created by hurricup on 04.03.2016.
  */
-public class MojoliciousParserTest extends PerlParserTestBase
-{
-	public MojoliciousParserTest()
-	{
-		super("", "ep", new MojoliciousParserDefinition());
-	}
+public class MojoliciousParserTest extends PerlParserTestBase {
+  public MojoliciousParserTest() {
+    super("", "ep", new MojoliciousParserDefinition());
+  }
 
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/parser/mojolicious";
-	}
+  @Override
+  protected String getTestDataPath() {
+    return "testData/parser/mojolicious";
+  }
 
-	public void testSyntax()
-	{
-		doTest("mojo_parser_test");
-	}
+  public void testMojoParserTest() {
+    doTest();
+  }
 
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		LanguageFileViewProviders.INSTANCE.addExplicitExtension(MojoliciousLanguage.INSTANCE, new MojoliciousFileViewProviderFactory());
-	}
-
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    LanguageFileViewProviders.INSTANCE.addExplicitExtension(MojoliciousLanguage.INSTANCE, new MojoliciousFileViewProviderFactory());
+  }
 }

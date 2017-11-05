@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,16 @@ import com.intellij.lang.Language;
 /**
  * Created by hurricup on 21.04.2015.
  */
-public class XSLanguage extends Language
-{
+public class XSLanguage extends Language {
 
-	public static final XSLanguage INSTANCE = new XSLanguage();
+  public static final XSLanguage INSTANCE = new XSLanguage();
 
-	public XSLanguage()
-	{
-		super("Perl extension language");
-	}
+  public XSLanguage() {
+    super("Perl extension language");
+  }
 
-	@Override
-	public boolean isCaseSensitive()
-	{
-		return true;
-	}
+  @Override
+  public boolean isCaseSensitive() {
+    return true;
+  }
 }

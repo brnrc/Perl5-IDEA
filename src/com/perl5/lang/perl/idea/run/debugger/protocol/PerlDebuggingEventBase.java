@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,29 +22,24 @@ import com.perl5.lang.perl.idea.run.debugger.PerlDebugThread;
 /**
  * Created by hurricup on 08.05.2016.
  */
-public abstract class PerlDebuggingEventBase implements PerlDebuggingEvent
-{
+public abstract class PerlDebuggingEventBase implements PerlDebuggingEvent {
 
-	private transient XDebugSession myDebugSession;
-	private transient PerlDebugThread myDebugThread;
+  private transient XDebugSession myDebugSession;
+  private transient PerlDebugThread myDebugThread;
 
-	public XDebugSession getDebugSession()
-	{
-		return myDebugSession;
-	}
+  public XDebugSession getDebugSession() {
+    return myDebugSession;
+  }
 
-	public void setDebugSession(XDebugSession debugSession)
-	{
-		myDebugSession = debugSession;
-	}
+  public void setDebugSession(XDebugSession debugSession) {
+    myDebugSession = debugSession;
+  }
 
-	public PerlDebugThread getDebugThread()
-	{
-		return myDebugThread;
-	}
+  public PerlDebugThread getDebugThread() {
+    return myDebugThread;
+  }
 
-	public void setDebugThread(PerlDebugThread debugThread)
-	{
-		myDebugThread = debugThread;
-	}
+  public void setDebugThread(PerlDebugThread debugThread) {
+    myDebugThread = debugThread;
+  }
 }

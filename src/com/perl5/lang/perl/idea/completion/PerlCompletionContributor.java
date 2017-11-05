@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,125 +31,107 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 25.04.2015.
  */
-public class PerlCompletionContributor extends CompletionContributor implements PerlElementTypes, PerlElementPatterns
-{
-	private static final TokenSet AUTO_OPENED_TOKENS = TokenSet.create(
-			RESERVED_USE,
-			RESERVED_NO,
-			RESERVED_PACKAGE
-	);
+public class PerlCompletionContributor extends CompletionContributor implements PerlElementTypes, PerlElementPatterns {
+  private static final TokenSet AUTO_OPENED_TOKENS = TokenSet.create(
+    RESERVED_USE,
+    RESERVED_NO,
+    RESERVED_PACKAGE,
+    ANNOTATION_RETURNS_KEY,
+    ANNOTATION_TYPE_KEY
+  );
 
-	public PerlCompletionContributor()
-	{
-		extend(
-				CompletionType.BASIC,
-				STRING_CONTENT_PATTERN,
-				new PerlStringContentCompletionProvider()
-		);
+  public PerlCompletionContributor() {
+    extend(
+      CompletionType.BASIC,
+      STRING_CONTENT_PATTERN,
+      new PerlStringContentCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				LABEL_PATTERN,
-				new PerlLabelCompletionProvider()
-		);
+    extend(
+      CompletionType.BASIC,
+      LABEL_PATTERN,
+      new PerlLabelCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				NAMESPACE_NAME_PATTERN,
-				new PerlPackageCompletionProvider()
-		);
+    extend(
+      CompletionType.BASIC,
+      NAMESPACE_NAME_PATTERN,
+      new PerlPackageCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN,
-				new PerlSubNameElementCompletionProvider()
-		);
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN,
+      new PerlSubNameElementCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				VARIABLE_NAME_PATTERN,
-				new PerlVariableNameCompletionProvider()
-		);
+    extend(
+      CompletionType.BASIC,
+      VARIABLE_NAME_PATTERN,
+      new PerlVariableNameCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				VARIABLE_COMPLETION_PATTERN,
-				new PerlVariableImportCompletionProvider()
-		);
+    // refactored
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
+      new PerlSubBuiltInCompletionProvider()
+    );
 
-		// refactored
-		extend(
-				CompletionType.BASIC,
-				VARIABLE_COMPLETION_PATTERN,
-				new PerlVariableGlobalCompletionProvider()
-		);
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
+      new PerlImportedSubsCompletionProvider()
+    );
 
-		// refactored
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
-				new PerlSubBuiltInCompletionProvider()
-		);
+    // refactored
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
+      new PerlSubStaticCompletionProvider()
+    );
 
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
-				new PerlSubImportsCompletionProvider()
-		);
+    // refactored
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN.and(IN_OBJECT_METHOD_PATTERN),
+      new PerlSubMethodCompletionProvider()
+    );
 
-		// refactored
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN.and(IN_STATIC_METHOD_PATTERN),
-				new PerlSubStaticCompletionProvider()
-		);
+    // refactored, adds packages when it's appropriate
+    extend(
+      CompletionType.BASIC,
+      SUB_NAME_PATTERN.inside(METHOD_PATTERN),
+      new PerlPackageSubCompletionProvider()
+    );
 
-		// refactored
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN.and(IN_OBJECT_METHOD_PATTERN),
-				new PerlSubMethodCompletionProvider()
-		);
+    // refactored
+    extend(
+      CompletionType.BASIC,
+      UNKNOWN_ANNOTATION_PATTERN,
+      new PerlAnnotationCompletionProvider()
+    );
+  }
 
-		// refactored, adds packages when it's appropriate
-		extend(
-				CompletionType.BASIC,
-				SUB_NAME_PATTERN.inside(METHOD_PATTERN),
-				new PerlPackageSubCompletionProvider()
-		);
+  @Override
+  public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result) {
+    super.fillCompletionVariants(parameters, result);
+  }
 
-		// refactored
-		extend(
-				CompletionType.BASIC,
-				UNKNOWN_ANNOTATION_PATTERN,
-				new PerlAnnotationCompletionProvider()
-		);
-	}
+  @Override
+  public boolean invokeAutoPopup(@NotNull PsiElement element, char typedChar) {
+    IElementType elementType = element.getNode().getElementType();
 
-	@Override
-	public void fillCompletionVariants(@NotNull CompletionParameters parameters, @NotNull CompletionResultSet result)
-	{
-		super.fillCompletionVariants(parameters, result);
-	}
+    if (typedChar == '>' && elementType == OPERATOR_MINUS) {
+      return true;
+    }
+    else if (typedChar == ':' && elementType == COLON) {
+      return true;
+    }
+    else if (typedChar == ' ' && AUTO_OPENED_TOKENS.contains(elementType)) {
+      return true;
+    }
 
-	@Override
-	public boolean invokeAutoPopup(@NotNull PsiElement element, char typedChar)
-	{
-		IElementType elementType = element.getNode().getElementType();
-
-		if (typedChar == '>' && elementType == OPERATOR_MINUS)
-		{
-			return true;
-		}
-		else if (typedChar == ':' && elementType == COLON)
-		{
-			return true;
-		}
-		else if (typedChar == ' ' && AUTO_OPENED_TOKENS.contains(elementType))
-		{
-			return true;
-		}
-
-		return super.invokeAutoPopup(element, typedChar);
-	}
+    return super.invokeAutoPopup(element, typedChar);
+  }
 }

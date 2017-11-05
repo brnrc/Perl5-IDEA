@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,12 +22,11 @@ import com.perl5.lang.perl.internals.PerlVersion;
 /**
  * Created by hurricup on 09.09.2015.
  */
-public interface PerlVersionElement extends PsiElement
-{
-	/**
-	 * Returns PerlVersion object with parsed version
-	 *
-	 * @return PerlVersion object
-	 */
-	PerlVersion getPerlVersion();
+public interface PerlVersionElement extends PsiElement {
+  /**
+   * Returns PerlVersion object with parsed version
+   *
+   * @return PerlVersion object
+   */
+  PerlVersion getPerlVersion();
 }

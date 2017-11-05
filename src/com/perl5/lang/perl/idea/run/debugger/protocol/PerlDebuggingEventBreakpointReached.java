@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,37 @@ package com.perl5.lang.perl.idea.run.debugger.protocol;
 
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
-import com.perl5.lang.perl.util.PerlDebugUtils;
+import com.perl5.lang.perl.util.PerlDebugUtil;
 
 /**
  * Created by hurricup on 08.05.2016.
  */
-public class PerlDebuggingEventBreakpointReached extends PerlDebuggingEventStop implements PerlDebuggingEventBreakpoint
-{
-	boolean suspend;
-	String logmessage;
-	private String path;
-	private int line;
+public class PerlDebuggingEventBreakpointReached extends PerlDebuggingEventStop implements PerlDebuggingEventBreakpoint {
+  boolean suspend;
+  String logmessage;
+  private String path;
+  private int line;
 
-	@Override
-	public void run()
-	{
-		XDebugSession session = getDebugSession();
-		XLineBreakpoint breakpoint = PerlDebugUtils.findBreakpoint(session.getProject(), this);
-		if (breakpoint != null)
-		{
-			session.breakpointReached(breakpoint, logmessage, getSuspendContext());
-		}
+  @Override
+  public void run() {
+    XDebugSession session = getDebugSession();
+    XLineBreakpoint breakpoint = PerlDebugUtil.findBreakpoint(session.getProject(), this);
+    if (breakpoint != null) {
+      session.breakpointReached(breakpoint, logmessage, getSuspendContext());
+    }
 
-		if (suspend)
-		{
-			super.run();
-		}
-	}
+    if (suspend) {
+      super.run();
+    }
+  }
 
-	@Override
-	public String getPath()
-	{
-		return path;
-	}
+  @Override
+  public String getPath() {
+    return path;
+  }
 
-	@Override
-	public int getLine()
-	{
-		return line;
-	}
+  @Override
+  public int getLine() {
+    return line;
+  }
 }

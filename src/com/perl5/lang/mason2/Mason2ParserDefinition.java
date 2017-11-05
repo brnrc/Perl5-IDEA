@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,52 +27,46 @@ import com.perl5.lang.mason2.elementType.Mason2ElementTypes;
 import com.perl5.lang.mason2.elementType.MasonFileElementType;
 import com.perl5.lang.mason2.psi.impl.MasonFileImpl;
 import com.perl5.lang.perl.PerlParserDefinition;
-import com.perl5.lang.perl.lexer.PerlLexerAdapter;
+import com.perl5.lang.perl.lexer.adapters.PerlMergingLexerAdapter;
 import com.perl5.lang.perl.parser.Mason2ParserImpl;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 20.12.2015.
  */
-public class Mason2ParserDefinition extends PerlParserDefinition implements Mason2ElementTypes
-{
-	public static final IFileElementType FILE = new MasonFileElementType("Mason PP component", Mason2Language.INSTANCE);
+public class Mason2ParserDefinition extends PerlParserDefinition implements Mason2ElementTypes {
+  public static final IFileElementType FILE = new MasonFileElementType("Mason PP component", Mason2Language.INSTANCE);
 
-	public static final TokenSet COMMENTS = TokenSet.orSet(PerlParserDefinition.COMMENTS,
-			TokenSet.create(
-					MASON_LINE_OPENER,
-					MASON_TEMPLATE_BLOCK_HTML
-			));
+  public static final TokenSet COMMENTS = TokenSet.orSet(PerlParserDefinition.COMMENTS,
+                                                         TokenSet.create(
+                                                           MASON_LINE_OPENER,
+                                                           MASON_TEMPLATE_BLOCK_HTML
+                                                         ));
 
-	@NotNull
-	@Override
-	public Lexer createLexer(Project project)
-	{
-		return new PerlLexerAdapter(project);
-	}
+  @NotNull
+  @Override
+  public Lexer createLexer(Project project) {
+    return new PerlMergingLexerAdapter(project);
+  }
 
-	@Override
-	public IFileElementType getFileNodeType()
-	{
-		return FILE;
-	}
+  @Override
+  public IFileElementType getFileNodeType() {
+    return FILE;
+  }
 
-	@Override
-	public PsiFile createFile(FileViewProvider viewProvider)
-	{
-		return new MasonFileImpl(viewProvider);
-	}
+  @Override
+  public PsiFile createFile(FileViewProvider viewProvider) {
+    return new MasonFileImpl(viewProvider);
+  }
 
-	@NotNull
-	public TokenSet getCommentTokens()
-	{
-		return COMMENTS;
-	}
+  @NotNull
+  public TokenSet getCommentTokens() {
+    return COMMENTS;
+  }
 
-	@NotNull
-	@Override
-	public PsiParser createParser(Project project)
-	{
-		return new Mason2ParserImpl();
-	}
+  @NotNull
+  @Override
+  public PsiParser createParser(Project project) {
+    return new Mason2ParserImpl();
+  }
 }

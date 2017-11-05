@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,32 +26,26 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 13.06.2016.
  */
-public class TemplateToolkitCloseTagMacro extends TemplateToolkitOpenTagMacro
-{
-	@Override
-	public String getName()
-	{
-		return "tt2CloseMarker";
-	}
+public class TemplateToolkitCloseTagMacro extends TemplateToolkitOpenTagMacro {
+  @Override
+  public String getName() {
+    return "tt2CloseMarker";
+  }
 
-	@Override
-	public String getPresentableName()
-	{
-		return "tt2CloseMarker()";
-	}
+  @Override
+  public String getPresentableName() {
+    return "tt2CloseMarker()";
+  }
 
-	@Nullable
-	@Override
-	protected Result getResultByTokenType(Project project, IElementType tokenType)
-	{
-		if (tokenType == TT2_OUTLINE_TAG)
-		{
-			return new TextResult("");
-		}
-		else if (tokenType == TT2_OPEN_TAG)
-		{
-			return new TextResult(TemplateToolkitSettings.getInstance(project).END_TAG);
-		}
-		return null;
-	}
+  @Nullable
+  @Override
+  protected Result getResultByTokenType(Project project, IElementType tokenType) {
+    if (tokenType == TT2_OUTLINE_TAG) {
+      return new TextResult("");
+    }
+    else if (tokenType == TT2_OPEN_TAG) {
+      return new TextResult(TemplateToolkitSettings.getInstance(project).END_TAG);
+    }
+    return null;
+  }
 }

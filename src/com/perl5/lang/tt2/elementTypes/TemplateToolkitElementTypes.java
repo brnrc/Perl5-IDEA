@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,16 @@ import com.perl5.lang.tt2.lexer.TemplateToolkitElementTypesGenerated;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public interface TemplateToolkitElementTypes extends TemplateToolkitElementTypesGenerated
-{
-	IFileElementType TT2_FILE = new TemplateToolkitFileElementType();
+public interface TemplateToolkitElementTypes extends TemplateToolkitElementTypesGenerated {
+  IFileElementType TT2_FILE = new TemplateToolkitFileElementType();
 
-	IElementType TT2_TEMPLATE_DATA = new TemplateDataElementType(
-			"TT2_TEMPLATE_DATA",
-			TemplateToolkitLanguage.INSTANCE,
-			TT2_HTML,
-			TT2_OUTER
-	);
+  IElementType TT2_TEMPLATE_DATA = new TemplateDataElementType(
+    "TT2_TEMPLATE_DATA",
+    TemplateToolkitLanguage.INSTANCE,
+    TT2_HTML,
+    TT2_OUTER
+  );
 
-	IElementType TT2_PERL_CODE = new TemplateToolkitPerlCodeElementType("PERL_CODE");
-	IElementType TT2_RAWPERL_CODE = new TemplateToolkitRawPerlCodeElementType("RAW_PERL_CODE");
+  IElementType TT2_PERL_CODE = new TemplateToolkitPerlCodeElementType("PERL_CODE");
+  IElementType TT2_RAWPERL_CODE = new TemplateToolkitRawPerlCodeElementType("RAW_PERL_CODE");
 }

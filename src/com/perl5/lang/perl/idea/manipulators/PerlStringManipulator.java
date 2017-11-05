@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,93 @@
 
 package com.perl5.lang.perl.idea.manipulators;
 
+import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.IncorrectOperationException;
-import com.perl5.lang.perl.lexer.RegexBlock;
-import com.perl5.lang.perl.psi.mixins.PerlStringImplMixin;
+import com.perl5.lang.perl.lexer.PerlLexer;
+import com.perl5.lang.perl.parser.PerlParserUtil;
+import com.perl5.lang.perl.psi.PerlString;
+import com.perl5.lang.perl.psi.impl.PerlParsableStringWrapperlImpl;
+import com.perl5.lang.perl.psi.mixins.PerlStringMixin;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 27.02.2016.
  */
-public class PerlStringManipulator extends PerlTextContainerManipulator<PerlStringImplMixin>
-{
-	@Override
-	public PerlStringImplMixin handleContentChange(@NotNull PerlStringImplMixin element, @NotNull TextRange range, String newContent) throws IncorrectOperationException
-	{
-		PsiElement openingQuote = element.getOpeningQuote();
-		char closeQuote = RegexBlock.getQuoteCloseChar(openingQuote.getText().charAt(0));
-		return super.handleContentChange(element, range, newContent.replaceAll("(?<!\\\\)" + closeQuote, "\\\\" + closeQuote));
-	}
+public class PerlStringManipulator extends PerlTextContainerManipulator<PerlStringMixin> {
+  @Override
+  public PerlStringMixin handleContentChange(@NotNull PerlStringMixin element, @NotNull TextRange range, String newContent)
+    throws IncorrectOperationException {
+    PsiElement openingQuote = getOpeningQuote(element);
+    char closeQuote = PerlLexer.getQuoteCloseChar(openingQuote.getText().charAt(0));
 
-	@NotNull
-	@Override
-	public TextRange getRangeInElement(@NotNull PerlStringImplMixin element)
-	{
-		return element.getContentTextRangeInParent();
-	}
+    /*
+    String currentContent = getNode().getText();
+
+    String newNodeContent =
+      currentContent.substring(0, getOpenQuoteOffsetInParent() + 1) +    // opening sequence
+      newContent +                                                    // new content
+      currentContent.substring(currentContent.length() - 1)            // close quote fixme handle incomplete strings
+      ;
+
+    replace(PerlElementFactory.createString(getProject(), newNodeContent));
+    */
+
+    return super.handleContentChange(element, range, newContent.replaceAll("(?<!\\\\)" + closeQuote, "\\\\" + closeQuote));
+  }
+
+  @NotNull
+  @Override
+  public TextRange getRangeInElement(@NotNull PerlStringMixin element) {
+    return new TextRange(getOpenQuoteOffsetInParent(element) + 1, getCloseQuoteOffsetInParent(element));
+  }
+
+  protected int getCloseQuoteOffsetInParent(@NotNull PerlStringMixin element) {
+    PsiElement closingQuote = getClosingQuote(element);
+    ASTNode node = element.getNode();
+    if (closingQuote == null) // unclosed string
+    {
+      return node.getTextLength();
+    }
+    return closingQuote.getNode().getStartOffset() - node.getStartOffset();
+  }
+
+  private int getOpenQuoteOffsetInParent(@NotNull PerlStringMixin element) {
+    return getOpeningQuote(element).getNode().getStartOffset() - element.getNode().getStartOffset();
+  }
+
+  @Nullable
+  private PsiElement getClosingQuote(@NotNull PerlStringMixin element) {
+    PsiElement lastChild = getRealString(element).getLastChild();
+    if (lastChild != null && PerlParserUtil.CLOSE_QUOTES.contains(lastChild.getNode().getElementType())) {
+      return lastChild;
+    }
+    return null;
+  }
+
+  @NotNull
+  public PsiElement getOpeningQuote(@NotNull PerlStringMixin element) {
+    PsiElement firstChild = getRealString(element).getFirstChild();
+
+    while (firstChild != null) {
+      if (PerlParserUtil.OPEN_QUOTES.contains(firstChild.getNode().getElementType())) {
+        return firstChild;
+      }
+      firstChild = firstChild.getNextSibling();
+    }
+    throw new RuntimeException("Unable to find opening quote in: " + element.getText());
+  }
+
+  @NotNull
+  protected PerlString getRealString(@NotNull PerlStringMixin element) {
+    if (element.getFirstChild() instanceof PerlParsableStringWrapperlImpl) {
+      PsiElement realString = element.getFirstChild().getFirstChild();
+      assert realString instanceof PerlString : "Got " + realString + " instead of string";
+      return (PerlString)realString;
+    }
+    return element;
+  }
+
 }

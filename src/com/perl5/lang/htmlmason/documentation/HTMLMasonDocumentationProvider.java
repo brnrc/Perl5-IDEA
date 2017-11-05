@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,22 @@ package com.perl5.lang.htmlmason.documentation;
 
 import com.intellij.lang.documentation.AbstractDocumentationProvider;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.htmlmason.HTMLMasonUtils;
+import com.perl5.lang.htmlmason.HTMLMasonUtil;
 import com.perl5.lang.htmlmason.parser.psi.impl.HTMLMasonFileImpl;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 20.03.2016.
  */
-public class HTMLMasonDocumentationProvider extends AbstractDocumentationProvider
-{
-	@Nullable
-	@Override
-	public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement)
-	{
-		if (element instanceof HTMLMasonFileImpl)
-		{
-			return "HTML::Mason component:<br>" + ((HTMLMasonFileImpl) element).getAbsoluteComponentPath() + HTMLMasonUtils.getArgumentsListAsString((HTMLMasonFileImpl) element);
-		}
-		return super.getQuickNavigateInfo(element, originalElement);
-	}
+public class HTMLMasonDocumentationProvider extends AbstractDocumentationProvider {
+  @Nullable
+  @Override
+  public String getQuickNavigateInfo(PsiElement element, PsiElement originalElement) {
+    if (element instanceof HTMLMasonFileImpl) {
+      return "HTML::Mason component:<br>" +
+             ((HTMLMasonFileImpl)element).getAbsoluteComponentPath() +
+             HTMLMasonUtil.getArgumentsListAsString((HTMLMasonFileImpl)element);
+    }
+    return super.getQuickNavigateInfo(element, originalElement);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,22 +22,19 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 10.01.2016.
  */
-public class MasonLivetemplatesProvider implements DefaultLiveTemplatesProvider
-{
-	public static final String[] TEMPLATES = new String[]{
-			"/liveTemplates/Perl5Mason2"
-	};
+public class MasonLivetemplatesProvider implements DefaultLiveTemplatesProvider {
+  public static final String[] TEMPLATES = new String[]{
+    "/liveTemplates/Perl5Mason2"
+  };
 
-	@Override
-	public String[] getDefaultLiveTemplateFiles()
-	{
-		return TEMPLATES;
-	}
+  @Override
+  public String[] getDefaultLiveTemplateFiles() {
+    return TEMPLATES;
+  }
 
-	@Nullable
-	@Override
-	public String[] getHiddenLiveTemplateFiles()
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String[] getHiddenLiveTemplateFiles() {
+    return null;
+  }
 }

@@ -1,0 +1,6 @@
+try{
+	say 'something';
+}
+catch(<caret>){
+
+}

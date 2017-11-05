@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,17 +20,15 @@ import com.intellij.openapi.fileTypes.FileTypeConsumer;
 import com.intellij.openapi.fileTypes.FileTypeFactory;
 import org.jetbrains.annotations.NotNull;
 
-public class PerlFileTypeFactory extends FileTypeFactory
-{
-	@Override
-	public void createFileTypes(@NotNull FileTypeConsumer fileTypeConsumer)
-	{
-		fileTypeConsumer.consume(PerlFileTypePackage.INSTANCE, "pm");
-		fileTypeConsumer.consume(PerlFileType.INSTANCE, "cgi");
-		fileTypeConsumer.consume(PerlFileType.INSTANCE, "pl");
-		fileTypeConsumer.consume(PerlFileType.INSTANCE, "ph");
-		fileTypeConsumer.consume(PerlFileType.INSTANCE, "al");
+public class PerlFileTypeFactory extends FileTypeFactory {
+  @Override
+  public void createFileTypes(@NotNull FileTypeConsumer fileTypeConsumer) {
+    fileTypeConsumer.consume(PerlFileTypePackage.INSTANCE, PerlFileTypePackage.EXTENSION);
+    fileTypeConsumer.consume(PerlFileTypeScript.INSTANCE, PerlFileTypeScript.EXTENSION_CGI);
+    fileTypeConsumer.consume(PerlFileTypeScript.INSTANCE, PerlFileTypeScript.EXTENSION_PL);
+    fileTypeConsumer.consume(PerlFileTypeScript.INSTANCE, PerlFileTypeScript.EXTENSION_PH);
+    fileTypeConsumer.consume(PerlFileTypeScript.INSTANCE, PerlFileTypeScript.EXTENSION_AL);
 
-		fileTypeConsumer.consume(PerlFileTypeTest.INSTANCE, "t");
-	}
+    fileTypeConsumer.consume(PerlFileTypeTest.INSTANCE, PerlFileTypeTest.EXTENSION);
+  }
 }

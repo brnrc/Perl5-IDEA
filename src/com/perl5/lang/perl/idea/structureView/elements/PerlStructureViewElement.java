@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,394 +19,350 @@ package com.perl5.lang.perl.idea.structureView.elements;
 import com.intellij.ide.structureView.StructureViewTreeElement;
 import com.intellij.ide.util.treeView.smartTree.SortableTreeElement;
 import com.intellij.ide.util.treeView.smartTree.TreeElement;
+import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
 import com.intellij.openapi.project.Project;
+import com.intellij.psi.FileViewProvider;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.perl5.lang.perl.extensions.PerlHierarchyViewElementsProvider;
+import com.perl5.lang.perl.PerlLanguage;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlExportDescriptor;
 import com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter;
 import com.perl5.lang.perl.idea.presentations.PerlItemPresentationBase;
 import com.perl5.lang.perl.idea.presentations.PerlItemPresentationSimple;
+import com.perl5.lang.perl.parser.constant.psi.light.PerlLightConstantDefinitionElement;
 import com.perl5.lang.perl.psi.*;
 import com.perl5.lang.perl.psi.mro.PerlMro;
-import com.perl5.lang.perl.psi.properties.PerlNamedElement;
+import com.perl5.lang.perl.psi.properties.PerlIdentifierOwner;
 import com.perl5.lang.perl.util.*;
 import com.perl5.lang.pod.PodLanguage;
 import com.perl5.lang.pod.idea.structureView.PodStructureViewElement;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
 
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlStructureViewElement implements StructureViewTreeElement, SortableTreeElement
-{
-	protected PsiElement myElement;
-	protected boolean isInherited;
-	protected boolean isImported;
+public abstract class PerlStructureViewElement implements StructureViewTreeElement, SortableTreeElement {
+  protected PsiElement myElement;
+  protected boolean myIsInherited;
+  @Nullable
+  private PerlExportDescriptor myExportDescriptor;
 
-	public PerlStructureViewElement(PsiElement element)
-	{
-		myElement = element;
-	}
+  public PerlStructureViewElement(PsiElement element) {
+    myElement = element;
+  }
 
-	public PerlStructureViewElement setInherited()
-	{
-		this.isInherited = true;
-		return this;
-	}
+  public PerlStructureViewElement setInherited() {
+    this.myIsInherited = true;
+    return this;
+  }
 
-	public PerlStructureViewElement setImported()
-	{
-		this.isImported = true;
-		return this;
-	}
+  public boolean isInherited() {
+    return myIsInherited;
+  }
 
-	public boolean isInherited()
-	{
-		return isInherited;
-	}
+  public boolean isImported() {
+    return myExportDescriptor != null;
+  }
 
-	public boolean isImported()
-	{
-		return isImported;
-	}
+  public PerlStructureViewElement setImported(@NotNull PerlExportDescriptor exportDescriptor) {
+    myExportDescriptor = exportDescriptor;
+    return this;
+  }
 
-	@Override
-	public Object getValue()
-	{
-		return myElement;
-	}
+  @Nullable
+  public PerlExportDescriptor getExportDescriptor() {
+    return myExportDescriptor;
+  }
 
-	@Override
-	public void navigate(boolean requestFocus)
-	{
-		if (myElement instanceof NavigationItem)
-		{
-			((NavigationItem) myElement).navigate(requestFocus);
-		}
-	}
+  @Override
+  public Object getValue() {
+    return myElement;
+  }
 
-	@Override
-	public boolean canNavigate()
-	{
-		return myElement instanceof NavigationItem &&
-				((NavigationItem) myElement).canNavigate();
-	}
+  @Override
+  public void navigate(boolean requestFocus) {
+    if (myElement instanceof NavigationItem) {
+      ((NavigationItem)myElement).navigate(requestFocus);
+    }
+  }
 
-	@Override
-	public boolean canNavigateToSource()
-	{
-		return myElement instanceof NavigationItem &&
-				((NavigationItem) myElement).canNavigateToSource();
-	}
+  @Override
+  public boolean canNavigate() {
+    return myElement instanceof NavigationItem &&
+           ((NavigationItem)myElement).canNavigate();
+  }
 
-	@NotNull
-	@Override
-	public String getAlphaSortKey()
-	{
-		assert myElement instanceof PsiNamedElement;
-		String name = ((PsiNamedElement) myElement).getName();
-		if (name == null)
-		{
-			name = "Empty named " + myElement;
-		}
-		return name;
-	}
+  @Override
+  public boolean canNavigateToSource() {
+    return myElement instanceof NavigationItem &&
+           ((NavigationItem)myElement).canNavigateToSource();
+  }
 
-	@NotNull
-	@Override
-	public ItemPresentation getPresentation()
-	{
+  @NotNull
+  @Override
+  public String getAlphaSortKey() {
+    assert myElement instanceof PsiNamedElement;
+    PerlExportDescriptor exportDescriptor = getExportDescriptor();
+    if (exportDescriptor != null) {
+      return exportDescriptor.getImportedName();
+    }
+    String name = ((PsiNamedElement)myElement).getName();
+    if (name == null) {
+      name = "Empty named " + myElement;
+    }
+    return name;
+  }
 
-		ItemPresentation itemPresentation = createPresentation();
+  @NotNull
+  @Override
+  public ItemPresentation getPresentation() {
 
-		if ((isInherited() || isImported()) && itemPresentation instanceof PerlItemPresentationBase)
-		{
-			if (getValue() instanceof PerlDeprecatable && ((PerlDeprecatable) getValue()).isDeprecated())
-			{
-				((PerlItemPresentationBase) itemPresentation).setAttributesKey(PerlSyntaxHighlighter.UNUSED_DEPRECATED);
-			}
-			else
-			{
-				((PerlItemPresentationBase) itemPresentation).setAttributesKey(CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES);
-			}
-		}
-		return itemPresentation;
-	}
+    ItemPresentation itemPresentation = createPresentation();
 
-	protected ItemPresentation createPresentation()
-	{
-		if (myElement instanceof NavigationItem)
-		{
-			return ((NavigationItem) myElement).getPresentation();
-		}
-		else
-		{
-			return new PerlItemPresentationSimple(myElement, "FIXME");
-		}
-	}
+    if ((isInherited() || isImported()) && itemPresentation instanceof PerlItemPresentationBase) {
+      if (getValue() instanceof PerlDeprecatable && ((PerlDeprecatable)getValue()).isDeprecated()) {
+        ((PerlItemPresentationBase)itemPresentation).setAttributesKey(PerlSyntaxHighlighter.UNUSED_DEPRECATED);
+      }
+      else {
+        ((PerlItemPresentationBase)itemPresentation).setAttributesKey(CodeInsightColors.NOT_USED_ELEMENT_ATTRIBUTES);
+      }
+    }
+
+    if (isImported() && itemPresentation instanceof PerlItemPresentationSimple) {
+      PerlExportDescriptor exportDescriptor = getExportDescriptor();
+      assert exportDescriptor != null;
+      ((PerlItemPresentationSimple)itemPresentation).setPresentableText(exportDescriptor.getImportedName());
+    }
+
+    return itemPresentation;
+  }
+
+  @NotNull
+  protected ItemPresentation createPresentation() {
+    ItemPresentation result = null;
+    if (myElement instanceof NavigationItem) {
+      result = ((NavigationItem)myElement).getPresentation();
+    }
+
+    return result == null ? new PerlItemPresentationSimple(myElement, "FIXME") : result;
+  }
 
 
-	@NotNull
-	@Override
-	public TreeElement[] getChildren()
-	{
-		List<TreeElement> result = new ArrayList<TreeElement>();
+  @NotNull
+  @Override
+  public TreeElement[] getChildren() {
+    List<TreeElement> result = new ArrayList<>();
 
-		Set<String> implementedMethods = new HashSet<String>();
+    Set<String> implementedMethods = new HashSet<>();
 
-		if (myElement instanceof PerlFile)
-		{
-			PsiFile podFile = ((PerlFile) myElement).getViewProvider().getPsi(PodLanguage.INSTANCE);
-			if (podFile != null)
-			{
-				result.add(new PodStructureViewElement(podFile));
-			}
+    if (myElement instanceof PerlFile) {
+      FileViewProvider viewProvider = ((PerlFile)myElement).getViewProvider();
+      PsiFile podFile = viewProvider.getPsi(PodLanguage.INSTANCE);
+      if (podFile != null && podFile.getChildren().length > 1) {
+        result.add(new PodStructureViewElement(podFile));
+      }
 
-			// namespaces
-			for (PerlNamespaceDefinition child : PsiTreeUtil.findChildrenOfType(myElement, PerlNamespaceDefinition.class))
-			{
-				result.add(new PerlStructureViewElement(child));
-			}
-		}
+      Language targetLanguage = null;
+      for (Language language : viewProvider.getLanguages()) {
+        if (language == PerlLanguage.INSTANCE) {
+          targetLanguage = language;
+          break;
+        }
+        else if (targetLanguage == null && language.isKindOf(PerlLanguage.INSTANCE)) {
+          targetLanguage = language;
+        }
+      }
 
-		if (myElement instanceof PerlFile || myElement instanceof PerlNamespaceDefinition)
-		{
-			// global variables
-			for (PerlVariableDeclarationWrapper child : PsiTreeUtil.findChildrenOfType(myElement, PerlVariableDeclarationWrapper.class))
-			{
-				if (child.isGlobalDeclaration() && myElement.isEquivalentTo(PsiTreeUtil.getParentOfType(child, PerlNamespaceContainer.class)))
-				{
-					result.add(new PerlVariableDeclarationStructureViewElement(child));
-				}
-			}
+      if (targetLanguage != null) {
+        viewProvider.getPsi(targetLanguage).accept(new PerlRecursiveVisitor() {
+          @Override
+          public void visitNamespaceDefinitionElement(@NotNull PerlNamespaceDefinitionElement o) {
+            result.add(new PerlNamespaceStructureViewElement(o));
+            super.visitNamespaceDefinitionElement(o);
+          }
+        });
+      }
+    }
+    if (myElement instanceof PerlNamespaceDefinitionElement) {
+      // global variables
+      for (PerlVariableDeclarationElement child : PsiTreeUtil.findChildrenOfType(myElement, PerlVariableDeclarationElement.class)) {
+        if (child.isGlobalDeclaration() && myElement.isEquivalentTo(PerlPackageUtil.getNamespaceContainerForElement(child))) {
+          result.add(new PerlVariableDeclarationStructureViewElement(child));
+        }
+      }
 
-			Project project = myElement.getProject();
-			GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
+      Project project = myElement.getProject();
+      GlobalSearchScope projectScope = GlobalSearchScope.projectScope(project);
 
-			// imported scalars
-			for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceContainer) myElement).getImportedScalarDescriptors())
-			{
-				String canonicalName = exportDescritptor.getTargetCanonicalName();
+      // imported scalars
+      for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceDefinitionElement)myElement).getImportedScalarDescriptors()) {
+        String canonicalName = exportDescritptor.getTargetCanonicalName();
 
-				Collection<PerlVariableDeclarationWrapper> variables = PerlScalarUtil.getGlobalScalarDefinitions(project, canonicalName);
+        Collection<PerlVariableDeclarationElement> variables = PerlScalarUtil.getGlobalScalarDefinitions(project, canonicalName);
 
-				for (PerlVariableDeclarationWrapper variable : variables)
-				{
-					result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported());
-				}
+        for (PerlVariableDeclarationElement variable : variables) {
+          result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported(exportDescritptor));
+        }
 
-				// globs
-				Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
-				if (items.isEmpty())
-				{
-					items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
-				}
+        // globs
+        Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
+        if (items.isEmpty()) {
+          items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
+        }
 
-				for (PerlGlobVariable item : items)
-				{
-					result.add(new PerlGlobStructureViewElement(item).setImported());
-				}
-			}
+        for (PerlGlobVariable item : items) {
+          result.add(new PerlGlobStructureViewElement(item).setImported(exportDescritptor));
+        }
+      }
 
-			// imported arrays
-			for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceContainer) myElement).getImportedArrayDescriptors())
-			{
-				String canonicalName = exportDescritptor.getTargetCanonicalName();
+      // imported arrays
+      for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceDefinitionElement)myElement).getImportedArrayDescriptors()) {
+        String canonicalName = exportDescritptor.getTargetCanonicalName();
 
-				Collection<PerlVariableDeclarationWrapper> variables = PerlArrayUtil.getGlobalArrayDefinitions(project, canonicalName);
+        Collection<PerlVariableDeclarationElement> variables = PerlArrayUtil.getGlobalArrayDefinitions(project, canonicalName);
 
-				for (PerlVariableDeclarationWrapper variable : variables)
-				{
-					result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported());
-				}
+        for (PerlVariableDeclarationElement variable : variables) {
+          result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported(exportDescritptor));
+        }
 
-				// globs
-				Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
-				if (items.isEmpty())
-				{
-					items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
-				}
+        // globs
+        Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
+        if (items.isEmpty()) {
+          items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
+        }
 
-				for (PerlGlobVariable item : items)
-				{
-					result.add(new PerlGlobStructureViewElement(item).setImported());
-				}
-			}
+        for (PerlGlobVariable item : items) {
+          result.add(new PerlGlobStructureViewElement(item).setImported(exportDescritptor));
+        }
+      }
 
-			// imported hashes
-			for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceContainer) myElement).getImportedHashDescriptors())
-			{
-				String canonicalName = exportDescritptor.getTargetCanonicalName();
+      // imported hashes
+      for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceDefinitionElement)myElement).getImportedHashDescriptors()) {
+        String canonicalName = exportDescritptor.getTargetCanonicalName();
 
-				Collection<PerlVariableDeclarationWrapper> variables = PerlHashUtil.getGlobalHashDefinitions(project, canonicalName);
+        Collection<PerlVariableDeclarationElement> variables = PerlHashUtil.getGlobalHashDefinitions(project, canonicalName);
 
-				for (PerlVariableDeclarationWrapper variable : variables)
-				{
-					result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported());
-				}
+        for (PerlVariableDeclarationElement variable : variables) {
+          result.add(new PerlVariableDeclarationStructureViewElement(variable).setImported(exportDescritptor));
+        }
 
-				// globs
-				Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
-				if (items.isEmpty())
-				{
-					items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
-				}
+        // globs
+        Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
+        if (items.isEmpty()) {
+          items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
+        }
 
-				for (PerlGlobVariable item : items)
-				{
-					result.add(new PerlGlobStructureViewElement(item).setImported());
-				}
-			}
+        for (PerlGlobVariable item : items) {
+          result.add(new PerlGlobStructureViewElement(item).setImported(exportDescritptor));
+        }
+      }
 
-			// Imported subs
-			for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceContainer) myElement).getImportedSubsDescriptors())
-			{
-				String canonicalName = exportDescritptor.getTargetCanonicalName();
+      // Imported subs
+      for (PerlExportDescriptor exportDescritptor : ((PerlNamespaceDefinitionElement)myElement).getImportedSubsDescriptors()) {
+        String canonicalName = exportDescritptor.getTargetCanonicalName();
 
-				// declarations
-				Collection<PsiPerlSubDeclaration> subDeclarations = PerlSubUtil.getSubDeclarations(project, canonicalName, projectScope);
-				if (subDeclarations.isEmpty())
-				{
-					subDeclarations = PerlSubUtil.getSubDeclarations(project, canonicalName);
-				}
+        // declarations
+        Collection<PerlSubDeclarationElement> subDeclarations = PerlSubUtil.getSubDeclarations(project, canonicalName, projectScope);
+        if (subDeclarations.isEmpty()) {
+          subDeclarations = PerlSubUtil.getSubDeclarations(project, canonicalName);
+        }
 
-				for (PsiPerlSubDeclaration item : subDeclarations)
-				{
-					result.add(new PerlSubStructureViewElement(item).setImported());
-				}
+        for (PerlSubDeclarationElement item : subDeclarations) {
+          result.add(new PerlSubStructureViewElement(item).setImported(exportDescritptor));
+        }
 
-				// definitions
-				Collection<PerlSubDefinitionBase> subDefinitions = PerlSubUtil.getSubDefinitions(project, canonicalName, projectScope);
-				if (subDefinitions.isEmpty())
-				{
-					subDefinitions = PerlSubUtil.getSubDefinitions(project, canonicalName);
-				}
+        // definitions
+        Collection<PerlSubDefinitionElement> subDefinitions = PerlSubUtil.getSubDefinitions(project, canonicalName, projectScope);
+        if (subDefinitions.isEmpty()) {
+          subDefinitions = PerlSubUtil.getSubDefinitions(project, canonicalName);
+        }
 
-				for (PerlSubDefinitionBase item : subDefinitions)
-				{
-					if (item instanceof PerlConstantDefinition)
-					{
-						result.add(new PerlConstantStructureViewElement((PerlConstantDefinition) item).setImported());
-					}
-					else
-					{
-						result.add(new PerlSubStructureViewElement(item).setImported());
-					}
-				}
+        for (PerlSubDefinitionElement item : subDefinitions) {
+          result.add(new PerlSubStructureViewElement(item).setImported(exportDescritptor));
+        }
 
-				// globs
-				Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
-				if (items.isEmpty())
-				{
-					items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
-				}
+        // globs
+        Collection<PsiPerlGlobVariable> items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName, projectScope);
+        if (items.isEmpty()) {
+          items = PerlGlobUtil.getGlobsDefinitions(project, canonicalName);
+        }
 
-				for (PerlGlobVariable item : items)
-				{
-					result.add(new PerlGlobStructureViewElement(item).setImported());
-				}
-			}
+        for (PerlGlobVariable item : items) {
+          result.add(new PerlGlobStructureViewElement(item).setImported(exportDescritptor));
+        }
+      }
 
-			// containing globs
-			for (PerlGlobVariable child : PsiTreeUtil.findChildrenOfType(myElement, PerlGlobVariable.class))
-			{
-				if (child.isLeftSideOfAssignment() && myElement.isEquivalentTo(PsiTreeUtil.getParentOfType(child, PerlNamespaceContainer.class)))
-				{
-					implementedMethods.add(child.getName());
-					result.add(new PerlGlobStructureViewElement(child));
-				}
-			}
+      myElement.accept(new PerlRecursiveVisitor() {
+        @Override
+        public void visitPerlSubDefinitionElement(@NotNull PerlSubDefinitionElement child) {
+          if (myElement.isEquivalentTo(PerlPackageUtil.getNamespaceContainerForElement(child))) {
+            implementedMethods.add(child.getName());
 
-			// containing subs declarations
-			for (PerlSubDeclaration child : PsiTreeUtil.findChildrenOfType(myElement, PerlSubDeclaration.class))
-			{
-				if (myElement.isEquivalentTo(PsiTreeUtil.getParentOfType(child, PerlNamespaceContainer.class)))
-				{
-					result.add(new PerlSubStructureViewElement(child));
-				}
-			}
+            result.add(new PerlSubStructureViewElement(child));
+          }
+          super.visitPerlSubDefinitionElement(child);
+        }
 
-			// containing subs definitions, currently only supports PerlHierarchyViewElementsProvider
-			for (PerlSubDefinitionBase child : PsiTreeUtil.findChildrenOfType(myElement, PerlSubDefinitionBase.class))
-			{
-				if (myElement.isEquivalentTo(PsiTreeUtil.getParentOfType(child, PerlNamespaceContainer.class)))
-				{
-					if (child instanceof PerlHierarchyViewElementsProvider)
-					{
-						((PerlHierarchyViewElementsProvider) child).fillHierarchyViewElements(result, implementedMethods, false, false);
-					}
-					else
-					{
-						implementedMethods.add(child.getName());
+        @Override
+        public void visitSubDeclarationElement(@NotNull PerlSubDeclarationElement child) {
+          if (myElement.isEquivalentTo(PerlPackageUtil.getNamespaceContainerForElement(child))) {
+            result.add(new PerlSubStructureViewElement(child));
+          }
+          super.visitSubDeclarationElement(child);
+        }
 
-						if (child instanceof PerlConstantDefinition)
-						{
-							result.add(new PerlConstantStructureViewElement((PerlConstantDefinition) child));
+        @Override
+        public void visitGlobVariable(@NotNull PsiPerlGlobVariable child) {
+          if (child.isLeftSideOfAssignment() && myElement.isEquivalentTo(PerlPackageUtil.getNamespaceContainerForElement(child))) {
+            implementedMethods.add(child.getName());
+            result.add(new PerlGlobStructureViewElement(child));
+          }
+          super.visitGlobVariable(child);
+        }
+      });
+    }
 
-						}
-						else
-						{
-							result.add(new PerlSubStructureViewElement(child));
-						}
-					}
-				}
-			}
+    // inherited elements
+    if (myElement instanceof PerlNamespaceDefinitionWithIdentifier) {
+      List<TreeElement> inheritedResult = new ArrayList<>();
 
-		}
+      String packageName = ((PerlNamespaceDefinitionElement)myElement).getPackageName();
 
-		// inherited elements
-		if (myElement instanceof PerlNamespaceDefinition)
-		{
-			List<TreeElement> inheritedResult = new ArrayList<TreeElement>();
+      if (packageName != null) {
+        for (PsiElement element : PerlMro.getVariants(myElement, packageName, true)) {
+          if (element instanceof PerlIdentifierOwner && !implementedMethods.contains(((PerlIdentifierOwner)element).getName())) {
+            if (element instanceof PerlLightConstantDefinitionElement) {
+              inheritedResult.add(new PerlSubStructureViewElement((PerlSubDefinitionElement)element).setInherited());
+            }
+            else if (element instanceof PerlSubDefinitionElement) {
+              inheritedResult.add(new PerlSubStructureViewElement((PerlSubDefinitionElement)element).setInherited());
+            }
+            else if (element instanceof PerlSubDeclarationElement) {
+              inheritedResult.add(new PerlSubStructureViewElement((PerlSubDeclarationElement)element).setInherited());
+            }
+            else if (element instanceof PerlGlobVariable &&
+                     ((PerlGlobVariable)element).isLeftSideOfAssignment() &&
+                     ((PerlGlobVariable)element).getName() != null) {
+              inheritedResult.add(new PerlGlobStructureViewElement((PerlGlobVariable)element).setInherited());
+            }
+          }
+        }
+      }
 
-			String packageName = ((PerlNamespaceDefinition) myElement).getName();
+      if (!inheritedResult.isEmpty()) {
+        result.addAll(0, inheritedResult);
+      }
+    }
 
-			if (packageName != null)
-			{
-				for (PsiElement element : PerlMro.getVariants(myElement.getProject(), packageName, true))
-				{
-					if (element instanceof PerlHierarchyViewElementsProvider)
-					{
-						((PerlHierarchyViewElementsProvider) element).fillHierarchyViewElements(inheritedResult, implementedMethods, true, false);
-					}
-					else if (element instanceof PerlNamedElement && !implementedMethods.contains(((PerlNamedElement) element).getName()))
-					{
-						if (element instanceof PerlConstantDefinition && ((PerlConstantDefinition) element).getName() != null)
-						{
-							inheritedResult.add(new PerlConstantStructureViewElement((PerlConstantDefinition) element).setInherited());
-						}
-						else if (element instanceof PerlSubDefinitionBase)
-						{
-							inheritedResult.add(new PerlSubStructureViewElement((PerlSubDefinitionBase) element).setInherited());
-						}
-						else if (element instanceof PerlSubDeclaration)
-						{
-							inheritedResult.add(new PerlSubStructureViewElement((PerlSubDeclaration) element).setInherited());
-						}
-						else if (element instanceof PerlGlobVariable && ((PerlGlobVariable) element).isLeftSideOfAssignment() && ((PerlGlobVariable) element).getName() != null)
-						{
-							inheritedResult.add(new PerlGlobStructureViewElement((PerlGlobVariable) element).setInherited());
-						}
-					}
-				}
-			}
-
-			if (!inheritedResult.isEmpty())
-			{
-				result.addAll(0, inheritedResult);
-			}
-		}
-
-		return result.toArray(new TreeElement[result.size()]);
-	}
-
+    return result.toArray(new TreeElement[result.size()]);
+  }
 }

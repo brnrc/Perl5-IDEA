@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.intellij.openapi.vfs.DeprecatedVirtualFileSystem;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.openapi.vfs.VirtualFileSystem;
 import com.intellij.testFramework.LightVirtualFile;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
+import com.perl5.lang.perl.fileTypes.PerlFileTypeScript;
 import com.perl5.lang.perl.idea.run.debugger.protocol.PerlStackFrameDescriptor;
 import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
@@ -34,152 +34,130 @@ import java.util.Map;
  * Created by hurricup on 14.05.2016.
  * Clone of mock file system
  */
-public class PerlRemoteFileSystem extends DeprecatedVirtualFileSystem
-{
-	public static final String PROTOCOL = "perl5_remote";
-	public static final String PROTOCOL_PREFIX = "perl5_remote://";
-	private Map<String, VirtualFile> virtualFilesMap = new THashMap<String, VirtualFile>();
+public class PerlRemoteFileSystem extends DeprecatedVirtualFileSystem {
+  public static final String PROTOCOL = "perl5_remote";
+  public static final String PROTOCOL_PREFIX = "perl5_remote://";
+  private Map<String, VirtualFile> virtualFilesMap = new THashMap<>();
 
-	public static PerlRemoteFileSystem getInstance()
-	{
-		return ApplicationManager.getApplication().getComponent(PerlRemoteFileSystem.class);
-	}
+  @Override
+  @Nullable
+  public VirtualFile findFileByPath(@NotNull String path) {
+    return virtualFilesMap.get(path);
+  }
 
-	@Override
-	@Nullable
-	public VirtualFile findFileByPath(@NotNull String path)
-	{
-		return virtualFilesMap.get(path);
-	}
+  public void dropFiles() {
+    ApplicationManager.getApplication().runWriteAction(new Runnable() {
+      @Override
+      public void run() {
+        for (Map.Entry<String, VirtualFile> entry : virtualFilesMap.entrySet()) {
+          VirtualFile value = entry.getValue();
+          fireBeforeFileDeletion(this, value);
+          fireFileDeleted(this, value, value.getName(), null);
+        }
+      }
+    });
+    virtualFilesMap.clear();
+  }
 
-	public void dropFiles()
-	{
-		ApplicationManager.getApplication().runWriteAction(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				for (Map.Entry<String, VirtualFile> entry : virtualFilesMap.entrySet())
-				{
-					VirtualFile value = entry.getValue();
-					fireBeforeFileDeletion(this, value);
-					fireFileDeleted(this, value, value.getName(), null);
-				}
-			}
-		});
-		virtualFilesMap.clear();
-	}
+  @Nullable
+  public VirtualFile registerRemoteFile(@NotNull String filePath, @NotNull String fileSource) {
+    String fileName;
+    if (filePath.startsWith(PerlStackFrameDescriptor.EVAL_PREFIX)) // make name for eval
+    {
+      fileName = filePath.substring(0, filePath.indexOf(')') + 1);
+    }
+    else // make name for regular file
+    {
+      int slashIndex = filePath.lastIndexOf('/');
+      fileName = slashIndex == -1 ? filePath : filePath.substring(slashIndex + 1);
+    }
+    return registerRemoteFile(fileName, filePath, fileSource);
+  }
 
-	@Nullable
-	public VirtualFile registerRemoteFile(@NotNull String filePath, @NotNull String fileSource)
-	{
-		String fileName;
-		if (filePath.startsWith(PerlStackFrameDescriptor.EVAL_PREFIX)) // make name for eval
-		{
-			fileName = filePath.substring(0, filePath.indexOf(')') + 1);
-		}
-		else // make name for regular file
-		{
-			int slashIndex = filePath.lastIndexOf('/');
-			fileName = slashIndex == -1 ? filePath : filePath.substring(slashIndex + 1);
-		}
-		return registerRemoteFile(fileName, filePath, fileSource);
-	}
+  @NotNull
+  public VirtualFile registerRemoteFile(@NotNull String fileName, @NotNull String filePath, @NotNull String fileSource) {
+    //		System.err.println("Registering file: "+ fileName + " " + filePath);
+    LightVirtualFile newVirtualFile = new PerlRemoteVirtualFile(fileName, filePath, fileSource);
+    virtualFilesMap.put(filePath, newVirtualFile);
+    return newVirtualFile;
+  }
 
-	@NotNull
-	public VirtualFile registerRemoteFile(@NotNull String fileName, @NotNull String filePath, @NotNull String fileSource)
-	{
-//		System.err.println("Registering file: "+ fileName + " " + filePath);
-		LightVirtualFile newVirtualFile = new PerlRemoteVirtualFile(fileName, filePath, fileSource);
-		virtualFilesMap.put(filePath, newVirtualFile);
-		return newVirtualFile;
-	}
+  @Override
+  @NotNull
+  public String getProtocol() {
+    return PROTOCOL;
+  }
 
-	@Override
-	@NotNull
-	public String getProtocol()
-	{
-		return PROTOCOL;
-	}
+  @Override
+  public void refresh(boolean asynchronous) {
+  }
 
-	@Override
-	public void refresh(boolean asynchronous)
-	{
-	}
+  @Override
+  public void deleteFile(Object requestor, @NotNull VirtualFile vFile) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
-	@Override
-	public void deleteFile(Object requestor, @NotNull VirtualFile vFile) throws IOException
-	{
-		throw new UnsupportedOperationException();
-	}
+  @Override
+  public void moveFile(Object requestor, @NotNull VirtualFile vFile, @NotNull VirtualFile newParent) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
-	@Override
-	public void moveFile(Object requestor, @NotNull VirtualFile vFile, @NotNull VirtualFile newParent) throws IOException
-	{
-		throw new UnsupportedOperationException();
-	}
+  @NotNull
+  @Override
+  public VirtualFile copyFile(Object requestor, @NotNull VirtualFile vFile, @NotNull VirtualFile newParent, @NotNull final String copyName)
+    throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
-	@NotNull
-	@Override
-	public VirtualFile copyFile(Object requestor, @NotNull VirtualFile vFile, @NotNull VirtualFile newParent, @NotNull final String copyName) throws IOException
-	{
-		throw new UnsupportedOperationException();
-	}
+  @Override
+  public void renameFile(Object requestor, @NotNull VirtualFile vFile, @NotNull String newName) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
-	@Override
-	public void renameFile(Object requestor, @NotNull VirtualFile vFile, @NotNull String newName) throws IOException
-	{
-		throw new UnsupportedOperationException();
-	}
+  @NotNull
+  @Override
+  public VirtualFile createChildFile(Object requestor, @NotNull VirtualFile vDir, @NotNull String fileName) throws IOException {
+    throw new UnsupportedOperationException();
+  }
 
-	@NotNull
-	@Override
-	public VirtualFile createChildFile(Object requestor, @NotNull VirtualFile vDir, @NotNull String fileName) throws IOException
-	{
-		throw new UnsupportedOperationException();
-	}
+  @Override
+  @NotNull
+  public VirtualFile createChildDirectory(Object requestor, @NotNull VirtualFile vDir, @NotNull String dirName) throws IOException {
+    throw new IOException();
+  }
 
-	@Override
-	@NotNull
-	public VirtualFile createChildDirectory(Object requestor, @NotNull VirtualFile vDir, @NotNull String dirName) throws IOException
-	{
-		throw new IOException();
-	}
+  @Override
+  public VirtualFile refreshAndFindFileByPath(@NotNull String path) {
+    return findFileByPath(path);
+  }
 
-	@Override
-	public VirtualFile refreshAndFindFileByPath(@NotNull String path)
-	{
-		return findFileByPath(path);
-	}
+  public static PerlRemoteFileSystem getInstance() {
+    return ApplicationManager.getApplication().getComponent(PerlRemoteFileSystem.class);
+  }
 
-	public class PerlRemoteVirtualFile extends LightVirtualFile
-	{
-		private final String myPath;
+  public class PerlRemoteVirtualFile extends LightVirtualFile {
+    private final String myPath;
 
-		public PerlRemoteVirtualFile(@NotNull String name, String path, String text)
-		{
-			super(name, PerlFileType.INSTANCE, text);
-			myPath = path;
-		}
+    public PerlRemoteVirtualFile(@NotNull String name, String path, String text) {
+      super(name, PerlFileTypeScript.INSTANCE, text);
+      myPath = path;
+    }
 
-		@Override
-		@NotNull
-		public VirtualFileSystem getFileSystem()
-		{
-			return PerlRemoteFileSystem.this;
-		}
+    @Override
+    @NotNull
+    public VirtualFileSystem getFileSystem() {
+      return PerlRemoteFileSystem.this;
+    }
 
-		@Override
-		public boolean isDirectory()
-		{
-			return false;
-		}
+    @Override
+    public boolean isDirectory() {
+      return false;
+    }
 
-		@NotNull
-		@Override
-		public String getPath()
-		{
-			return myPath;
-		}
-	}
+    @NotNull
+    @Override
+    public String getPath() {
+      return myPath;
+    }
+  }
 }

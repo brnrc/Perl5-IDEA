@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,16 +18,27 @@ package com.perl5.lang.tt2.psi.impl;
 
 import com.intellij.extapi.psi.ASTWrapperPsiElement;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiReference;
 import com.perl5.lang.tt2.psi.TemplateToolkitCompositeElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 05.06.2016.
  */
-public class TemplateToolkitCompositeElementImpl extends ASTWrapperPsiElement implements TemplateToolkitCompositeElement
-{
-	public TemplateToolkitCompositeElementImpl(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class TemplateToolkitCompositeElementImpl extends ASTWrapperPsiElement implements TemplateToolkitCompositeElement {
+  public TemplateToolkitCompositeElementImpl(@NotNull ASTNode node) {
+    super(node);
+  }
+
+  @NotNull
+  @Override
+  public final PsiReference[] getReferences() {
+    return getReferencesWithCache();
+  }
+
+  @Override
+  public final PsiReference getReference() {
+    PsiReference[] references = getReferences();
+    return references.length == 0 ? null : references[0];
+  }
 }

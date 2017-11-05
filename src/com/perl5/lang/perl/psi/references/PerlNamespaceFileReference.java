@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,12 @@
 
 package com.perl5.lang.perl.psi.references;
 
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementResolveResult;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.util.IncorrectOperationException;
 import com.perl5.lang.perl.psi.PerlNamespaceElement;
-import com.perl5.lang.perl.psi.references.resolvers.PerlNamespaceFileResolver;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
@@ -30,47 +29,45 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 28.05.2015.
  */
-public class PerlNamespaceFileReference extends PerlPolyVariantReference<PerlNamespaceElement>
-{
-	protected static final ResolveCache.PolyVariantResolver<PerlNamespaceFileReference> RESOLVER = new PerlNamespaceFileResolver();
+public class PerlNamespaceFileReference extends PerlCachingReference<PerlNamespaceElement> {
+  public PerlNamespaceFileReference(PerlNamespaceElement psiElement) {
+    super(psiElement);
+  }
 
-	public PerlNamespaceFileReference(@NotNull PerlNamespaceElement element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  public String getPackageName() {
+    return myElement.getCanonicalName();
+  }
 
-	public String getPackageName()
-	{
-		return myElement.getCanonicalName();
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PerlNamespaceElement myElement = getElement();
+    PsiFile file = myElement.getContainingFile();
+    PsiFile targetFile = null;
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, false);
-	}
+    targetFile = PerlPackageUtil.resolvePackageNameToPsi(file, getPackageName());
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		String currentName = myElement.getCanonicalName();
-		if (currentName != null && newElementName.endsWith(".pm"))
-		{
-			String[] nameChunks = currentName.split(PerlPackageUtil.PACKAGE_SEPARATOR);
-			nameChunks[nameChunks.length - 1] = newElementName.replaceFirst("\\.pm$", "");
-			newElementName = StringUtils.join(nameChunks, PerlPackageUtil.PACKAGE_SEPARATOR);
+    return targetFile == null
+           ? ResolveResult.EMPTY_ARRAY
+           : new ResolveResult[]{new PsiElementResolveResult(targetFile)};
+  }
 
-			return super.handleElementRename(newElementName);
-		}
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    String currentName = myElement.getCanonicalName();
+    if (currentName != null && newElementName.endsWith(".pm")) {
+      String[] nameChunks = currentName.split(PerlPackageUtil.PACKAGE_SEPARATOR);
+      nameChunks[nameChunks.length - 1] = newElementName.replaceFirst("\\.pm$", "");
+      newElementName = StringUtils.join(nameChunks, PerlPackageUtil.PACKAGE_SEPARATOR);
 
-		throw new IncorrectOperationException("Can't bind package use/require to a non-pm file: " + newElementName);
-	}
+      return super.handleElementRename(newElementName);
+    }
 
-	@Override
-	public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException
-	{
-		// fixme this is a stub to avoid exception
-		return myElement;
-	}
+    throw new IncorrectOperationException("Can't bind package use/require to a non-pm file: " + newElementName);
+  }
+
+  @Override
+  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    // fixme this is a stub to avoid exception
+    return myElement;
+  }
 }

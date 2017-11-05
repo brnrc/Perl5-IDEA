@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,11 @@ package com.perl5.lang.perl.psi.impl;
 import com.intellij.extapi.psi.PsiFileBase;
 import com.intellij.lang.Language;
 import com.intellij.navigation.ItemPresentation;
-import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.*;
+import com.intellij.psi.impl.source.PsiFileImpl;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.search.GlobalSearchScope;
 import com.intellij.psi.stubs.ObjectStubTree;
@@ -34,382 +34,223 @@ import com.intellij.psi.util.PsiTreeUtil;
 import com.perl5.lang.perl.PerlLanguage;
 import com.perl5.lang.perl.extensions.PerlCodeGenerator;
 import com.perl5.lang.perl.extensions.generation.PerlCodeGeneratorImpl;
-import com.perl5.lang.perl.extensions.packageprocessor.PerlExportDescriptor;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
 import com.perl5.lang.perl.fileTypes.PerlFileTypePackage;
-import com.perl5.lang.perl.idea.stubs.imports.PerlUseStatementStub;
-import com.perl5.lang.perl.idea.stubs.imports.runtime.PerlRuntimeImportStub;
-import com.perl5.lang.perl.psi.*;
-import com.perl5.lang.perl.psi.mro.PerlMro;
-import com.perl5.lang.perl.psi.mro.PerlMroC3;
-import com.perl5.lang.perl.psi.mro.PerlMroDfs;
+import com.perl5.lang.perl.fileTypes.PerlFileTypeScript;
+import com.perl5.lang.perl.psi.PerlDoExpr;
+import com.perl5.lang.perl.psi.PerlFile;
+import com.perl5.lang.perl.psi.PerlUseStatement;
 import com.perl5.lang.perl.psi.mro.PerlMroType;
 import com.perl5.lang.perl.psi.properties.PerlLexicalScope;
-import com.perl5.lang.perl.psi.utils.PerlPsiUtil;
-import com.perl5.lang.perl.psi.utils.PerlScopeUtil;
-import com.perl5.lang.perl.util.*;
-import gnu.trove.THashMap;
+import com.perl5.lang.perl.psi.stubs.imports.PerlUseStatementStub;
+import com.perl5.lang.perl.psi.stubs.imports.runtime.PerlRuntimeImportStub;
+import com.perl5.lang.perl.psi.utils.PerlNamespaceAnnotations;
+import com.perl5.lang.perl.psi.utils.PerlResolveUtil;
+import com.perl5.lang.perl.util.PerlPackageUtil;
+import com.perl5.lang.perl.util.PerlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import javax.swing.*;
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Created by hurricup on 26.04.2015.
  */
-public class PerlFileImpl extends PsiFileBase implements PerlFile
-{
-	private static final ArrayList<PerlNamespaceDefinition> EMPTY_LIST = new ArrayList<PerlNamespaceDefinition>();
-	protected ConcurrentHashMap<PerlVariable, String> VARIABLE_TYPES_CACHE = new ConcurrentHashMap<PerlVariable, String>();
-	protected ConcurrentHashMap<PerlMethod, String> METHODS_NAMESPACES_CACHE = new ConcurrentHashMap<PerlMethod, String>();
-	protected GlobalSearchScope myElementsResolveScope;
-	protected PsiElement fileContext;
+public class PerlFileImpl extends PsiFileBase implements PerlFile {
+  protected GlobalSearchScope myElementsResolveScope;
+  protected PsiElement fileContext;
 
-	protected Map<Integer, Boolean> isNewLineFobiddenAtLine = new THashMap<Integer, Boolean>();
+  public PerlFileImpl(@NotNull FileViewProvider viewProvider, Language language) {
+    super(viewProvider, language);
+  }
 
-	public PerlFileImpl(@NotNull FileViewProvider viewProvider, Language language)
-	{
-		super(viewProvider, language);
-	}
+  public PerlFileImpl(@NotNull FileViewProvider viewProvider) {
+    super(viewProvider, PerlLanguage.INSTANCE);
+  }
 
-	public PerlFileImpl(@NotNull FileViewProvider viewProvider)
-	{
-		super(viewProvider, PerlLanguage.INSTANCE);
-	}
+  @NotNull
+  @Override
+  public FileType getFileType() {
+    VirtualFile virtualFile = getVirtualFile();
 
-	@NotNull
-	@Override
-	public FileType getFileType()
-	{
-		VirtualFile virtualFile = getVirtualFile();
+    if (virtualFile != null) {
+      return getVirtualFile().getFileType();
+    }
+    return getDefaultFileType();
+  }
 
-		if (virtualFile != null)
-		{
-			return getVirtualFile().getFileType();
-		}
-		return getDefaultFileType();
-	}
-
-	protected FileType getDefaultFileType()
-	{
-		// fixme getViewProvider().getVirtualFile() should be here, but incompatible with IDEA14
-		return PerlFileType.INSTANCE;
-	}
+  protected FileType getDefaultFileType() {
+    // fixme getViewProvider().getVirtualFile() should be here, but incompatible with IDEA14
+    return PerlFileTypeScript.INSTANCE;
+  }
 
 
-	@Override
-	public PerlLexicalScope getLexicalScope()
-	{
-		return null;
-	}
+  @Override
+  public PerlLexicalScope getLexicalScope() {
+    return null;
+  }
 
-	/**
-	 * Returns package name for this psi file. Name built from filename and innermost root.
-	 *
-	 * @return canonical package name or null if it's not pm file or it's not in source root
-	 */
-	@Nullable
-	public String getFilePackageName()
-	{
-		VirtualFile containingFile = getVirtualFile();
+  /**
+   * Returns package name for this psi file. Name built from filename and innermost root.
+   *
+   * @return canonical package name or null if it's not pm file or it's not in source root
+   */
+  @Nullable
+  public String getFilePackageName() {
+    VirtualFile containingFile = getVirtualFile();
 
-		if (containingFile != null && containingFile.getFileType() == PerlFileTypePackage.INSTANCE)
-		{
-			VirtualFile innermostSourceRoot = PerlUtil.getFileClassRoot(getProject(), containingFile);
-			if (innermostSourceRoot != null)
-			{
-				String relativePath = VfsUtil.getRelativePath(containingFile, innermostSourceRoot);
-				return PerlPackageUtil.getPackageNameByPath(relativePath);
-			}
-		}
-		return null;
-	}
+    if (containingFile != null && containingFile.getFileType() == PerlFileTypePackage.INSTANCE) {
+      VirtualFile innermostSourceRoot = PerlUtil.getFileClassRoot(getProject(), containingFile);
+      if (innermostSourceRoot != null) {
+        String relativePath = VfsUtil.getRelativePath(containingFile, innermostSourceRoot);
+        return PerlPackageUtil.getPackageNameByPath(relativePath);
+      }
+    }
+    return null;
+  }
 
-	@Override
-	public void subtreeChanged()
-	{
-		super.subtreeChanged();
-		VARIABLE_TYPES_CACHE.clear();
-		METHODS_NAMESPACES_CACHE.clear();
-		myElementsResolveScope = null;
-		isNewLineFobiddenAtLine.clear();
-	}
+  @Override
+  public void subtreeChanged() {
+    super.subtreeChanged();
+    myElementsResolveScope = null;
+  }
 
-	@Override
-	public String getPackageName()
-	{
-		return PerlPackageUtil.MAIN_PACKAGE;
-	}
+  @Override
+  public String getPackageName() {
+    return PerlPackageUtil.MAIN_PACKAGE;
+  }
 
-	@Override
-	public List<PerlNamespaceDefinition> getParentNamespaceDefinitions()
-	{
-		return EMPTY_LIST;
-	}
+  @Override
+  public PerlMroType getMroType() {
+    return PerlMroType.DFS;
+  }
 
-	@NotNull
-	@Override
-	public Collection<PerlNamespaceDefinition> getChildNamespaceDefinitions()
-	{
-		return Collections.emptyList();
-	}
+  //	@Override
+  //	@NotNull
+  //	public GlobalSearchScope getElementsResolveScope()
+  //	{
+  //		if (myElementsResolveScope != null)
+  //			return myElementsResolveScope;
+  //
+  //		long t = System.currentTimeMillis();
+  //		Set<VirtualFile> filesToSearch = new THashSet<VirtualFile>();
+  //		collectIncludedFiles(filesToSearch);
+  //		myElementsResolveScope = GlobalSearchScope.filesScope(getProject(), filesToSearch);
+  //
+  //		System.err.println("Collected in ms: " + (System.currentTimeMillis() - t) / 1000);
+  //
+  //		return myElementsResolveScope;
+  //	}
 
-	@Override
-	public PerlMroType getMroType()
-	{
-		return PerlMroType.DFS;
-	}
+  @Override
+  public void collectIncludedFiles(Set<VirtualFile> includedVirtualFiles) {
+    if (!includedVirtualFiles.contains(getVirtualFile())) {
+      includedVirtualFiles.add(getVirtualFile());
 
-	@Override
-	public PerlMro getMro()
-	{
-		if (getMroType() == PerlMroType.DFS)
-		{
-			return PerlMroDfs.INSTANCE;
-		}
-		else
-		{
-			return PerlMroC3.INSTANCE;
-		}
-	}
+      StubElement fileStub = getStub();
 
-	@Override
-	public String getVariableType(PerlVariable element)
-	{
-		if (VARIABLE_TYPES_CACHE.containsKey(element))
-		{
-//			System.err.println("Read from cache " + element.getText());
-			String type = VARIABLE_TYPES_CACHE.get(element);
-			return type.isEmpty() ? null : type;
-		}
+      if (fileStub == null) {
+        //				System.err.println("Collecting from psi for " + getVirtualFile());
+        collectRequiresFromPsi(this, includedVirtualFiles);
+      }
+      else {
+        //				System.err.println("Collecting from stubs for " + getVirtualFile());
+        collectRequiresFromStub(fileStub, includedVirtualFiles);
+      }
+    }
+  }
 
-		String type = element.getVariableTypeHeavy();
-//		System.err.println("Cached " + element.getText() + type);
-		VARIABLE_TYPES_CACHE.put(element, type == null ? "" : type);
-		return getVariableType(element);
-	}
+  protected void collectRequiresFromVirtualFile(VirtualFile virtualFile, Set<VirtualFile> includedVirtualFiles) {
+    if (!includedVirtualFiles.contains(virtualFile)) {
+      includedVirtualFiles.add(virtualFile);
 
-	@NotNull
-	@Override
-	public String getMethodNamespace(PerlMethod element)
-	{
-		if (METHODS_NAMESPACES_CACHE.containsKey(element))
-		{
-//			System.err.println("Got cached type for method " + element.getText() + " at " + element.getTextOffset());
-			String type = METHODS_NAMESPACES_CACHE.get(element);
-			return type.isEmpty() ? PerlPackageUtil.MAIN_PACKAGE : type;
-		}
+      ObjectStubTree objectStubTree = StubTreeLoader.getInstance().readOrBuild(getProject(), virtualFile, null);
+      if (objectStubTree != null) {
+        //				System.err.println("Collecting from stub for " + virtualFile);
+        collectRequiresFromStub((PsiFileStub)objectStubTree.getRoot(), includedVirtualFiles);
+      }
+      else {
+        //				System.err.println("Collecting from psi for " + virtualFile);
+        PsiFile targetPsiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
+        if (targetPsiFile != null) {
+          collectRequiresFromPsi(targetPsiFile, includedVirtualFiles);
+        }
+      }
+    }
+  }
 
-		String type = element.getContextPackageNameHeavy();
-		METHODS_NAMESPACES_CACHE.put(element, type == null ? "" : type);
-		return getMethodNamespace(element);
-	}
+  protected void collectRequiresFromStub(@NotNull StubElement currentStub, Set<VirtualFile> includedVirtualFiles) {
+    VirtualFile virtualFile = null;
+    if (currentStub instanceof PerlUseStatementStub) {
+      String packageName = ((PerlUseStatementStub)currentStub).getPackageName();
+      if (packageName != null) {
+        virtualFile = PerlPackageUtil.resolvePackageNameToVirtualFile(this, packageName);
+      }
+    }
+    if (currentStub instanceof PerlRuntimeImportStub) {
+      String importPath = ((PerlRuntimeImportStub)currentStub).getImportPath();
+      if (importPath != null) {
+        virtualFile = PerlPackageUtil.resolveRelativePathToVirtualFile(this, importPath);
+      }
+    }
 
-	@NotNull
-	@Override
-	public List<PerlExportDescriptor> getImportedSubsDescriptors()
-	{
-		return PerlSubUtil.getImportedSubsDescriptors(this);
-	}
+    if (virtualFile != null) {
+      collectRequiresFromVirtualFile(virtualFile, includedVirtualFiles);
+    }
 
-	@NotNull
-	@Override
-	public List<PerlExportDescriptor> getImportedScalarDescriptors()
-	{
-		return PerlScalarUtil.getImportedScalarsDescritptors(this);
-	}
-
-	@NotNull
-	@Override
-	public List<PerlExportDescriptor> getImportedArrayDescriptors()
-	{
-		return PerlArrayUtil.getImportedArraysDescriptors(this);
-	}
-
-	@NotNull
-	@Override
-	public List<PerlExportDescriptor> getImportedHashDescriptors()
-	{
-		return PerlHashUtil.getImportedHashesDescriptors(this);
-	}
-
-//	@Override
-//	@NotNull
-//	public GlobalSearchScope getElementsResolveScope()
-//	{
-//		if (myElementsResolveScope != null)
-//			return myElementsResolveScope;
-//
-//		long t = System.currentTimeMillis();
-//		Set<VirtualFile> filesToSearch = new THashSet<VirtualFile>();
-//		collectIncludedFiles(filesToSearch);
-//		myElementsResolveScope = GlobalSearchScope.filesScope(getProject(), filesToSearch);
-//
-//		System.err.println("Collected in ms: " + (System.currentTimeMillis() - t) / 1000);
-//
-//		return myElementsResolveScope;
-//	}
-
-	@Override
-	public void collectIncludedFiles(Set<VirtualFile> includedVirtualFiles)
-	{
-		if (!includedVirtualFiles.contains(getVirtualFile()))
-		{
-			includedVirtualFiles.add(getVirtualFile());
-
-			StubElement fileStub = getStub();
-
-			if (fileStub == null)
-			{
-//				System.err.println("Collecting from psi for " + getVirtualFile());
-				collectRequiresFromPsi(this, includedVirtualFiles);
-			}
-			else
-			{
-//				System.err.println("Collecting from stubs for " + getVirtualFile());
-				collectRequiresFromStub(fileStub, includedVirtualFiles);
-			}
-		}
-	}
-
-	protected void collectRequiresFromVirtualFile(VirtualFile virtualFile, Set<VirtualFile> includedVirtualFiles)
-	{
-		if (!includedVirtualFiles.contains(virtualFile))
-		{
-			includedVirtualFiles.add(virtualFile);
-
-			ObjectStubTree objectStubTree = StubTreeLoader.getInstance().readOrBuild(getProject(), virtualFile, null);
-			if (objectStubTree != null)
-			{
-//				System.err.println("Collecting from stub for " + virtualFile);
-				collectRequiresFromStub((PsiFileStub) objectStubTree.getRoot(), includedVirtualFiles);
-			}
-			else
-			{
-//				System.err.println("Collecting from psi for " + virtualFile);
-				PsiFile targetPsiFile = PsiManager.getInstance(getProject()).findFile(virtualFile);
-				if (targetPsiFile != null)
-				{
-					collectRequiresFromPsi(targetPsiFile, includedVirtualFiles);
-				}
-			}
-		}
-	}
-
-	protected void collectRequiresFromStub(@NotNull StubElement currentStub, Set<VirtualFile> includedVirtualFiles)
-	{
-		VirtualFile virtualFile = null;
-		if (currentStub instanceof PerlUseStatementStub)
-		{
-			String packageName = ((PerlUseStatementStub) currentStub).getPackageName();
-			if (packageName != null)
-			{
-				virtualFile = PerlPackageUtil.resolvePackageNameToVirtualFile(this, packageName);
-			}
-
-		}
-		if (currentStub instanceof PerlRuntimeImportStub)
-		{
-			String importPath = ((PerlRuntimeImportStub) currentStub).getImportPath();
-			if (importPath != null)
-			{
-				virtualFile = PerlPackageUtil.resolveRelativePathToVirtualFile(this, importPath);
-			}
-		}
-
-		if (virtualFile != null)
-		{
-			collectRequiresFromVirtualFile(virtualFile, includedVirtualFiles);
-		}
-
-		for (Object childStub : currentStub.getChildrenStubs())
-		{
-			assert childStub instanceof StubElement : childStub.getClass();
-			collectRequiresFromStub((StubElement) childStub, includedVirtualFiles);
-		}
-	}
+    for (Object childStub : currentStub.getChildrenStubs()) {
+      assert childStub instanceof StubElement : childStub.getClass();
+      collectRequiresFromStub((StubElement)childStub, includedVirtualFiles);
+    }
+  }
 
 
-	/**
-	 * Collects required files from psi structure, used in currently modified document
-	 *
-	 * @param includedVirtualFiles set of already collected virtual files
-	 */
-	protected void collectRequiresFromPsi(PsiFile psiFile, Set<VirtualFile> includedVirtualFiles)
-	{
-		for (PsiElement importStatement : PsiTreeUtil.<PsiElement>findChildrenOfAnyType(psiFile, PerlUseStatement.class, PerlDoExpr.class))
-		{
-			VirtualFile virtualFile = null;
-			if (importStatement instanceof PerlUseStatement)
-			{
-				String packageName = ((PerlUseStatement) importStatement).getPackageName();
-				if (packageName != null)
-				{
-					virtualFile = PerlPackageUtil.resolvePackageNameToVirtualFile(this, packageName);
-				}
-			}
-			else if (importStatement instanceof PerlDoExpr)
-			{
-				String importPath = ((PerlDoExpr) importStatement).getImportPath();
+  /**
+   * Collects required files from psi structure, used in currently modified document
+   *
+   * @param includedVirtualFiles set of already collected virtual files
+   */
+  protected void collectRequiresFromPsi(PsiFile psiFile, Set<VirtualFile> includedVirtualFiles) {
+    for (PsiElement importStatement : PsiTreeUtil.<PsiElement>findChildrenOfAnyType(psiFile, PerlUseStatement.class, PerlDoExpr.class)) {
+      VirtualFile virtualFile = null;
+      if (importStatement instanceof PerlUseStatement) {
+        String packageName = ((PerlUseStatement)importStatement).getPackageName();
+        if (packageName != null) {
+          virtualFile = PerlPackageUtil.resolvePackageNameToVirtualFile(this, packageName);
+        }
+      }
+      else if (importStatement instanceof PerlDoExpr) {
+        String importPath = ((PerlDoExpr)importStatement).getImportPath();
 
-				if (importPath != null)
-				{
-					virtualFile = PerlPackageUtil.resolveRelativePathToVirtualFile(this, ((PerlDoExpr) importStatement).getImportPath());
-				}
-			}
+        if (importPath != null) {
+          virtualFile = PerlPackageUtil.resolveRelativePathToVirtualFile(this, ((PerlDoExpr)importStatement).getImportPath());
+        }
+      }
 
-			if (virtualFile != null)
-			{
-				collectRequiresFromVirtualFile(virtualFile, includedVirtualFiles);
-			}
-		}
-	}
+      if (virtualFile != null) {
+        collectRequiresFromVirtualFile(virtualFile, includedVirtualFiles);
+      }
+    }
+  }
 
-	@Override
-	public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, PsiElement lastParent, @NotNull PsiElement place)
-	{
-		return PerlScopeUtil.processChildren(
-				this,
-				processor,
-				state,
-				lastParent,
-				place
-		);
-	}
+  @Override
+  public boolean processDeclarations(@NotNull PsiScopeProcessor processor,
+                                     @NotNull ResolveState state,
+                                     PsiElement lastParent,
+                                     @NotNull PsiElement place) {
+    return PerlResolveUtil.processChildren(this, processor, state, lastParent, place) && processor.execute(this, state);
+  }
 
-	public boolean isNewLineForbiddenAt(PsiElement element)
-	{
-		Document document = PsiDocumentManager.getInstance(getProject()).getDocument(this);
-		if (document != null)
-		{
-			int lineNumber = document.getLineNumber(element.getTextRange().getEndOffset());
-
-			if (isNewLineFobiddenAtLine.containsKey(lineNumber))
-			{
-				return isNewLineFobiddenAtLine.get(lineNumber);
-			}
-
-			int lineEndOffset = document.getLineEndOffset(lineNumber);
-
-			boolean result = PerlPsiUtil.isHeredocAhead(element, lineEndOffset + 1);
-
-			isNewLineFobiddenAtLine.put(lineNumber, result);
-
-			return result;
-		}
-		return false;
-	}
-
-	@Override
-	public PerlCodeGenerator getCodeGenerator()
-	{
-		return PerlCodeGeneratorImpl.INSTANCE;
-	}
+  @Override
+  public PerlCodeGenerator getCodeGenerator() {
+    return PerlCodeGeneratorImpl.INSTANCE;
+  }
 
 /* This method is to get ElementTypes stats from PsiFile using PSIViewer
-	public String getTokensStats()
+        public String getTokensStats()
 	{
 		final Map<IElementType, Integer> TOKENS_STATS = new THashMap<IElementType, Integer>();
 
@@ -443,73 +284,95 @@ public class PerlFileImpl extends PsiFileBase implements PerlFile
 	}
 */
 
-	@Override
-	public ItemPresentation getPresentation()
-	{
-		return this;
-	}
+  @Override
+  public ItemPresentation getPresentation() {
+    return this;
+  }
 
-	@Nullable
-	@Override
-	public String getPresentableText()
-	{
-		String result = getFilePackageName();
-		return result == null ? getName() : result;
-	}
+  @Nullable
+  @Override
+  public String getPresentableText() {
+    String result = getFilePackageName();
+    return result == null ? getName() : result;
+  }
 
-	@Nullable
-	@Override
-	public String getLocationString()
-	{
-		final PsiDirectory psiDirectory = getParent();
-		if (psiDirectory != null)
-		{
-			return psiDirectory.getVirtualFile().getPresentableUrl();
-		}
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getLocationString() {
+    final PsiDirectory psiDirectory = getParent();
+    if (psiDirectory != null) {
+      return psiDirectory.getVirtualFile().getPresentableUrl();
+    }
+    return null;
+  }
 
-	@Nullable
-	@Override
-	public Icon getIcon(boolean unused)
-	{
-		return getFileType().getIcon();
-	}
+  @Nullable
+  @Override
+  public Icon getIcon(boolean unused) {
+    return getFileType().getIcon();
+  }
 
-	@Nullable
-	@Override
-	public String getPodLink()
-	{
-		return getFilePackageName();
-	}
+  @Nullable
+  @Override
+  public String getPodLink() {
+    return getFilePackageName();
+  }
 
-	@Nullable
-	@Override
-	public String getPodLinkText()
-	{
-		return getPodLink();
-	}
+  @Nullable
+  @Override
+  public String getPodLinkText() {
+    return getPodLink();
+  }
 
 
-	@Override
-	public byte[] getPerlContentInBytes()
-	{
-		return getText().getBytes(getVirtualFile().getCharset());
-	}
+  @Override
+  public byte[] getPerlContentInBytes() {
+    return getText().getBytes(getVirtualFile().getCharset());
+  }
 
-	@Override
-	public boolean isPerlTidyReformattable()
-	{
-		return true;
-	}
+  public PsiElement getContext() {
+    return fileContext == null ? super.getContext() : fileContext;
+  }
 
-	public PsiElement getFileContext()
-	{
-		return fileContext;
-	}
+  public void setFileContext(PsiElement fileContext) {
+    this.fileContext = fileContext;
+  }
 
-	public void setFileContext(PsiElement fileContext)
-	{
-		this.fileContext = fileContext;
-	}
+  // fixme we could use some SmartPsiElementPointer and UserData to hold the context
+  @Override
+  protected PsiFileImpl clone() {
+    PerlFileImpl clone = (PerlFileImpl)super.clone();
+    clone.setFileContext(fileContext);
+    return clone;
+  }
+
+  @NotNull
+  @Override
+  public List<String> getParentNamespacesNames() {
+    return Collections.emptyList();
+  }
+
+  @Nullable
+  @Override
+  public PerlNamespaceAnnotations getAnnotations() {
+    return null;
+  }
+
+  @NotNull
+  @Override
+  public List<String> getEXPORT() {
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  @Override
+  public List<String> getEXPORT_OK() {
+    return Collections.emptyList();
+  }
+
+  @NotNull
+  @Override
+  public Map<String, List<String>> getEXPORT_TAGS() {
+    return Collections.emptyMap();
+  }
 }

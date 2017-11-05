@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 23.12.2015.
  */
-public abstract class PerlSyntaxHighlighterEmbedded extends PerlSyntaxHighlighter
-{
-	public PerlSyntaxHighlighterEmbedded(Project project)
-	{
-		super(project);
-	}
+public abstract class PerlSyntaxHighlighterEmbedded extends PerlSyntaxHighlighter {
+  public PerlSyntaxHighlighterEmbedded(Project project) {
+    super(project);
+  }
 
-	@NotNull
-	@Override
-	public TextAttributesKey[] getTokenHighlights(IElementType tokenType)
-	{
-		if (getMarkersTokenSet().contains(tokenType))
-		{
-			return PerlSyntaxHighlighter.EMBED_MARKER_KEYS;
-		}
-		return super.getTokenHighlights(tokenType);
-	}
+  @NotNull
+  @Override
+  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+    if (getMarkersTokenSet().contains(tokenType)) {
+      return PerlSyntaxHighlighter.EMBED_MARKER_KEYS;
+    }
+    return super.getTokenHighlights(tokenType);
+  }
 
-	public abstract TokenSet getMarkersTokenSet();
+  public abstract TokenSet getMarkersTokenSet();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,29 +29,24 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodFormatterXElementType extends PodStubBasedSectionElementType<PodFormatterX>
-{
-	public PodFormatterXElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName);
-	}
+public class PodFormatterXElementType extends PodStubBasedSectionElementType<PodFormatterX> {
+  public PodFormatterXElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 
-	@NotNull
-	@Override
-	public PsiElement getPsiElement(@NotNull ASTNode node)
-	{
-		return new PsiPodFormatIndexImpl(node);
-	}
+  @NotNull
+  @Override
+  public PsiElement getPsiElement(@NotNull ASTNode node) {
+    return new PsiPodFormatIndexImpl(node);
+  }
 
-	@Override
-	public PodFormatterX createPsi(@NotNull PodSectionStub stub)
-	{
-		return new PsiPodFormatIndexImpl(stub, this);
-	}
+  @Override
+  public PodFormatterX createPsi(@NotNull PodSectionStub stub) {
+    return new PsiPodFormatIndexImpl(stub, this);
+  }
 
-	@Override
-	public void indexStub(@NotNull PodSectionStub stub, @NotNull IndexSink sink)
-	{
-		sink.occurrence(PodStubIndex.KEY, stub.getTitleText());
-	}
+  @Override
+  public void indexStub(@NotNull PodSectionStub stub, @NotNull IndexSink sink) {
+    sink.occurrence(PodStubIndex.KEY, stub.getTitleText());
+  }
 }

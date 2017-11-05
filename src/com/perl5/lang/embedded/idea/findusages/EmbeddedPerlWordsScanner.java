@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,12 @@ import com.perl5.lang.perl.PerlParserDefinition;
 /**
  * Created by hurricup on 06.01.2016.
  */
-public class EmbeddedPerlWordsScanner extends DefaultWordsScanner
-{
-	public EmbeddedPerlWordsScanner()
-	{
-		super(new EmbeddedPerlLexerAdapter(null),
-				PerlParserDefinition.IDENTIFIERS,
-				PerlParserDefinition.COMMENTS,
-				PerlParserDefinition.LITERALS);
-		setMayHaveFileRefsInLiterals(true);
-	}
+public class EmbeddedPerlWordsScanner extends DefaultWordsScanner {
+  public EmbeddedPerlWordsScanner() {
+    super(new EmbeddedPerlLexerAdapter(null),
+          PerlParserDefinition.IDENTIFIERS,
+          PerlParserDefinition.COMMENTS,
+          PerlParserDefinition.LITERALS);
+    setMayHaveFileRefsInLiterals(true);
+  }
 }

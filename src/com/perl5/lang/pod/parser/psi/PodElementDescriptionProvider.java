@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,31 +29,24 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 10.04.2016.
  */
-public class PodElementDescriptionProvider implements ElementDescriptionProvider
-{
-	@Nullable
-	@Override
-	public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location)
-	{
-		if (element.getLanguage().isKindOf(PodLanguage.INSTANCE))
-		{
-			if (element instanceof PodCompositeElement)
-			{
-				if (location == UsageViewShortNameLocation.INSTANCE)
-				{
-					return ((PodCompositeElement) element).getUsageViewShortNameLocation();
-				}
-				else if (location == UsageViewLongNameLocation.INSTANCE)
-				{
-					return ((PodCompositeElement) element).getUsageViewLongNameLocation();
-				}
-				else if (location == UsageViewTypeLocation.INSTANCE)
-				{
-					return ((PodCompositeElement) element).getUsageViewTypeLocation();
-				}
-			}
-			System.err.println("Unresolved " + element + " in " + location);
-		}
-		return null;
-	}
+public class PodElementDescriptionProvider implements ElementDescriptionProvider {
+  @Nullable
+  @Override
+  public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location) {
+    if (element.getLanguage().isKindOf(PodLanguage.INSTANCE)) {
+      if (element instanceof PodCompositeElement) {
+        if (location == UsageViewShortNameLocation.INSTANCE) {
+          return ((PodCompositeElement)element).getUsageViewShortNameLocation();
+        }
+        else if (location == UsageViewLongNameLocation.INSTANCE) {
+          return ((PodCompositeElement)element).getUsageViewLongNameLocation();
+        }
+        else if (location == UsageViewTypeLocation.INSTANCE) {
+          return ((PodCompositeElement)element).getUsageViewTypeLocation();
+        }
+      }
+      System.err.println("Unresolved " + element + " in " + location);
+    }
+    return null;
+  }
 }

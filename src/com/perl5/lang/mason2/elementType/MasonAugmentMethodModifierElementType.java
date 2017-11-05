@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,28 +30,23 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 28.01.2016.
  */
-public class MasonAugmentMethodModifierElementType extends PerlMooseAugmentStatementElementType
-{
-	public MasonAugmentMethodModifierElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName);
-	}
+public class MasonAugmentMethodModifierElementType extends PerlMooseAugmentStatementElementType {
+  public MasonAugmentMethodModifierElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 
-	public MasonAugmentMethodModifierElementType(@NotNull @NonNls String debugName, @Nullable Language language)
-	{
-		super(debugName, language);
-	}
+  public MasonAugmentMethodModifierElementType(@NotNull @NonNls String debugName, @Nullable Language language) {
+    super(debugName, language);
+  }
 
-	@Override
-	public PerlMooseAugmentStatement createPsi(@NotNull PerlMooseAugmentStatementStub stub)
-	{
-		return new MasonAugmentMethodModifierImpl(stub, this);
-	}
+  @Override
+  public PerlMooseAugmentStatement createPsi(@NotNull PerlMooseAugmentStatementStub stub) {
+    return new MasonAugmentMethodModifierImpl(stub, this);
+  }
 
-	@NotNull
-	@Override
-	public PsiElement getPsiElement(@NotNull ASTNode node)
-	{
-		return new MasonAugmentMethodModifierImpl(node);
-	}
+  @NotNull
+  @Override
+  public PsiElement getPsiElement(@NotNull ASTNode node) {
+    return new MasonAugmentMethodModifierImpl(node);
+  }
 }

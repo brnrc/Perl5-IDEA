@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 10.01.2016.
  */
-public class MasonTextBlockImpl extends PerlCompositeElementImpl implements MasonTextBlock
-{
-	public MasonTextBlockImpl(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class MasonTextBlockImpl extends PerlCompositeElementImpl implements MasonTextBlock {
+  public MasonTextBlockImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public void accept(@NotNull PsiElementVisitor visitor)
-	{
-		if (visitor instanceof Mason2Visitor)
-		{
-			((Mason2Visitor) visitor).visitMasonTextBlock(this);
-		}
-		else
-		{
-			super.accept(visitor);
-		}
-	}
+  @Override
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof Mason2Visitor) {
+      ((Mason2Visitor)visitor).visitMasonTextBlock(this);
+    }
+    else {
+      super.accept(visitor);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,37 +16,58 @@
 
 package com.perl5.lang.perl.parser.moose.psi.references;
 
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
+import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.perl5.lang.perl.parser.moose.psi.references.resolvers.PerlMooseSuperReferenceResolver;
-import com.perl5.lang.perl.psi.references.PerlPolyVariantReference;
-import org.jetbrains.annotations.NotNull;
+import com.perl5.lang.perl.parser.moose.psi.impl.PerlMooseOverrideStatement;
+import com.perl5.lang.perl.psi.mro.PerlMro;
+import com.perl5.lang.perl.psi.references.PerlCachingReference;
+import com.perl5.lang.perl.util.PerlPackageUtil;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by hurricup on 25.01.2016.
  */
-public class PerlMooseSuperReference extends PerlPolyVariantReference<PsiElement>
-{
-	private static final ResolveCache.PolyVariantResolver<PerlMooseSuperReference> RESOLVER = new PerlMooseSuperReferenceResolver();
+public class PerlMooseSuperReference extends PerlCachingReference<PsiElement> {
 
-	public PerlMooseSuperReference(@NotNull PsiElement element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  public PerlMooseSuperReference(PsiElement psiElement) {
+    super(psiElement);
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, false);
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    // fixme not really dry with simpleresolver and superresolver. Need some generics magic
+    List<ResolveResult> result = new ArrayList<>();
+    PsiElement element = getElement();
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		return myElement;
-	}
+    PerlMooseOverrideStatement overrideStatement = PsiTreeUtil.getParentOfType(element, PerlMooseOverrideStatement.class);
+
+    if (overrideStatement != null) {
+      String packageName = PerlPackageUtil.getContextPackageName(element);
+      String subName = overrideStatement.getSubName();
+      Project project = element.getProject();
+
+
+      for (PsiElement targetElement : PerlMro.resolveSub(
+        project,
+        packageName,
+        subName,
+        true
+      )) {
+        result.add(new PsiElementResolveResult(targetElement));
+      }
+    }
+
+    return result.toArray(new ResolveResult[result.size()]);
+  }
+
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    return myElement;
+  }
 }

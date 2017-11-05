@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,55 +16,30 @@
 
 package resolve.htmlmason;
 
-import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.PerlVariableDeclarationWrapper;
-import com.perl5.lang.perl.psi.PerlVariableNameElement;
-import resolve.perl.PerlVariableResolveTestCase;
+import base.PerlLightTestCase;
 
 /**
  * Created by hurricup on 15.03.2016.
  */
-public class HTMLMasonConcurrentBlocksResolveTest extends PerlVariableResolveTestCase
-{
-	protected String getTestDataPath()
-	{
-		return "testData/resolve/htmlmason/concurrent_blocks";
-	}
+public class HTMLMasonConcurrentBlocksResolveTest extends PerlLightTestCase {
+  protected String getTestDataPath() {
+    return "testData/resolve/htmlmason/concurrent_blocks";
+  }
 
-	@Override
-	public String getFileExtension()
-	{
-		return "mas";
-	}
+  @Override
+  public String getFileExtension() {
+    return "mas";
+  }
 
-	public void testArgs() throws Exception
-	{
-		doTest("args");
-	}
+  public void testArgs() throws Exception {
+    doTestResolve();
+  }
 
-	public void testInit() throws Exception
-	{
-		doTest("init");
-	}
+  public void testInit() throws Exception {
+    doTestResolve();
+  }
 
-	public void testFromFilter() throws Exception
-	{
-		doTest("from_filter");
-	}
-
-	protected void doTest(String fileName)
-	{
-		initWithFileSmart(fileName);
-		PsiElement fileLevelDeclaration = getElementAtCaret(0, PerlVariableDeclarationWrapper.class);
-		assertNotNull(fileLevelDeclaration);
-		PsiElement defLevelDeclaration = getElementAtCaret(1, PerlVariableDeclarationWrapper.class);
-		assertNotNull(defLevelDeclaration);
-		PsiElement defLevelUsage = getElementAtCaret(2, PerlVariableNameElement.class);
-		assertNotNull(defLevelUsage);
-		PsiElement fileLevelUsage = getElementAtCaret(3, PerlVariableNameElement.class);
-		assertNotNull(fileLevelUsage);
-
-	}
-
-
+  public void testFromFilter() throws Exception {
+    doTestResolve();
+  }
 }

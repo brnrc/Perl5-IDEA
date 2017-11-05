@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,260 +26,207 @@ import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiUtilCore;
 import com.intellij.util.ArrayUtil;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
 import com.perl5.lang.perl.psi.PerlSubNameElement;
 import com.perl5.lang.perl.psi.impl.PerlCompositeElementImpl;
 import com.perl5.lang.perl.psi.impl.PsiPerlCallArgumentsImpl;
 import com.perl5.lang.perl.psi.impl.PsiPerlCommaSequenceExprImpl;
 import com.perl5.lang.perl.psi.impl.PsiPerlParenthesisedExprImpl;
-import com.perl5.lang.perl.psi.mixins.PerlMethodImplMixin;
+import com.perl5.lang.perl.psi.mixins.PerlMethodMixin;
 import com.perl5.lang.perl.psi.utils.PerlContextType;
-import com.perl5.lang.perl.psi.utils.PerlSubArgument;
 import com.perl5.lang.perl.util.PerlUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-
 /**
  * Created by hurricup on 26.06.2016.
  */
-public class PerlParameterInfoHandler implements ParameterInfoHandler<PsiPerlCallArgumentsImpl, PerlParameterInfo>, PerlElementTypes
-{
-	/**
-	 * Method marks parameters as active/inactive
-	 *
-	 * @param container      arguments container
-	 * @param parameterInfos array of parameter infos
-	 */
-	private static void markActiveParameters(@NotNull PsiPerlCallArgumentsImpl container, PerlParameterInfo[] parameterInfos, int offset)
-	{
-		for (PerlParameterInfo parameterInfo : parameterInfos)
-		{
-			parameterInfo.setSelected(false);
-		}
+public class PerlParameterInfoHandler implements ParameterInfoHandler<PsiPerlCallArgumentsImpl, PerlParameterInfo>, PerlElementTypes {
+  @Nullable
+  @Override
+  public PsiPerlCallArgumentsImpl findElementForParameterInfo(@NotNull CreateParameterInfoContext context) {
+    //		System.err.println("Find for create");
+    PsiPerlCallArgumentsImpl callArguments = findCallArguments(context);
 
-		markActiveparametersRecursively(container.getFirstChild(), parameterInfos, 0, offset);
-	}
+    if (callArguments != null) {
+      PerlParameterInfo[] methodParameterInfos = getMethodCallArguments(callArguments);
+      if (methodParameterInfos == null || methodParameterInfos.length == 0) {
+        return null;
+      }
+      markActiveParameters(callArguments, methodParameterInfos, context.getOffset());
+      context.setItemsToShow(methodParameterInfos);
+    }
 
-	private static int markActiveparametersRecursively(PsiElement element, PerlParameterInfo[] parameterInfos, int currentIndex, int offset)
-	{
-		while (element != null)
-		{
-			if (parameterInfos.length <= currentIndex)
-			{
-				return currentIndex;
-			}
+    return callArguments;
+  }
 
-			if (element instanceof PsiPerlParenthesisedExprImpl || element instanceof PsiPerlCommaSequenceExprImpl)
-			{
-				currentIndex = markActiveparametersRecursively(element.getFirstChild(), parameterInfos, currentIndex, offset);
-			}
-			else
-			{
-				IElementType tokenType = PsiUtilCore.getElementType(element);
-				if (tokenType == OPERATOR_COMMA_ARROW || tokenType == OPERATOR_COMMA)
-				{
-					if (parameterInfos[currentIndex].getArgument().getContextType() == PerlContextType.SCALAR)
-					{
-						currentIndex++;
-					}
-				}
-			}
+  @Override
+  public void showParameterInfo(@NotNull PsiPerlCallArgumentsImpl container, @NotNull CreateParameterInfoContext context) {
+    context.showHint(container, container.getTextOffset(), this);
+  }
 
-			if (element.getNode().getTextRange().getEndOffset() >= offset)
-			{
-				if (element instanceof PerlCompositeElementImpl)
-				{
-					PerlContextType valueContextType = PerlUtil.getElementContextType(element);
+  @Nullable
+  @Override
+  public PsiPerlCallArgumentsImpl findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context) {
+    return findCallArguments(context);
+  }
 
-					if (valueContextType == PerlContextType.SCALAR)
-					{
-						if (currentIndex < parameterInfos.length)
-						{
-							parameterInfos[currentIndex].setSelected(true);
-						}
-						return parameterInfos.length;
-					}
-					else if (valueContextType == PerlContextType.LIST) // consumes all arguments to the end
-					{
-						while (currentIndex < parameterInfos.length)
-						{
-							parameterInfos[currentIndex++].setSelected(true);
-						}
-						return currentIndex;
-					}
-				}
+  @Override
+  public void updateParameterInfo(@NotNull PsiPerlCallArgumentsImpl container, @NotNull UpdateParameterInfoContext context) {
+    markActiveParameters(container, (PerlParameterInfo[])context.getObjectsToView(), context.getOffset());
+  }
 
-				// space, comma or smth
-				if (currentIndex < parameterInfos.length)
-				{
-					parameterInfos[currentIndex].setSelected(true);
-				}
-				return parameterInfos.length;
-			}
+  @Override
+  public void updateUI(PerlParameterInfo parameterInfo, @NotNull ParameterInfoUIContext context) {
+    parameterInfo.setUpUIPresentation(context);
+  }
 
-			element = element.getNextSibling();
-		}
-		return currentIndex;
-	}
+  @Nullable
+  @Override
+  public String getParameterCloseChars() {
+    return null;
+  }
 
-	@Nullable
-	private static PsiPerlCallArgumentsImpl findCallArguments(ParameterInfoContext context)
-	{
-		PsiPerlCallArgumentsImpl callArguments = ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset(), PsiPerlCallArgumentsImpl.class);
-		if (callArguments != null || context.getOffset() == 0)
-		{
-			return callArguments;
-		}
+  @Override
+  public boolean tracksParameterIndex() {
+    return false;
+  }
 
-		callArguments = ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset() - 1, PsiPerlCallArgumentsImpl.class);
-		if (callArguments != null)
-		{
-			return callArguments;
-		}
+  @Override
+  public boolean couldShowInLookup() {
+    return false;
+  }
 
-		return ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset() + 1, PsiPerlCallArgumentsImpl.class);
-	}
+  @Nullable
+  @Override
+  public Object[] getParametersForLookup(LookupElement item, ParameterInfoContext context) {
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;  // we don't
+  }
 
-	@Nullable
-	private static PerlParameterInfo[] getTargetParameterInfo(@Nullable PsiElement target)
-	{
-		if (target == null || !(target instanceof PerlSubDefinitionBase))
-		{
-			return null;
-		}
+  @Nullable
+  @Override
+  public Object[] getParametersForDocumentation(PerlParameterInfo p, ParameterInfoContext context) {
+    return ArrayUtil.EMPTY_OBJECT_ARRAY;  // we don't
+  }
 
-		@SuppressWarnings("unchecked") List<PerlSubArgument> subArgumentsList = ((PerlSubDefinitionBase) target).getSubArgumentsList();
+  /**
+   * Method marks parameters as active/inactive
+   *
+   * @param container      arguments container
+   * @param parameterInfos array of parameter infos
+   */
+  private static void markActiveParameters(@NotNull PsiPerlCallArgumentsImpl container, PerlParameterInfo[] parameterInfos, int offset) {
+    for (PerlParameterInfo parameterInfo : parameterInfos) {
+      parameterInfo.setSelected(false);
+    }
 
-		if (((PerlSubDefinitionBase) target).isMethod() && subArgumentsList.size() > 0)
-		{
-			subArgumentsList.remove(0);
-		}
+    markActiveparametersRecursively(container.getFirstChild(), parameterInfos, 0, offset);
+  }
 
-		return PerlParameterInfo.wrapArguments(subArgumentsList);
-	}
+  private static int markActiveparametersRecursively(PsiElement element, PerlParameterInfo[] parameterInfos, int currentIndex, int offset) {
+    while (element != null) {
+      if (parameterInfos.length <= currentIndex) {
+        return currentIndex;
+      }
 
-	@Nullable
-	private static PerlParameterInfo[] getMethodCallArguments(@NotNull PsiPerlCallArgumentsImpl arguments)
-	{
-		PsiElement run = arguments.getPrevSibling();
-		while (run != null)
-		{
-			if (run instanceof PerlMethodImplMixin)
-			{
-				PerlSubNameElement subNameElement = ((PerlMethodImplMixin) run).getSubNameElement();
-				if (subNameElement == null)
-				{
-					break;
-				}
+      if (element instanceof PsiPerlParenthesisedExprImpl || element instanceof PsiPerlCommaSequenceExprImpl) {
+        currentIndex = markActiveparametersRecursively(element.getFirstChild(), parameterInfos, currentIndex, offset);
+      }
+      else {
+        IElementType tokenType = PsiUtilCore.getElementType(element);
+        if (tokenType == FAT_COMMA || tokenType == COMMA) {
+          if (parameterInfos[currentIndex].getArgument().getContextType() == PerlContextType.SCALAR) {
+            currentIndex++;
+          }
+        }
+      }
 
-				PerlParameterInfo[] parameterInfos;
+      if (element.getNode().getTextRange().getEndOffset() >= offset) {
+        if (element instanceof PerlCompositeElementImpl) {
+          PerlContextType valueContextType = PerlUtil.getElementContextType(element);
 
-				for (PsiReference reference : subNameElement.getReferences())
-				{
-					if (reference instanceof PsiPolyVariantReference)
-					{
-						for (ResolveResult resolveResult : ((PsiPolyVariantReference) reference).multiResolve(false))
-						{
-							parameterInfos = getTargetParameterInfo(resolveResult.getElement());
-							if (parameterInfos != null)
-							{
-								return parameterInfos;
-							}
-						}
-					}
-					else
-					{
-						parameterInfos = getTargetParameterInfo(reference.resolve());
-						if (parameterInfos != null)
-						{
-							return parameterInfos;
-						}
-					}
-				}
-			}
-			run = run.getPrevSibling();
-		}
-		return null;
-	}
+          if (valueContextType == PerlContextType.SCALAR) {
+            if (currentIndex < parameterInfos.length) {
+              parameterInfos[currentIndex].setSelected(true);
+            }
+            return parameterInfos.length;
+          }
+          else if (valueContextType == PerlContextType.LIST) // consumes all arguments to the end
+          {
+            while (currentIndex < parameterInfos.length) {
+              parameterInfos[currentIndex++].setSelected(true);
+            }
+            return currentIndex;
+          }
+        }
 
-	@Nullable
-	@Override
-	public PsiPerlCallArgumentsImpl findElementForParameterInfo(@NotNull CreateParameterInfoContext context)
-	{
-//		System.err.println("Find for create");
-		PsiPerlCallArgumentsImpl callArguments = findCallArguments(context);
+        // space, comma or smth
+        if (currentIndex < parameterInfos.length) {
+          parameterInfos[currentIndex].setSelected(true);
+        }
+        return parameterInfos.length;
+      }
 
-		if (callArguments != null)
-		{
-			PerlParameterInfo[] methodParameterInfos = getMethodCallArguments(callArguments);
-			if (methodParameterInfos == null || methodParameterInfos.length == 0)
-			{
-				return null;
-			}
-			markActiveParameters(callArguments, methodParameterInfos, context.getOffset());
-			context.setItemsToShow(methodParameterInfos);
-		}
+      element = element.getNextSibling();
+    }
+    return currentIndex;
+  }
 
-		return callArguments;
-	}
+  @Nullable
+  private static PsiPerlCallArgumentsImpl findCallArguments(ParameterInfoContext context) {
+    PsiPerlCallArgumentsImpl callArguments =
+      ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset(), PsiPerlCallArgumentsImpl.class);
+    if (callArguments != null || context.getOffset() == 0) {
+      return callArguments;
+    }
 
-	@Override
-	public void showParameterInfo(@NotNull PsiPerlCallArgumentsImpl container, @NotNull CreateParameterInfoContext context)
-	{
-		context.showHint(container, container.getTextOffset(), this);
-	}
+    callArguments = ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset() - 1, PsiPerlCallArgumentsImpl.class);
+    if (callArguments != null) {
+      return callArguments;
+    }
 
-	@Nullable
-	@Override
-	public PsiPerlCallArgumentsImpl findElementForUpdatingParameterInfo(@NotNull UpdateParameterInfoContext context)
-	{
-		return findCallArguments(context);
-	}
+    return ParameterInfoUtils.findParentOfType(context.getFile(), context.getOffset() + 1, PsiPerlCallArgumentsImpl.class);
+  }
 
-	@Override
-	public void updateParameterInfo(@NotNull PsiPerlCallArgumentsImpl container, @NotNull UpdateParameterInfoContext context)
-	{
-		markActiveParameters(container, (PerlParameterInfo[]) context.getObjectsToView(), context.getOffset());
-	}
+  @Nullable
+  private static PerlParameterInfo[] getTargetParameterInfo(@Nullable PsiElement target) {
+    if (target == null || !(target instanceof PerlSubDefinitionElement)) {
+      return null;
+    }
+    return PerlParameterInfo.wrapArguments(((PerlSubDefinitionElement)target).getSubArgumentsListWithoutSelf());
+  }
 
-	@Override
-	public void updateUI(PerlParameterInfo parameterInfo, @NotNull ParameterInfoUIContext context)
-	{
-		parameterInfo.setUpUIPresentation(context);
-	}
+  @Nullable
+  private static PerlParameterInfo[] getMethodCallArguments(@NotNull PsiPerlCallArgumentsImpl arguments) {
+    PsiElement run = arguments.getPrevSibling();
+    while (run != null) {
+      if (run instanceof PerlMethodMixin) {
+        PerlSubNameElement subNameElement = ((PerlMethodMixin)run).getSubNameElement();
+        if (subNameElement == null) {
+          break;
+        }
 
-	@Nullable
-	@Override
-	public String getParameterCloseChars()
-	{
-		return null;
-	}
+        PerlParameterInfo[] parameterInfos;
 
-	@Override
-	public boolean tracksParameterIndex()
-	{
-		return false;
-	}
-
-	@Override
-	public boolean couldShowInLookup()
-	{
-		return false;
-	}
-
-	@Nullable
-	@Override
-	public Object[] getParametersForLookup(LookupElement item, ParameterInfoContext context)
-	{
-		return ArrayUtil.EMPTY_OBJECT_ARRAY;  // we don't
-	}
-
-	@Nullable
-	@Override
-	public Object[] getParametersForDocumentation(PerlParameterInfo p, ParameterInfoContext context)
-	{
-		return ArrayUtil.EMPTY_OBJECT_ARRAY;  // we don't
-	}
+        for (PsiReference reference : subNameElement.getReferences()) {
+          if (reference instanceof PsiPolyVariantReference) {
+            for (ResolveResult resolveResult : ((PsiPolyVariantReference)reference).multiResolve(false)) {
+              parameterInfos = getTargetParameterInfo(resolveResult.getElement());
+              if (parameterInfos != null) {
+                return parameterInfos;
+              }
+            }
+          }
+          else {
+            parameterInfos = getTargetParameterInfo(reference.resolve());
+            if (parameterInfos != null) {
+              return parameterInfos;
+            }
+          }
+        }
+      }
+      run = run.getPrevSibling();
+    }
+    return null;
+  }
 }

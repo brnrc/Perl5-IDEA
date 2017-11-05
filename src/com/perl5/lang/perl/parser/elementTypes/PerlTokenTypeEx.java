@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,10 +23,8 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.01.2016.
  */
-public abstract class PerlTokenTypeEx extends PerlTokenType implements ILeafElementType
-{
-	public PerlTokenTypeEx(@NotNull @NonNls String debugName)
-	{
-		super(debugName);
-	}
+public abstract class PerlTokenTypeEx extends PerlTokenType implements ILeafElementType {
+  public PerlTokenTypeEx(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 }

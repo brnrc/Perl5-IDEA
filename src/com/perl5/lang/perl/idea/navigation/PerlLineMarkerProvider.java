@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,98 +20,99 @@ import com.intellij.codeInsight.daemon.RelatedItemLineMarkerInfo;
 import com.intellij.codeInsight.daemon.RelatedItemLineMarkerProvider;
 import com.intellij.codeInsight.navigation.NavigationGutterIconBuilder;
 import com.intellij.icons.AllIcons;
-import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
-import com.perl5.lang.perl.psi.PerlSubBase;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
-import com.perl5.lang.perl.util.PerlSubUtil;
+import com.perl5.lang.perl.psi.*;
+import com.perl5.lang.perl.psi.light.PerlDelegatingLightNamedElement;
 import org.jetbrains.annotations.NotNull;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
 /**
  * Created by hurricup on 26.04.2015.
  */
-public class PerlLineMarkerProvider extends RelatedItemLineMarkerProvider implements PerlElementTypes
-{
-	@Override
-	protected void collectNavigationMarkers(@NotNull PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result)
-	{
-		if (element instanceof PerlNamespaceDefinition)
-		{
-			PsiElement nameIdentifier = ((PerlNamespaceDefinition) element).getNameIdentifier();
-			if (nameIdentifier == null)
-			{
-				nameIdentifier = element;
-			}
+public class PerlLineMarkerProvider extends RelatedItemLineMarkerProvider implements PerlElementTypes {
+  @Override
+  protected void collectNavigationMarkers(@NotNull PsiElement element, Collection<? super RelatedItemLineMarkerInfo> result) {
+    if (element instanceof PerlNamespaceDefinitionWithIdentifier) {
+      addNamespaceMarkers((PerlNamespaceDefinitionWithIdentifier)element, result);
+    }
+    else if (element instanceof PerlSubDefinitionElement && ((PerlSubDefinitionElement)element).isMethod()) {
+      addSubDefinitionsMarkers((PerlSubDefinitionElement)element, result);
+    }
+    else if (element instanceof PerlPolyNamedElement) {
+      for (PerlDelegatingLightNamedElement lightNamedElement : ((PerlPolyNamedElement)element).getLightElements()) {
+        if (lightNamedElement instanceof PerlNamespaceDefinitionWithIdentifier) {
+          addNamespaceMarkers((PerlNamespaceDefinitionWithIdentifier)lightNamedElement, result);
+        }
+        else if (lightNamedElement instanceof PerlSubDefinition && ((PerlSubDefinition)lightNamedElement).isMethod()) {
+          addSubDefinitionsMarkers((PerlSubDefinitionElement)lightNamedElement, result);
+        }
+      }
+    }
+  }
 
-			List<PerlNamespaceDefinition> parentNamespaces = ((PerlNamespaceDefinition) element).getParentNamespaceDefinitions();
-			if (!parentNamespaces.isEmpty())
-			{
-				NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
-						.create(AllIcons.Gutter.ImplementingMethod)
-						.setTargets(parentNamespaces)
-						.setTooltipText("Parent classes");
+  private void addNamespaceMarkers(@NotNull PerlNamespaceDefinitionWithIdentifier element,
+                                   Collection<? super RelatedItemLineMarkerInfo> result) {
+    PsiElement nameIdentifier = element.getNameIdentifier();
+    if (nameIdentifier == null) {
+      nameIdentifier = element;
+    }
 
-				result.add(builder.createLineMarkerInfo(nameIdentifier));
-			}
+    List<PerlNamespaceDefinitionElement> parentNamespaces = element.getParentNamespaceDefinitions();
+    if (!parentNamespaces.isEmpty()) {
+      NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
+        .create(AllIcons.Gutter.ImplementingMethod)
+        .setTargets(parentNamespaces)
+        .setTooltipText("Parent classes");
 
-			Collection<PerlNamespaceDefinition> childNamespaces = ((PerlNamespaceDefinition) element).getChildNamespaceDefinitions();
-			if (!childNamespaces.isEmpty())
-			{
-				NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
-						.create(AllIcons.Gutter.ImplementedMethod)
-						.setTargets(childNamespaces)
-						.setTooltipText("Subclasses");
+      result.add(builder.createLineMarkerInfo(nameIdentifier));
+    }
 
-				result.add(builder.createLineMarkerInfo(nameIdentifier));
-			}
+    Collection<PerlNamespaceDefinitionElement> childNamespaces = element.getChildNamespaceDefinitions();
+    if (!childNamespaces.isEmpty()) {
+      NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
+        .create(AllIcons.Gutter.ImplementedMethod)
+        .setTargets(childNamespaces)
+        .setTooltipText("Subclasses");
 
-		}
-		else if (element instanceof PerlSubDefinitionBase && ((PerlSubDefinitionBase) element).isMethod())
-		{
-			PerlNamespaceDefinition containingNamespace = PsiTreeUtil.getParentOfType(element, PerlNamespaceDefinition.class);
-			if (containingNamespace != null)
-			{
-				final String packageName = ((PerlSubDefinitionBase) element).getPackageName();
-				final String subName = ((PerlSubDefinitionBase) element).getSubName();
-				PsiElement nameIdentifier = ((PerlSubDefinitionBase) element).getNameIdentifier();
-				if (nameIdentifier == null)
-				{
-					nameIdentifier = element;
-				}
+      result.add(builder.createLineMarkerInfo(nameIdentifier));
+    }
+  }
 
-				if (StringUtil.isNotEmpty(packageName) && StringUtil.isNotEmpty(subName))
-				{
-					PerlSubBase parentSub = PerlSubUtil.getDirectSuperMethod((PerlSubBase) element);
+  private void addSubDefinitionsMarkers(@NotNull PerlSubDefinitionElement subElement,
+                                        Collection<? super RelatedItemLineMarkerInfo> result) {
+    PerlNamespaceDefinitionElement containingNamespace = PsiTreeUtil.getParentOfType(subElement, PerlNamespaceDefinitionElement.class);
+    if (containingNamespace != null) {
+      PsiElement nameIdentifier = subElement.getNameIdentifier();
+      if (nameIdentifier == null) {
+        nameIdentifier = subElement;
+      }
 
-					if (parentSub != null)
-					{
-						NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
-								.create(AllIcons.Gutter.OverridingMethod)
-								.setTarget(parentSub)
-								.setTooltipText("Overriding method");
+      PerlSubElement parentSub = subElement.getDirectSuperMethod();
 
-						result.add(builder.createLineMarkerInfo(nameIdentifier));
-					}
+      if (parentSub != null) {
+        NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
+          .create(AllIcons.Gutter.OverridingMethod)
+          .setTarget(parentSub)
+          .setTooltipText("Overriding method");
 
-					final List<PerlSubBase> overridingSubs = PerlSubUtil.getDirectOverridingSubs((PerlSubBase) element, containingNamespace);
+        result.add(builder.createLineMarkerInfo(nameIdentifier));
+      }
 
-					if (!overridingSubs.isEmpty())
-					{
-						NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
-								.create(AllIcons.Gutter.OverridenMethod)
-								.setTargets(overridingSubs)
-								.setTooltipText("Overriden methods");
+      List<PerlSubElement> overridingSubs = new ArrayList<>();
+      subElement.processDirectOverridingSubs(overridingSubs::add);
+      if (!overridingSubs.isEmpty()) {
+        NavigationGutterIconBuilder<PsiElement> builder = NavigationGutterIconBuilder
+          .create(AllIcons.Gutter.OverridenMethod)
+          .setTargets(overridingSubs)
+          .setTooltipText("Overriden methods");
 
-						result.add(builder.createLineMarkerInfo(nameIdentifier));
-					}
-				}
-			}
-		}
-	}
+        result.add(builder.createLineMarkerInfo(nameIdentifier));
+      }
+    }
+  }
 }

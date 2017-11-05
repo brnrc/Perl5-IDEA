@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,45 +16,33 @@
 
 package com.perl5.lang.perl.psi.properties;
 
-import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 25.05.2015.
  */
-public interface PerlPackageMember extends PsiElement
-{
-	/**
-	 * Method for checking explicit package name for current element
-	 *
-	 * @return package name or null if n/a
-	 */
-	@Nullable
-	String getExplicitPackageName();
+public interface PerlPackageMember {
+  /**
+   * Method for checking explicit package name for current element
+   *
+   * @return package name or null if n/a
+   */
+  @Nullable
+  String getExplicitPackageName();
 
-	/**
-	 * Trying to detect package name by traversing parents
-	 *
-	 * @return package name or main if not found
-	 */
-	@NotNull
-	String getContextPackageName();
+  /**
+   * Trying to get the package name from explicit specification or by traversing
+   *
+   * @return package name for current element
+   */
+  @Nullable
+  String getPackageName();
 
-	/**
-	 * Trying to get the package name from explicit specification or by traversing
-	 *
-	 * @return package name for current element
-	 */
-	@NotNull
-	String getPackageName();
-
-	/**
-	 * Returns fullname package::element
-	 *
-	 * @return name
-	 */
-	@NotNull
-	String getCanonicalName();
-
+  /**
+   * Returns fullname package::element
+   *
+   * @return name
+   */
+  @Nullable
+  String getCanonicalName();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,76 +24,59 @@ import com.perl5.lang.perl.PerlParserDefinition;
 import com.perl5.lang.perl.extensions.parser.PerlParserExtension;
 import com.perl5.lang.perl.lexer.PerlLexer;
 import com.perl5.lang.perl.parser.PerlParserImpl;
-import com.perl5.lang.perl.parser.PerlParserUtil;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 
 /**
  * Created by hurricup on 22.11.2015.
  */
-public class PerlParserExtensions implements ApplicationComponent
-{
-	public PerlParserExtensions()
-	{
-	}
+public class PerlParserExtensions implements ApplicationComponent {
+  public PerlParserExtensions() {
+  }
 
-	@Override
-	public void initComponent()
-	{
-		PerlParserDefinition.PARSER_EXTENSIONS.clear();
-		PerlLexer.initReservedTokensMap();
-		for (PerlParserExtension extension : PerlParserExtension.EP_NAME.getExtensions())
-		{
-			// register extension
-			PerlParserDefinition.PARSER_EXTENSIONS.add(extension);
+  @Override
+  public void initComponent() {
+    PerlParserDefinition.PARSER_EXTENSIONS.clear();
+    PerlLexer.initReservedTokensMap();
+    for (PerlParserExtension extension : PerlParserExtension.EP_NAME.getExtensions()) {
+      // register extension
+      PerlParserDefinition.PARSER_EXTENSIONS.add(extension);
 
-			// add tokens to lex
-			Map<String, IElementType> customTokensMap = extension.getCustomTokensMap();
-			PerlLexer.CUSTOM_TOKEN_TYPES.putAll(customTokensMap);
+      // add tokens to lex
+      Map<String, IElementType> customTokensMap = extension.getCustomTokensMap();
+      PerlLexer.CUSTOM_TOKEN_TYPES.putAll(customTokensMap);
 
-			// add regex prefix tokenset
-			if (extension.getRegexPrefixTokenSet() != null)
-			{
-				PerlLexer.BARE_REGEX_PREFIX_TOKENSET = TokenSet.orSet(PerlLexer.BARE_REGEX_PREFIX_TOKENSET, extension.getRegexPrefixTokenSet());
-			}
+      // add regex prefix tokenset
+      if (extension.getRegexPrefixTokenSet() != null) {
+        PerlLexer.BARE_REGEX_PREFIX_TOKENSET = TokenSet.orSet(PerlLexer.BARE_REGEX_PREFIX_TOKENSET, extension.getRegexPrefixTokenSet());
+      }
 
-			// add tokens to fallback set
-			Collection<IElementType> tokensList = customTokensMap.values();
-			PerlParserUtil.addConvertableTokens(tokensList.toArray(new IElementType[tokensList.size()]));
+      // add extensions tokens
+      List<Pair<IElementType, TokenSet>> extensionSets = extension.getExtensionSets();
+      if (extensionSets != null) {
+        for (Pair<IElementType, TokenSet> extensionSet : extensionSets) {
+          for (int i = 0; i < PerlParserImpl.EXTENDS_SETS_.length; i++) {
+            if (PerlParserImpl.EXTENDS_SETS_[i].contains(extensionSet.first)) {
+              PerlParserImpl.EXTENDS_SETS_[i] = TokenSet.orSet(PerlParserImpl.EXTENDS_SETS_[i], extensionSet.getSecond());
+              break;
+            }
+          }
+        }
+      }
+    }
+    PerlLexer.initReservedTokensSet();
+  }
 
-			// add extensions tokens
-			List<Pair<IElementType, TokenSet>> extensionSets = extension.getExtensionSets();
-			if (extensionSets != null)
-			{
-				for (Pair<IElementType, TokenSet> extensionSet : extensionSets)
-				{
-					for (int i = 0; i < PerlParserImpl.EXTENDS_SETS_.length; i++)
-					{
-						if (PerlParserImpl.EXTENDS_SETS_[i].contains(extensionSet.first))
-						{
-							PerlParserImpl.EXTENDS_SETS_[i] = TokenSet.orSet(PerlParserImpl.EXTENDS_SETS_[i], extensionSet.getSecond());
-							break;
-						}
-					}
-				}
-			}
-		}
-		PerlLexer.initReservedTokensSet();
-	}
+  @Override
+  public void disposeComponent() {
+    // TODO: insert component disposal logic here
+  }
 
-	@Override
-	public void disposeComponent()
-	{
-		// TODO: insert component disposal logic here
-	}
-
-	@Override
-	@NotNull
-	public String getComponentName()
-	{
-		return "PerlParserExtensions";
-	}
+  @Override
+  @NotNull
+  public String getComponentName() {
+    return "PerlParserExtensions";
+  }
 }

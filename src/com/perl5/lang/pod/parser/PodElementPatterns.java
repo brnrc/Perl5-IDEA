@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,15 +27,13 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 /**
  * Created by hurricup on 05.04.2016.
  */
-public interface PodElementPatterns extends PodElementTypes
-{
-	PsiElementPattern.Capture<PsiElement> LINK_IDENTIFIER =
-			psiElement().withParent(psiElement(FORMATTING_SECTION_CONTENT).withParent(psiElement(POD_FORMAT_LINK)));
+public interface PodElementPatterns extends PodElementTypes {
+  PsiElementPattern.Capture<PsiElement> LINK_IDENTIFIER =
+    psiElement().withParent(psiElement(FORMATTING_SECTION_CONTENT).withParent(psiElement(POD_FORMAT_LINK)));
 
-	PsiElementPattern.Capture<PsiElement> TITLE_IDENTIFIER =
-			psiElement().withParent(psiElement(SECTION_TITLE));
+  PsiElementPattern.Capture<PsiElement> TITLE_IDENTIFIER =
+    psiElement().withParent(psiElement(SECTION_TITLE));
 
-	PsiElementPattern.Capture<PsiElement> HEADER1_ELEMENT =
-			TITLE_IDENTIFIER.withSuperParent(2, psiElement(PodSectionH1.class));
-
+  PsiElementPattern.Capture<PsiElement> HEADER1_ELEMENT =
+    TITLE_IDENTIFIER.withSuperParent(2, psiElement(PodSectionH1.class));
 }

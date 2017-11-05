@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,35 +26,24 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 18.05.2015.
  */
-public class EmbeddedPerlFileImpl extends PerlFileImpl
-{
-	public EmbeddedPerlFileImpl(@NotNull FileViewProvider viewProvider)
-	{
-		super(viewProvider, EmbeddedPerlLanguage.INSTANCE);
-	}
+public class EmbeddedPerlFileImpl extends PerlFileImpl {
+  public EmbeddedPerlFileImpl(@NotNull FileViewProvider viewProvider) {
+    super(viewProvider, EmbeddedPerlLanguage.INSTANCE);
+  }
 
-	@Override
-	public String toString()
-	{
-		return "Embedded Perl file";
-	}
+  @Override
+  public String toString() {
+    return "Embedded Perl file";
+  }
 
 
-	@Override
-	protected FileType getDefaultFileType()
-	{
-		return EmbeddedPerlFileType.INSTANCE;
-	}
+  @Override
+  protected FileType getDefaultFileType() {
+    return EmbeddedPerlFileType.INSTANCE;
+  }
 
-	@Override
-	public byte[] getPerlContentInBytes()
-	{
-		return null;
-	}
-
-	@Override
-	public boolean isPerlTidyReformattable()
-	{
-		return false;
-	}
+  @Override
+  public byte[] getPerlContentInBytes() {
+    return null;
+  }
 }

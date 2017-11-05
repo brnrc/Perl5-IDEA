@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,13 +20,11 @@ import com.intellij.lang.cacheBuilder.WordsScanner;
 import com.perl5.lang.perl.idea.findusages.PerlFindUsagesProvider;
 import org.jetbrains.annotations.Nullable;
 
-public class EmbeddedPerlFindUsagesProvider extends PerlFindUsagesProvider
-{
+public class EmbeddedPerlFindUsagesProvider extends PerlFindUsagesProvider {
 
-	@Nullable
-	@Override
-	public WordsScanner getWordsScanner()
-	{
-		return new EmbeddedPerlWordsScanner();
-	}
+  @Nullable
+  @Override
+  public WordsScanner getWordsScanner() {
+    return new EmbeddedPerlWordsScanner();
+  }
 }

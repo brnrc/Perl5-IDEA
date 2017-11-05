@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,27 @@
 
 package com.perl5.lang.pod.parser.psi.stubs;
 
-import com.intellij.psi.stubs.StringStubIndexExtension;
 import com.intellij.psi.stubs.StubIndexKey;
+import com.perl5.lang.perl.psi.stubs.PerlStubIndexBase;
 import com.perl5.lang.pod.parser.psi.PodStubBasedSection;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodStubIndex extends StringStubIndexExtension<PodStubBasedSection>
-{
-	public static final StubIndexKey<String, PodStubBasedSection> KEY = StubIndexKey.createIndexKey("pod.index");
+public class PodStubIndex extends PerlStubIndexBase<PodStubBasedSection> {
+  public static final StubIndexKey<String, PodStubBasedSection> KEY = StubIndexKey.createIndexKey("pod.index");
 
-	public static final int VERSION = 3;
+  public static final int VERSION = 3;
 
-	@Override
-	public int getVersion()
-	{
-		return super.getVersion() + VERSION;
-	}
+  @Override
+  public int getVersion() {
+    return super.getVersion() + VERSION;
+  }
 
-	@NotNull
-	@Override
-	public StubIndexKey<String, PodStubBasedSection> getKey()
-	{
-		return KEY;
-	}
+  @NotNull
+  @Override
+  public StubIndexKey<String, PodStubBasedSection> getKey() {
+    return KEY;
+  }
 }

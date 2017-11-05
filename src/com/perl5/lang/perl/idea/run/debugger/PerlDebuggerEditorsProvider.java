@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiFileFactory;
 import com.intellij.xdebugger.evaluation.XDebuggerEditorsProviderBase;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
+import com.perl5.lang.perl.fileTypes.PerlFileTypeScript;
 import com.perl5.lang.perl.psi.impl.PerlFileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -30,22 +30,22 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 08.05.2016.
  */
-public class PerlDebuggerEditorsProvider extends XDebuggerEditorsProviderBase
-{
-	public static final PerlDebuggerEditorsProvider INSTANCE = new PerlDebuggerEditorsProvider();
+public class PerlDebuggerEditorsProvider extends XDebuggerEditorsProviderBase {
+  public static final PerlDebuggerEditorsProvider INSTANCE = new PerlDebuggerEditorsProvider();
 
-	@Override
-	protected PsiFile createExpressionCodeFragment(@NotNull Project project, @NotNull String text, @Nullable PsiElement context, boolean isPhysical)
-	{
-		PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("file.dummy", getFileType(), text, 0, isPhysical);
-		((PerlFileImpl) fileFromText).setFileContext(context);
-		return fileFromText;
-	}
+  @Override
+  protected PsiFile createExpressionCodeFragment(@NotNull Project project,
+                                                 @NotNull String text,
+                                                 @Nullable PsiElement context,
+                                                 boolean isPhysical) {
+    PsiFile fileFromText = PsiFileFactory.getInstance(project).createFileFromText("file.dummy", getFileType(), text, 0, isPhysical);
+    ((PerlFileImpl)fileFromText).setFileContext(context);
+    return fileFromText;
+  }
 
-	@NotNull
-	@Override
-	public FileType getFileType()
-	{
-		return PerlFileType.INSTANCE;
-	}
+  @NotNull
+  @Override
+  public FileType getFileType() {
+    return PerlFileTypeScript.INSTANCE;
+  }
 }

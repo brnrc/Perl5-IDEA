@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,12 +18,12 @@ package com.perl5.lang.perl.psi;
 
 import com.intellij.navigation.ItemPresentation;
 import com.intellij.openapi.vfs.VirtualFile;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.perl5.lang.perl.extensions.PerlCodeGenerator;
 import com.perl5.lang.perl.psi.properties.PerlLabelScope;
 import com.perl5.lang.perl.psi.properties.PerlLexicalScope;
 import com.perl5.lang.pod.parser.psi.PodLinkTarget;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.Set;
@@ -31,61 +31,35 @@ import java.util.Set;
 /**
  * Created by hurricup on 09.08.2015.
  */
-public interface PerlFile extends PsiFile, PerlLexicalScope, PerlNamespaceContainer, PerlLabelScope, ItemPresentation, PodLinkTarget
-{
-	/**
-	 * Checks variable type from cache or using callback getVariableTypeHeavy
-	 *
-	 * @param element variable element
-	 * @return variable type string
-	 */
-	String getVariableType(PerlVariable element);
-
-	/**
-	 * Checks method namespace in cache or using callback getContextPackageNameHeavy
-	 *
-	 * @param element method element
-	 * @return variable type string
-	 */
-	@NotNull
-	String getMethodNamespace(PerlMethod element);
+public interface PerlFile
+  extends PsiFile, PerlLexicalScope, PerlNamespaceDefinitionElement, PerlLabelScope, ItemPresentation, PodLinkTarget {
+  /**
+   * Recursively collects virtual files included in current file
+   *
+   * @param includedVirtualFiles set of already gathered files
+   */
+  void collectIncludedFiles(Set<VirtualFile> includedVirtualFiles);
 
 
-	/**
-	 * Returns resolve scope for nested elements. Probably it should be getResolveScope, but still not sure
-	 *
-	 * @return search scope
-	 */
-//	@NotNull
-//	GlobalSearchScope getElementsResolveScope();
+  /**
+   * Returns generator for overriding elements
+   *
+   * @return override generator
+   */
+  PerlCodeGenerator getCodeGenerator();
 
-	/**
-	 * Recursively collects virtual files included in current file
-	 *
-	 * @param includedVirtualFiles set of already gathered files
-	 */
-	void collectIncludedFiles(Set<VirtualFile> includedVirtualFiles);
+  /**
+   * Returns perl content with templating injections replaced with spaces
+   *
+   * @return bytes for external analysis/formatting
+   */
+  @Nullable
+  byte[] getPerlContentInBytes();
 
-
-	/**
-	 * Returns generator for overriding elements
-	 *
-	 * @return override generator
-	 */
-	PerlCodeGenerator getCodeGenerator();
-
-	/**
-	 * Returns perl content with templating injections replaced with spaces
-	 *
-	 * @return bytes for external analysis/formatting
-	 */
-	@Nullable
-	byte[] getPerlContentInBytes();
-
-	/**
-	 * Returns true if contents may be re-formatted with Perl::Tidy
-	 *
-	 * @return answer
-	 */
-	boolean isPerlTidyReformattable();
+  /**
+   * Overrides file context; if null - using default context resoving implementation
+   *
+   * @param fileContext new file context
+   */
+  void setFileContext(@Nullable PsiElement fileContext);
 }

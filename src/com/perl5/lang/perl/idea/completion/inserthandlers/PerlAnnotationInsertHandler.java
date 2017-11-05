@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,27 +31,17 @@ import com.intellij.openapi.editor.EditorModificationUtil;
 /**
  * Auto-open autocompletion with package after space
  */
-public class PerlAnnotationInsertHandler implements InsertHandler<LookupElement>
-{
-	public static final InsertHandler<LookupElement> INSTANCE = new PerlAnnotationInsertHandler();
+public class PerlAnnotationInsertHandler implements InsertHandler<LookupElement> {
+  public static final InsertHandler<LookupElement> INSTANCE = new PerlAnnotationInsertHandler();
 
-	@Override
-	public void handleInsert(final InsertionContext context, LookupElement item)
-	{
+  @Override
+  public void handleInsert(final InsertionContext context, LookupElement item) {
 
-		final Editor editor = context.getEditor();
-		if ("returns".equals(item.getLookupString()))
-		{
-			EditorModificationUtil.insertStringAtCaret(editor, " ");
+    final Editor editor = context.getEditor();
+    if ("returns".equals(item.getLookupString())) {
+      EditorModificationUtil.insertStringAtCaret(editor, " ");
 
-			context.setLaterRunnable(new Runnable()
-			{
-				@Override
-				public void run()
-				{
-					new CodeCompletionHandlerBase(CompletionType.BASIC).invokeCompletion(context.getProject(), editor, 1);
-				}
-			});
-		}
-	}
+      context.setLaterRunnable(() -> new CodeCompletionHandlerBase(CompletionType.BASIC).invokeCompletion(context.getProject(), editor, 1));
+    }
+  }
 }

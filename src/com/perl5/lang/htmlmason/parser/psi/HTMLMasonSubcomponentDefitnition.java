@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,6 @@ import com.perl5.lang.htmlmason.parser.stubs.HTMLMasonSubcomponentDefinitionStub
 /**
  * Created by hurricup on 09.03.2016.
  */
-public interface HTMLMasonSubcomponentDefitnition extends StubBasedPsiElement<HTMLMasonSubcomponentDefinitionStub>, HTMLMasonNamedElement, HTMLMasonParametrizedEntity
-{
+public interface HTMLMasonSubcomponentDefitnition
+  extends StubBasedPsiElement<HTMLMasonSubcomponentDefinitionStub>, HTMLMasonNamedElement, HTMLMasonParametrizedEntity {
 }

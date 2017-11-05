@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,14 +27,12 @@ import java.util.List;
 /**
  * Created by hurricup on 08.03.2016.
  */
-public interface HTMLMasonArgsBlock extends HTMLMasonCompositeElement, StubBasedPsiElement<HTMLMasonArgsBlockStub>, PerlElementTypes
-{
-	/**
-	 * Returns list of accepted arguments
-	 *
-	 * @return list of accepted arguments
-	 */
-	@NotNull
-	List<PerlSubArgument> getArgumentsList();
-
+public interface HTMLMasonArgsBlock extends HTMLMasonCompositeElement, StubBasedPsiElement<HTMLMasonArgsBlockStub>, PerlElementTypes {
+  /**
+   * Returns list of accepted arguments
+   *
+   * @return list of accepted arguments
+   */
+  @NotNull
+  List<PerlSubArgument> getArgumentsList();
 }

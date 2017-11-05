@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,19 +31,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 19.05.2015.
  */
-public class EmbeddedPerlHighlighter extends LayeredLexerEditorHighlighter implements EmbeddedPerlElementTypes
-{
-	public EmbeddedPerlHighlighter(@Nullable final Project project,
-								   @Nullable final VirtualFile virtualFile,
-								   @NotNull final EditorColorsScheme colors)
-	{
-		super(new EmbeddedPerlSyntaxHighlighter(project), colors);
-		registerLayer(EMBED_TEMPLATE_BLOCK_HTML, new LayerDescriptor(
-				SyntaxHighlighterFactory.getSyntaxHighlighter(StdFileTypes.HTML, project, virtualFile), ""));
-		registerLayer(POD, new LayerDescriptor(
-				SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
-				""
-		));
-
-	}
+public class EmbeddedPerlHighlighter extends LayeredLexerEditorHighlighter implements EmbeddedPerlElementTypes {
+  public EmbeddedPerlHighlighter(@Nullable final Project project,
+                                 @Nullable final VirtualFile virtualFile,
+                                 @NotNull final EditorColorsScheme colors) {
+    super(new EmbeddedPerlSyntaxHighlighter(project), colors);
+    registerLayer(EMBED_TEMPLATE_BLOCK_HTML, new LayerDescriptor(
+      SyntaxHighlighterFactory.getSyntaxHighlighter(StdFileTypes.HTML, project, virtualFile), ""));
+    registerLayer(POD, new LayerDescriptor(
+      SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
+      ""
+    ));
+  }
 }

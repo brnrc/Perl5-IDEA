@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,7 +16,6 @@
 
 package com.perl5.lang.perl.psi.impl;
 
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.perl5.lang.perl.internals.PerlVersion;
 import com.perl5.lang.perl.psi.PerlVersionElement;
@@ -24,24 +23,20 @@ import com.perl5.lang.perl.psi.PerlVersionElement;
 /**
  * Created by hurricup on 09.09.2015.
  */
-public class PerlVersionElementImpl extends LeafPsiElement implements PerlVersionElement
-{
-	protected PerlVersion myPerlVersion;
+public class PerlVersionElementImpl extends PerlLeafPsiElement implements PerlVersionElement {
+  protected PerlVersion myPerlVersion;
 
-	public PerlVersionElementImpl(IElementType type, CharSequence text)
-	{
-		super(type, text);
-	}
+  public PerlVersionElementImpl(IElementType type, CharSequence text) {
+    super(type, text);
+  }
 
-	@Override
-	public PerlVersion getPerlVersion()
-	{
-		if (myPerlVersion == null)
-		{
-			myPerlVersion = new PerlVersion(getText());
-		}
+  @Override
+  public PerlVersion getPerlVersion() {
+    if (myPerlVersion == null) {
+      myPerlVersion = new PerlVersion(getText());
+    }
 
-		return myPerlVersion;
-	}
+    return myPerlVersion;
+  }
 }
 

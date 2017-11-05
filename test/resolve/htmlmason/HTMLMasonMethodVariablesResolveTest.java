@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,11 +19,8 @@ package resolve.htmlmason;
 /**
  * Created by hurricup on 13.03.2016.
  */
-public class HTMLMasonMethodVariablesResolveTest extends HTMLMasonDefVariablesResolveTest
-{
-	protected String getTestDataPath()
-	{
-		return "testData/resolve/htmlmason/method";
-	}
-
+public class HTMLMasonMethodVariablesResolveTest extends HTMLMasonDefVariablesResolveTest {
+  protected String getTestDataPath() {
+    return "testData/resolve/htmlmason/method";
+  }
 }

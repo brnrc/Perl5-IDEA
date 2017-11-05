@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodFormatterZMixin extends PodSectionMixin implements PodFormatterZ
-{
-	public PodFormatterZMixin(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class PodFormatterZMixin extends PodSectionMixin implements PodFormatterZ {
+  public PodFormatterZMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public void renderElementAsHTML(StringBuilder builder, PodRenderingContext context)
-	{
-	}
+  @Override
+  public void renderElementAsHTML(StringBuilder builder, PodRenderingContext context) {
+  }
 }

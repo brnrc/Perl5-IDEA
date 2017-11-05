@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 10.04.2016.
  */
-public class PodRefactoringSupportProvider extends RefactoringSupportProvider
-{
-	@Override
-	public boolean isInplaceRenameAvailable(@NotNull PsiElement element, PsiElement context)
-	{
-		return element.getUseScope() instanceof LocalSearchScope;
-	}
+public class PodRefactoringSupportProvider extends RefactoringSupportProvider {
+  @Override
+  public boolean isInplaceRenameAvailable(@NotNull PsiElement element, PsiElement context) {
+    return element.getUseScope() instanceof LocalSearchScope;
+  }
 
-	@Override
-	public boolean isMemberInplaceRenameAvailable(@NotNull PsiElement element, @Nullable PsiElement context)
-	{
-		return false;
-	}
+  @Override
+  public boolean isMemberInplaceRenameAvailable(@NotNull PsiElement element, @Nullable PsiElement context) {
+    return false;
+  }
 }

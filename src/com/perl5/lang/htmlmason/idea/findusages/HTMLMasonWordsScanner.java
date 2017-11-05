@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,12 @@ import com.perl5.lang.perl.PerlParserDefinition;
 /**
  * Created by hurricup on 08.03.2016.
  */
-public class HTMLMasonWordsScanner extends DefaultWordsScanner
-{
-	public HTMLMasonWordsScanner()
-	{
-		super(new HTMLMasonLexerAdapter(null),
-				PerlParserDefinition.IDENTIFIERS,
-				PerlParserDefinition.COMMENTS,
-				PerlParserDefinition.LITERALS);
-		setMayHaveFileRefsInLiterals(true);
-	}
+public class HTMLMasonWordsScanner extends DefaultWordsScanner {
+  public HTMLMasonWordsScanner() {
+    super(new HTMLMasonLexerAdapter(null),
+          PerlParserDefinition.IDENTIFIERS,
+          PerlParserDefinition.COMMENTS,
+          PerlParserDefinition.LITERALS);
+    setMayHaveFileRefsInLiterals(true);
+  }
 }

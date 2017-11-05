@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,273 +21,218 @@ import com.perl5.lang.tt2.TemplateToolkitParserDefinition;
 /**
  * Created by hurricup on 06.06.2016.
  */
-public class TemplateToolkitParserTest extends PerlParserTestBase
-{
-	public TemplateToolkitParserTest()
-	{
-		super("", "tt", new TemplateToolkitParserDefinition());
-	}
+public class TemplateToolkitParserTest extends PerlParserTestBase {
+  public TemplateToolkitParserTest() {
+    super("", "tt", new TemplateToolkitParserDefinition());
+  }
 
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/parser/tt2";
-	}
+  @Override
+  protected String getTestDataPath() {
+    return "testData/parser/tt2";
+  }
 
-	public void testOperators()
-	{
-		doTest("operators");
-	}
+  public void testOperators() {
+    doTest();
+  }
 
-	public void testPrecedence()
-	{
-		doTest("precedence");
-	}
+  public void testPrecedence() {
+    doTest();
+  }
 
-	public void testStrings()
-	{
-		doTest("strings");
-	}
+  public void testStrings() {
+    doTest();
+  }
 
-	public void testHash()
-	{
-		doTest("hash");
-	}
+  public void testHash() {
+    doTest();
+  }
 
-	public void testSub()
-	{
-		doTest("sub");
-	}
+  public void testSub() {
+    doTest();
+  }
 
-	public void testArray()
-	{
-		doTest("array");
-	}
+  public void testArray() {
+    doTest();
+  }
 
-	public void testVariables()
-	{
-		doTest("variables");
-	}
+  public void testVariables() {
+    doTest();
+  }
 
-	public void testChomp()
-	{
-		doTest("chomp");
-	}
+  public void testChomp() {
+    doTest();
+  }
 
-	public void testComments()
-	{
-		doTest("comments");
-	}
+  public void testComments() {
+    doTest();
+  }
 
-	public void testGet()
-	{
-		doTest("get");
-	}
+  public void testGet() {
+    doTest();
+  }
 
-	public void testCall()
-	{
-		doTest("call");
-	}
+  public void testCall() {
+    doTest();
+  }
 
-	public void testSet()
-	{
-		doTest("set");
-	}
+  public void testSet() {
+    doTest();
+  }
 
-	public void testDefault()
-	{
-		doTest("default");
-	}
+  public void testDefault() {
+    doTest();
+  }
 
-	public void testInsert()
-	{
-		doTest("insert");
-	}
+  public void testInsert() {
+    doTest();
+  }
 
-	public void testInclude()
-	{
-		doTest("include");
-	}
+  public void testInclude() {
+    doTest();
+  }
 
-	public void testProcess()
-	{
-		doTest("process");
-	}
+  public void testProcess() {
+    doTest();
+  }
 
-	public void testBlockNamed()
-	{
-		doTest("block_named");
-	}
+  public void testBlockNamed() {
+    doTest();
+  }
 
-	public void testBlockNamedUnclosed()
-	{
-		doTest("block_named_unclosed", false);
-	}
+  public void testBlockNamedUnclosed() {
+    doTest(false);
+  }
 
-	public void testBlockAnon()
-	{
-		doTest("block_anon");
-	}
+  public void testBlockAnon() {
+    doTest();
+  }
 
-	public void testBlockAnonUnclosed()
-	{
-		doTest("block_anon_unclosed", false);
-	}
+  public void testBlockAnonUnclosed() {
+    doTest(false);
+  }
 
-	public void testWrapper()
-	{
-		doTest("wrapper");
-	}
+  public void testWrapper() {
+    doTest();
+  }
 
-	public void testWrapperUnclosed()
-	{
-		doTest("wrapper_unclosed", false);
-	}
+  public void testWrapperUnclosed() {
+    doTest(false);
+  }
 
-	public void testIf()
-	{
-		doTest("if");
-	}
+  public void testIf() {
+    doTest();
+  }
 
-	public void testIfUnclosed()
-	{
-		doTest("if_unclosed", false);
-	}
+  public void testIfUnclosed() {
+    doTest(false);
+  }
 
-	public void testSwitch()
-	{
-		doTest("switch");
-	}
+  public void testSwitch() {
+    doTest();
+  }
 
-	public void testForeach()
-	{
-		doTest("foreach");
-	}
+  public void testForeach() {
+    doTest();
+  }
 
-	public void testForeachUnclosed()
-	{
-		doTest("foreach_unclosed", false);
-	}
+  public void testForeachUnclosed() {
+    doTest(false);
+  }
 
-	public void testWhile()
-	{
-		doTest("while");
-	}
+  public void testWhile() {
+    doTest();
+  }
 
-	public void testWhileUnclosed()
-	{
-		doTest("while_unclosed", false);
-	}
+  public void testWhileUnclosed() {
+    doTest(false);
+  }
 
 
-	public void testFilter()
-	{
-		doTest("filter");
-	}
+  public void testFilter() {
+    doTest();
+  }
 
-	public void testFilterPostfix()
-	{
-		doTest("filter_postfix");
-	}
+  public void testFilterPostfix() {
+    doTest();
+  }
 
-	public void testFilterUnclosed()
-	{
-		doTest("filter_unclosed", false);
-	}
+  public void testFilterUnclosed() {
+    doTest(false);
+  }
 
-	public void testThrow()
-	{
-		doTest("throw");
-	}
+  public void testThrow() {
+    doTest();
+  }
 
-	public void testUse()
-	{
-		doTest("use");
-	}
+  public void testUse() {
+    doTest();
+  }
 
-	public void testMacro()
-	{
-		doTest("macro");
-	}
+  public void testMacro() {
+    doTest();
+  }
 
-	public void testPerl()
-	{
-		doTest("perl");
-	}
+  public void testPerl() {
+    doTest();
+  }
 
-	public void testPerlUnclosed()
-	{
-		doTest("perl_unclosed", false);
-	}
+  public void testPerlUnclosed() {
+    doTest(false);
+  }
 
-	public void testTryCatch()
-	{
-		doTest("try_catch");
-	}
+  public void testTryCatch() {
+    doTest();
+  }
 
-	public void testTryCatchUnclosed()
-	{
-		doTest("try_catch_unclosed", false);
-	}
+  public void testTryCatchUnclosed() {
+    doTest(false);
+  }
 
-	public void testNext()
-	{
-		doTest("next");
-	}
+  public void testNext() {
+    doTest();
+  }
 
-	public void testLast()
-	{
-		doTest("last");
-	}
+  public void testLast() {
+    doTest();
+  }
 
-	public void testReturn()
-	{
-		doTest("return");
-	}
+  public void testReturn() {
+    doTest();
+  }
 
-	public void testStop()
-	{
-		doTest("stop");
-	}
+  public void testStop() {
+    doTest();
+  }
 
-	public void testClear()
-	{
-		doTest("clear");
-	}
+  public void testClear() {
+    doTest();
+  }
 
-	public void testMeta()
-	{
-		doTest("meta");
-	}
+  public void testMeta() {
+    doTest();
+  }
 
-	public void testDebug()
-	{
-		doTest("debug");
-	}
+  public void testDebug() {
+    doTest();
+  }
 
-	public void testTags()
-	{
-		doTest("tags");
-	}
+  public void testTags() {
+    doTest();
+  }
 
-	public void testChompMarkers()
-	{
-		doTest("chomp_markers");
-	}
+  public void testChompMarkers() {
+    doTest();
+  }
 
-	public void testMultiDirectiveBlocks()
-	{
-		doTest("multi_directives_blocks");
-	}
+  public void testMultiDirectivesBlocks() {
+    doTest();
+  }
 
-	public void testIssue1262()
-	{
-		doTest("issue1262");
-	}
+  public void testIssue1262() {
+    doTest();
+  }
 
-	public void testIssue1263()
-	{
-		doTest("issue1263");
-	}
-
+  public void testIssue1263() {
+    doTest();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,87 +16,32 @@
 
 package com.perl5.lang.perl.psi.impl;
 
-import com.intellij.openapi.util.AtomicNotNullLazyValue;
 import com.intellij.psi.PsiElementVisitor;
-import com.intellij.psi.PsiReference;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
-import com.perl5.lang.perl.psi.PerlGlobVariable;
 import com.perl5.lang.perl.psi.PerlVariableNameElement;
 import com.perl5.lang.perl.psi.PerlVisitor;
-import com.perl5.lang.perl.psi.references.PerlVariableReference;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 25.05.2015.
  */
-public class PerlVariableNameElementImpl extends LeafPsiElement implements PerlVariableNameElement
-{
-	protected AtomicNotNullLazyValue<PsiReference[]> myReferences;
+public class PerlVariableNameElementImpl extends PerlLeafPsiElementWithReferences implements PerlVariableNameElement {
+  public PerlVariableNameElementImpl(@NotNull IElementType type, CharSequence text) {
+    super(type, text);
+  }
 
-	public PerlVariableNameElementImpl(@NotNull IElementType type, CharSequence text)
-	{
-		super(type, text);
-		createMyReferences();
-	}
+  @Override
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof PerlVisitor) {
+      ((PerlVisitor)visitor).visitVariableNameElement(this);
+    }
+    else {
+      super.accept(visitor);
+    }
+  }
 
-	private void createMyReferences()
-	{
-		myReferences = new AtomicNotNullLazyValue<PsiReference[]>()
-		{
-			@NotNull
-			@Override
-			protected PsiReference[] compute()
-			{
-				if (getParent() instanceof PerlGlobVariable)
-				{
-					return PsiReference.EMPTY_ARRAY;
-				}
-				else
-				{
-					return new PsiReference[]{new PerlVariableReference(PerlVariableNameElementImpl.this, null)};
-				}
-			}
-		};
-	}
-
-	@Override
-	public void accept(@NotNull PsiElementVisitor visitor)
-	{
-		if (visitor instanceof PerlVisitor)
-		{
-			((PerlVisitor) visitor).visitVariableNameElement(this);
-		}
-		else
-		{
-			super.accept(visitor);
-		}
-	}
-
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return this.getText();
-	}
-
-	@NotNull
-	@Override
-	public PsiReference[] getReferences()
-	{
-		return myReferences.getValue();
-	}
-
-	@Override
-	public PsiReference getReference()
-	{
-		return myReferences.getValue()[0];
-	}
-
-	@Override
-	public void clearCaches()
-	{
-		super.clearCaches();
-		createMyReferences();
-	}
+  @Override
+  public String getName() {
+    return getText();
+  }
 }

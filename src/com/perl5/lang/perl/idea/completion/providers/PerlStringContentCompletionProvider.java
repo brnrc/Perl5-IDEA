@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,51 +26,50 @@ import com.intellij.util.ProcessingContext;
 import com.perl5.lang.perl.idea.PerlElementPatterns;
 import com.perl5.lang.perl.idea.completion.util.PerlPackageCompletionUtil;
 import com.perl5.lang.perl.idea.completion.util.PerlStringCompletionUtil;
-import com.perl5.lang.perl.psi.impl.PerlAnnotationInjectImpl;
+import com.perl5.lang.perl.psi.PsiPerlAnnotationInject;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 24.01.2016.
  */
-public class PerlStringContentCompletionProvider extends CompletionProvider<CompletionParameters> implements PerlElementPatterns
-{
-	@Override
-	protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull final CompletionResultSet result)
-	{
-		PsiElement element = parameters.getPosition();
-		PsiElement parent = element.getParent();
+public class PerlStringContentCompletionProvider extends CompletionProvider<CompletionParameters> implements PerlElementPatterns {
+  @Override
+  protected void addCompletions(@NotNull CompletionParameters parameters,
+                                ProcessingContext context,
+                                @NotNull final CompletionResultSet result) {
+    PsiElement element = parameters.getPosition();
+    PsiElement parent = element.getParent();
 
-		if (parent instanceof PsiLanguageInjectionHost && InjectedLanguageUtil.hasInjections((PsiLanguageInjectionHost) parent))
-		{
-			return;
-		}
+    if (parent instanceof PsiLanguageInjectionHost && InjectedLanguageUtil.hasInjections((PsiLanguageInjectionHost)parent)) {
+      return;
+    }
 
-		if (EXPORT_ASSIGNED_STRING_CONTENT.accepts(element)) // exporter assignments
-		{
-			PerlStringCompletionUtil.fillWithExportableEntities(element, result);
-		}
-		else if (SIMPLE_HASH_INDEX.accepts(element))    // hash indexes
-		{
-			PerlStringCompletionUtil.fillWithHashIndexes(element, result);
-		}
-		else if (USE_PARAMETERS_PATTERN.accepts(element))    // use or no parameters
-		{
-			PerlStringCompletionUtil.fillWithUseParameters(element, result);
-		}
-		else if (element.getParent() instanceof PerlAnnotationInjectImpl)
-		{
-			PerlStringCompletionUtil.fillWithInjectableMarkers(element, result);
-			result.stopHere();
-		}
-		else if (STRING_CONTENT_IN_HEREDOC_OPENER_PATTERN.accepts(element)) // HERE-DOC openers
-		{
-			PerlStringCompletionUtil.fillWithInjectableMarkers(element, result);
-			PerlStringCompletionUtil.fillWithHeredocOpeners(element, result);
-		}
-		else if (STRING_CONTENT_IN_LIST_OR_STRING_START.accepts(element))    // begin of string or qw element
-		{
-			PerlStringCompletionUtil.fillWithRefTypes(result);
-			PerlPackageCompletionUtil.fillWithAllPackageNames(element, result);
-		}
-	}
+    if (EXPORT_ASSIGNED_STRING_CONTENT.accepts(element)) // exporter assignments
+    {
+      PerlStringCompletionUtil.fillWithExportableEntities(element, result);
+    }
+    else if (SIMPLE_HASH_INDEX.accepts(element))    // hash indexes
+    {
+      PerlStringCompletionUtil.fillWithHashIndexes(element, result);
+    }
+    else if (USE_PARAMETERS_PATTERN.accepts(element))    // use or no parameters
+    {
+      PerlStringCompletionUtil.fillWithUseParameters(element, result);
+    }
+    else if (parent != null && parent.getParent() instanceof PsiPerlAnnotationInject) // #@Inject some
+    {
+      PerlStringCompletionUtil.fillWithInjectableMarkers(element, result);
+      result.stopHere();
+    }
+    else if (STRING_CONTENT_IN_HEREDOC_OPENER_PATTERN.accepts(element)) // HERE-DOC openers
+    {
+      PerlStringCompletionUtil.fillWithInjectableMarkers(element, result);
+      PerlStringCompletionUtil.fillWithHeredocOpeners(element, result);
+    }
+    else if (STRING_CONTENT_IN_LIST_OR_STRING_START.accepts(element))    // begin of string or qw element
+    {
+      PerlStringCompletionUtil.fillWithRefTypes(result);
+      PerlPackageCompletionUtil.fillWithAllPackageNames(element, result);
+    }
+  }
 }

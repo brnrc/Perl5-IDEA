@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,9 +18,8 @@ package com.perl5.lang.mason2.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.perl5.lang.mason2.psi.MasonAroundMethodModifier;
-import com.perl5.lang.perl.PerlLanguage;
-import com.perl5.lang.perl.psi.PerlVariableDeclarationWrapper;
-import com.perl5.lang.perl.psi.impl.PerlVariableLightImpl;
+import com.perl5.lang.perl.psi.PerlVariableDeclarationElement;
+import com.perl5.lang.perl.psi.impl.PerlImplicitVariableDeclaration;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -28,29 +27,18 @@ import java.util.List;
 /**
  * Created by hurricup on 08.01.2016.
  */
-public class MasonAroundMethodModifierImpl extends MasonMethodModifierImpl implements MasonAroundMethodModifier
-{
-	protected static final String ORIG_VARIABLE_NAME = "$orig";
+public class MasonAroundMethodModifierImpl extends MasonMethodModifierImpl implements MasonAroundMethodModifier {
+  protected static final String ORIG_VARIABLE_NAME = "$orig";
 
-	public MasonAroundMethodModifierImpl(ASTNode node)
-	{
-		super(node);
-	}
+  public MasonAroundMethodModifierImpl(ASTNode node) {
+    super(node);
+  }
 
-	@NotNull
-	@Override
-	protected List<PerlVariableDeclarationWrapper> buildImplicitVariables()
-	{
-		List<PerlVariableDeclarationWrapper> newImplicitVariables = super.buildImplicitVariables();
-		newImplicitVariables.add(new PerlVariableLightImpl(
-				getManager(),
-				PerlLanguage.INSTANCE,
-				ORIG_VARIABLE_NAME,
-				true,
-				false,
-				false,
-				this
-		));
-		return newImplicitVariables;
-	}
+  @NotNull
+  @Override
+  protected List<PerlVariableDeclarationElement> buildImplicitVariables() {
+    List<PerlVariableDeclarationElement> newImplicitVariables = super.buildImplicitVariables();
+    newImplicitVariables.add(PerlImplicitVariableDeclaration.createLexical(this, ORIG_VARIABLE_NAME));
+    return newImplicitVariables;
+  }
 }

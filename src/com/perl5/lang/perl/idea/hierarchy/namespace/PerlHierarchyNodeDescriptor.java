@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,73 +26,63 @@ import com.intellij.psi.NavigatablePsiElement;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.SmartPointerManager;
 import com.intellij.psi.SmartPsiElementPointer;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 
 /**
  * Created by hurricup on 16.08.2015.
  */
-public class PerlHierarchyNodeDescriptor extends HierarchyNodeDescriptor
-{
-	protected final SmartPsiElementPointer myPerlElementPointer;
+public class PerlHierarchyNodeDescriptor extends HierarchyNodeDescriptor {
+  protected final SmartPsiElementPointer myPerlElementPointer;
 
-	public PerlHierarchyNodeDescriptor(NodeDescriptor parentDescriptor, PsiElement element, boolean isBase)
-	{
-		super(element.getProject(), parentDescriptor, element, isBase);
-		myPerlElementPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(element);
-	}
+  public PerlHierarchyNodeDescriptor(NodeDescriptor parentDescriptor, PsiElement element, boolean isBase) {
+    super(element.getProject(), parentDescriptor, element, isBase);
+    myPerlElementPointer = SmartPointerManager.getInstance(myProject).createSmartPsiElementPointer(element);
+  }
 
-	@Override
-	public boolean isValid()
-	{
-		PsiElement element = getPerlElement();
-		return element != null && element.isValid();
-	}
+  @Override
+  public boolean isValid() {
+    PsiElement element = getPerlElement();
+    return element != null && element.isValid();
+  }
 
-	@Override
-	public boolean update()
-	{
-		boolean result = super.update();
-		final CompositeAppearance oldText = myHighlightedText;
+  @Override
+  public boolean update() {
+    boolean result = super.update();
+    final CompositeAppearance oldText = myHighlightedText;
 
-		myHighlightedText = new CompositeAppearance();
+    myHighlightedText = new CompositeAppearance();
 
-		NavigatablePsiElement element = (NavigatablePsiElement) getPerlElement();
+    NavigatablePsiElement element = (NavigatablePsiElement)getPerlElement();
 
-		if (element == null)
-		{
-			final String invalidPrefix = IdeBundle.message("node.hierarchy.invalid");
-			if (!myHighlightedText.getText().startsWith(invalidPrefix))
-			{
-				myHighlightedText.getBeginning().addText(invalidPrefix, HierarchyNodeDescriptor.getInvalidPrefixAttributes());
-			}
-			return true;
-		}
+    if (element == null) {
+      final String invalidPrefix = IdeBundle.message("node.hierarchy.invalid");
+      if (!myHighlightedText.getText().startsWith(invalidPrefix)) {
+        myHighlightedText.getBeginning().addText(invalidPrefix, HierarchyNodeDescriptor.getInvalidPrefixAttributes());
+      }
+      return true;
+    }
 
-		final ItemPresentation presentation = element.getPresentation();
-		if (presentation != null)
-		{
-			myHighlightedText.getEnding().addText(presentation.getPresentableText());
-			adjustAppearance(myHighlightedText, presentation);
-		}
-		myName = myHighlightedText.getText();
+    final ItemPresentation presentation = element.getPresentation();
+    if (presentation != null) {
+      myHighlightedText.getEnding().addText(presentation.getPresentableText());
+      adjustAppearance(myHighlightedText, presentation);
+    }
+    myName = myHighlightedText.getText();
 
-		if (!Comparing.equal(myHighlightedText, oldText))
-		{
-			result = true;
-		}
-		return result;
-	}
+    if (!Comparing.equal(myHighlightedText, oldText)) {
+      result = true;
+    }
+    return result;
+  }
 
-	protected void adjustAppearance(CompositeAppearance appearance, ItemPresentation presentation)
-	{
-		appearance.getEnding().addText(" "
-						+ "(" + ((PerlNamespaceDefinition) getPerlElement()).getMroType().toString() + "), "
-						+ presentation.getLocationString(),
-				HierarchyNodeDescriptor.getPackageNameAttributes());
-	}
+  protected void adjustAppearance(CompositeAppearance appearance, ItemPresentation presentation) {
+    appearance.getEnding().addText(" "
+                                   + "(" + ((PerlNamespaceDefinitionElement)getPerlElement()).getMroType().toString() + "), "
+                                   + presentation.getLocationString(),
+                                   HierarchyNodeDescriptor.getPackageNameAttributes());
+  }
 
-	public PsiElement getPerlElement()
-	{
-		return myPerlElementPointer.getElement();
-	}
+  public PsiElement getPerlElement() {
+    return myPerlElementPointer.getElement();
+  }
 }

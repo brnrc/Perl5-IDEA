@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,21 +17,19 @@
 package com.perl5.lang.mason2.idea.findusages;
 
 import com.intellij.lang.cacheBuilder.DefaultWordsScanner;
-import com.perl5.lang.mason2.lexer.MasonTemplatingLexerAdapter;
+import com.perl5.lang.mason2.lexer.Mason2TemplatingLexerAdapter;
 import com.perl5.lang.perl.PerlParserDefinition;
 
 /**
  * Created by hurricup on 13.01.2016.
  */
-public class MasonTemplatingWordScanner extends DefaultWordsScanner
-{
-	public MasonTemplatingWordScanner()
-	{
-		super(new MasonTemplatingLexerAdapter(null),
-				PerlParserDefinition.IDENTIFIERS,
-				PerlParserDefinition.COMMENTS,
-				PerlParserDefinition.LITERALS
-		);
-		setMayHaveFileRefsInLiterals(true);
-	}
+public class MasonTemplatingWordScanner extends DefaultWordsScanner {
+  public MasonTemplatingWordScanner() {
+    super(new Mason2TemplatingLexerAdapter(null),
+          PerlParserDefinition.IDENTIFIERS,
+          PerlParserDefinition.COMMENTS,
+          PerlParserDefinition.LITERALS
+    );
+    setMayHaveFileRefsInLiterals(true);
+  }
 }

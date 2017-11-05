@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,84 +16,74 @@
 
 package resolve.perl;
 
+import base.PerlLightTestCase;
+
 /**
  * Created by hurricup on 18.02.2016.
  */
-public class PerlLexicalVariableResolveTest extends PerlVariableResolveTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/resolve/perl/variables";
-	}
+public class PerlLexicalVariableResolveTest extends PerlLightTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/resolve/perl/variables";
+  }
 
-	public void testSimple()
-	{
-		doTest("variable_simple", true);
-	}
+  public void testSimple() {
+    doTestResolve();
+  }
 
-	public void testIfCondition()
-	{
-		doTest("variable_if_condition", true);
-	}
+  public void testIfCondition() {
+    doTestResolve();
+  }
 
-	public void testForIterator()
-	{
-		doTest("variable_for_iterator", true);
-	}
+  public void testForIterator() {
+    doTestResolve();
+  }
 
-	public void testForIteratorIterator()
-	{
-		doTest("for_iterator_iterator", true);
-	}
+  public void testForIteratorIterator() {
+    doTestResolve();
+  }
 
-	public void testUseVars()
-	{
-		doTest("variable_use_vars", true);
-	}
+  public void testUseVars() {
+    doTestResolve();
+  }
 
-	public void testIfElsifElse()
-	{
-		doTest("variable_if_elsif_else", true);
-	}
+  public void testIfElsifElse() {
+    doTestResolve();
+  }
 
-	public void testSubSignature()
-	{
-		doTest("variable_sub_signature", true);
-	}
+  public void testSubSignature() {
+    doTestResolve();
+  }
 
-	public void testMethodExplicitInvocant()
-	{
-		doTest("variable_method_explicit_invocant", true);
-	}
+  public void testMethodExplicitInvocant() {
+    doTestResolve();
+  }
 
-	public void testVariableInInvocation()
-	{
-		doTest("variable_in_call_expression", true);
-	}
+  public void testVariableInInvocation() {
+    doTestResolve();
+  }
 
-	public void testMethodImplicitInvocant()
-	{
-		doTest("variable_method_implicit_invocant", true);
-	}
+  public void testMethodImplicitInvocant() {
+    doTestResolve();
+  }
 
-	public void testNegativeBlock()
-	{
-		doTest("negative_variable_block", false);
-	}
+  public void testNegativeBlock() {
+    doTestResolve();
+  }
 
-	public void testNegativeIfElse()
-	{
-		doTest("negative_if_else", false);
-	}
+  public void testNegativeIfElse() {
+    doTestResolve();
+  }
 
-	public void testSameStatementSimple()
-	{
-		doTest("same_statement_simple", false);
-	}
+  public void testSameStatementSimple() {
+    doTestResolve();
+  }
 
-	public void testSameStatementMap()
-	{
-		doTest("same_statement_map", false);
-	}
+  public void testSameStatementMap() {
+    doTestResolve();
+  }
+
+  public void testPackageLimitations() {
+    doTestResolve();
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,11 +23,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class HTMLMasonFileTypeFactory extends FileTypeFactory
-{
-	@Override
-	public void createFileTypes(@NotNull FileTypeConsumer consumer)
-	{
-		consumer.consume(HTMLMasonFileType.INSTANCE, "mas");
-	}
+public class HTMLMasonFileTypeFactory extends FileTypeFactory {
+  @Override
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    consumer.consume(HTMLMasonFileType.INSTANCE, "mas");
+  }
 }

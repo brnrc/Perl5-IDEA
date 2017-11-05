@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,25 +25,20 @@ import com.perl5.lang.perl.extensions.generation.PerlCodeGeneratorImpl;
 /**
  * Created by hurricup on 30.01.2016.
  */
-public class Mason2TemplatingCodeGeneratorImpl extends PerlCodeGeneratorImpl
-{
-	public static PerlCodeGenerator INSTANCE = new Mason2TemplatingCodeGeneratorImpl();
+public class Mason2TemplatingCodeGeneratorImpl extends PerlCodeGeneratorImpl {
+  public static PerlCodeGenerator INSTANCE = new Mason2TemplatingCodeGeneratorImpl();
 
 
-	@Override
-	protected void insertCodeAfterElement(PsiElement anchor, String code, Editor editor)
-	{
-		if (code == null)
-		{
-			return;
-		}
+  @Override
+  protected void insertCodeAfterElement(PsiElement anchor, String code, Editor editor) {
+    if (code == null) {
+      return;
+    }
 
-		if (anchor.getLanguage() == Mason2TemplatingLanguage.INSTANCE)
-		{
-			code = "<%perl>\n" + code + "\n</%perl>\n";
-		}
+    if (anchor.getLanguage() == Mason2TemplatingLanguage.INSTANCE) {
+      code = "<%perl>\n" + code + "\n</%perl>\n";
+    }
 
-		super.insertCodeAfterElement(anchor, code, editor);
-	}
-
+    super.insertCodeAfterElement(anchor, code, editor);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,26 +16,15 @@
 
 package com.perl5.lang.tt2.elementTypes;
 
-import com.intellij.psi.tree.IElementType;
 import com.perl5.lang.perl.parser.elementTypes.PsiElementProvider;
-import com.perl5.lang.tt2.TemplateToolkitLanguage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 05.06.2016.
  */
-public abstract class TemplateToolkitElementType extends IElementType implements PsiElementProvider
-{
-	public TemplateToolkitElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, TemplateToolkitLanguage.INSTANCE);
-	}
-
-
-	@Override
-	public String toString()
-	{
-		return "TemplateToolkit2Element." + super.toString();
-	}
+public abstract class TemplateToolkitElementType extends TemplateToolkitTokenType implements PsiElementProvider {
+  public TemplateToolkitElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,18 +24,15 @@ import com.perl5.lang.pod.parser.psi.PodTitledSection;
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodSectionStubImpl extends StubBase<PodTitledSection> implements PodSectionStub
-{
-	private String myContent;
+public class PodSectionStubImpl extends StubBase<PodTitledSection> implements PodSectionStub {
+  private String myContent;
 
-	public PodSectionStubImpl(StubElement parent, IStubElementType elementType, String myContent)
-	{
-		super(parent, elementType);
-		this.myContent = myContent;
-	}
+  public PodSectionStubImpl(StubElement parent, IStubElementType elementType, String myContent) {
+    super(parent, elementType);
+    this.myContent = myContent;
+  }
 
-	public String getTitleText()
-	{
-		return myContent;
-	}
+  public String getTitleText() {
+    return myContent;
+  }
 }

@@ -1,0 +1,6 @@
+{
+<<~ "HTML";
+      and <caret> $somevar
+        variable
+    HTML
+}

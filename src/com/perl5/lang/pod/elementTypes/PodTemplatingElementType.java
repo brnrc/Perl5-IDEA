@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,16 +27,13 @@ import org.jetbrains.annotations.NonNls;
 /**
  * Created by hurricup on 31.03.2016.
  */
-public class PodTemplatingElementType extends TemplateDataElementType implements PerlElementTypes, PodElementTypes
-{
-	public PodTemplatingElementType(@NonNls String debugName, Language language)
-	{
-		super(debugName, language, POD, POD_OUTER);
-	}
+public class PodTemplatingElementType extends TemplateDataElementType implements PerlElementTypes, PodElementTypes {
+  public PodTemplatingElementType(@NonNls String debugName, Language language) {
+    super(debugName, language, POD, POD_OUTER);
+  }
 
-	@Override
-	protected Language getTemplateFileLanguage(TemplateLanguageFileViewProvider viewProvider)
-	{
-		return PodLanguage.INSTANCE;
-	}
+  @Override
+  protected Language getTemplateFileLanguage(TemplateLanguageFileViewProvider viewProvider) {
+    return PodLanguage.INSTANCE;
+  }
 }

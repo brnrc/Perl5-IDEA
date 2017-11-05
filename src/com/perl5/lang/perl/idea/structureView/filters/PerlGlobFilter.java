@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,32 @@ package com.perl5.lang.perl.idea.structureView.filters;
 
 import com.intellij.ide.util.treeView.smartTree.ActionPresentation;
 import com.intellij.ide.util.treeView.smartTree.ActionPresentationData;
-import com.intellij.ide.util.treeView.smartTree.Filter;
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.perl5.PerlIcons;
 import com.perl5.lang.perl.idea.structureView.elements.PerlGlobStructureViewElement;
+import com.perl5.lang.perl.idea.structureView.elements.PerlStructureViewElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlGlobFilter implements Filter
-{
-	public static final PerlGlobFilter INSTANCE = new PerlGlobFilter();
-	private static final String ID = "SHOW_GLOBS";
+public class PerlGlobFilter extends PerlFilter {
+  public static final PerlGlobFilter INSTANCE = new PerlGlobFilter();
+  private static final String ID = "SHOW_GLOBS";
 
-	@Override
-	public boolean isVisible(TreeElement treeElement)
-	{
-		return !(treeElement instanceof PerlGlobStructureViewElement);
-	}
+  @Override
+  protected boolean isMyElement(@NotNull PerlStructureViewElement treeElement) {
+    return treeElement instanceof PerlGlobStructureViewElement;
+  }
 
-	@Override
-	public boolean isReverted()
-	{
-		return true;
-	}
+  @NotNull
+  @Override
+  public ActionPresentation getPresentation() {
+    return new ActionPresentationData("Show typeglobs", null, PerlIcons.GLOB_GUTTER_ICON);
+  }
 
-	@NotNull
-	@Override
-	public ActionPresentation getPresentation()
-	{
-		return new ActionPresentationData("Show typeglobs", null, PerlIcons.GLOB_GUTTER_ICON);
-	}
-
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return ID;
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return ID;
+  }
 }

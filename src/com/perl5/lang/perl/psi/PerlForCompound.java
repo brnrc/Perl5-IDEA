@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,33 @@
 
 package com.perl5.lang.perl.psi;
 
-import com.perl5.lang.perl.psi.properties.PerlLexicalScope;
+import com.perl5.lang.perl.psi.properties.PerlConvertableCompound;
 import com.perl5.lang.perl.psi.properties.PerlLoop;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
+
+import java.util.List;
 
 /**
  * Created by hurricup on 04.03.2016.
  */
-public interface PerlForCompound extends PerlLexicalScope, PerlLoop
-{
+public interface PerlForCompound extends PerlConvertableCompound, PerlLoop {
+
+  @Override
+  default boolean isConvertableToModifier() {
+    return PerlConvertableCompound.super.isConvertableToModifier() &&
+           getContinueBlock() == null && getForIterator() == null;
+  }
+
+  @Nullable
+  PsiPerlBlock getBlock();
+
+  @Nullable
+  PsiPerlContinueBlock getContinueBlock();
+
+  @NotNull
+  List<PsiPerlExpr> getExprList();
+
+  @Nullable
+  PsiPerlForIterator getForIterator();
 }

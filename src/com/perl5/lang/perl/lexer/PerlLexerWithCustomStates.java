@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,10 @@ import com.intellij.lexer.FlexLexer;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public interface PerlLexerWithCustomStates extends FlexLexer
-{
-	int getCustomState();
+public interface PerlLexerWithCustomStates extends FlexLexer {
+  int getCustomState();
 
-	void setCustomState(int newState);
+  void setCustomState(int newState);
 
-	int getInitialCustomState();
+  int getInitialCustomState();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,16 +21,15 @@ import com.intellij.openapi.components.StoragePathMacros;
 /**
  * Created by hurricup on 02.06.2016.
  */
-public interface PerlPathMacros
-{
-	String PERL5_APP_SETTINGS_FILE = "$APP_CONFIG$/perl5.xml";
+public interface PerlPathMacros {
+  String PERL5_APP_SETTINGS_FILE = "$APP_CONFIG$/perl5.xml";
 
-	// this file supposed to contain machine-dependent settings and should not be shared with VCS
-	String PERL5_PROJECT_SETTINGS_FILE = StoragePathMacros.PROJECT_CONFIG_DIR + "/perl5local.xml";
+  // this file supposed to contain machine-dependent settings and should not be shared with VCS
+  String PERL5_PROJECT_SETTINGS_FILE = StoragePathMacros.PROJECT_CONFIG_DIR + "/perl5local.xml";
 
-	// this file supposed to be shared with VCS, should contain project-dependnt and machine-independent settings
-	String PERL5_PROJECT_SHARED_SETTINGS_FILE = StoragePathMacros.PROJECT_CONFIG_DIR + "/perl5shared.xml";
+  // this file supposed to be shared with VCS, should contain project-dependnt and machine-independent settings
+  String PERL5_PROJECT_SHARED_SETTINGS_FILE = StoragePathMacros.PROJECT_CONFIG_DIR + "/perl5shared.xml";
 
-	String APP_OTHER_SETTINGS_FILE = StoragePathMacros.APP_CONFIG + "/other.xml";
-	String APP_CODEINSIGHT_SETTINGS_FILE = StoragePathMacros.APP_CONFIG + "/editor.codeinsight.xml";
+  String APP_OTHER_SETTINGS_FILE = StoragePathMacros.APP_CONFIG + "/other.xml";
+  String APP_CODEINSIGHT_SETTINGS_FILE = StoragePathMacros.APP_CONFIG + "/editor.codeinsight.xml";
 }

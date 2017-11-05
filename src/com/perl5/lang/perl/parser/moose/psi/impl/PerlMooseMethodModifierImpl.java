@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,17 +27,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 26.11.2015.
  */
-public class PerlMooseMethodModifierImpl extends PsiPerlStatementImpl implements PerlMooseMethodModifier
-{
-	public PerlMooseMethodModifierImpl(ASTNode node)
-	{
-		super(node);
-	}
+public class PerlMooseMethodModifierImpl extends PsiPerlStatementImpl implements PerlMooseMethodModifier {
+  public PerlMooseMethodModifierImpl(ASTNode node) {
+    super(node);
+  }
 
-	@Nullable
-	@Override
-	public PsiReference[] getReferences(PsiElement element)
-	{
-		return PerlMoosePsiUtil.getModifiersNameReference(getExpr(), element);
-	}
+  @Nullable
+  @Override
+  public PsiReference[] getReferences(PsiElement element) {
+    return PerlMoosePsiUtil.getModifiersNameReference(getExpr(), element);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,40 +25,58 @@ import com.perl5.lang.perl.idea.annotators.PerlCriticAnnotator;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by hurricup on 02.06.2016.
  */
 @State(
-		name = "Perl5LocalSettings",
-		storages = {
-				@Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
-				@Storage(id = "dir", file = PerlPathMacros.PERL5_PROJECT_SETTINGS_FILE, scheme = StorageScheme.DIRECTORY_BASED)
-		}
+  name = "Perl5LocalSettings",
+  storages = {
+    @Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
+    @Storage(id = "dir", file = PerlPathMacros.PERL5_PROJECT_SETTINGS_FILE, scheme = StorageScheme.DIRECTORY_BASED)
+  }
 )
 
-public class PerlLocalSettings implements PersistentStateComponent<PerlLocalSettings>
-{
-	public String PERL_PATH = "";
-	public String PERL_TIDY_PATH = PerlFormatWithPerlTidyAction.PERL_TIDY_OS_DEPENDENT_NAME;
-	public String PERL_CRITIC_PATH = PerlCriticAnnotator.PERL_CRITIC_OS_DEPENDENT_NAME;
-	public boolean DISABLE_NO_INTERPRETER_WARNING = false;
+public class PerlLocalSettings implements PersistentStateComponent<PerlLocalSettings> {
+  public String PERL_PATH = "";
+  public String PERL_TIDY_PATH = PerlFormatWithPerlTidyAction.PERL_TIDY_OS_DEPENDENT_NAME;
+  public String PERL_CRITIC_PATH = PerlCriticAnnotator.PERL_CRITIC_OS_DEPENDENT_NAME;
+  public boolean DISABLE_NO_INTERPRETER_WARNING = false;
+  public boolean ENABLE_REGEX_INJECTIONS = false;
+  private String myPerlInterpreter;
+  private List<String> myExternalLibrariesPaths = new ArrayList<>();
 
-	public static PerlLocalSettings getInstance(@NotNull Project project)
-	{
-		PerlLocalSettings persisted = ServiceManager.getService(project, PerlLocalSettings.class);
-		return persisted != null ? persisted : new PerlLocalSettings();
-	}
+  public List<String> getExternalLibrariesPaths() {
+    return myExternalLibrariesPaths;
+  }
 
-	@Nullable
-	@Override
-	public PerlLocalSettings getState()
-	{
-		return this;
-	}
+  public void setExternalLibrariesPaths(List<String> externalLibrariesPaths) {
+    myExternalLibrariesPaths = new ArrayList<>(externalLibrariesPaths);
+  }
 
-	@Override
-	public void loadState(PerlLocalSettings state)
-	{
-		XmlSerializerUtil.copyBean(state, this);
-	}
+  public String getPerlInterpreter() {
+    return myPerlInterpreter;
+  }
+
+  public void setPerlInterpreter(String perlInterpreter) {
+    myPerlInterpreter = perlInterpreter;
+  }
+
+  @Nullable
+  @Override
+  public PerlLocalSettings getState() {
+    return this;
+  }
+
+  @Override
+  public void loadState(PerlLocalSettings state) {
+    XmlSerializerUtil.copyBean(state, this);
+  }
+
+  public static PerlLocalSettings getInstance(@NotNull Project project) {
+    PerlLocalSettings persisted = ServiceManager.getService(project, PerlLocalSettings.class);
+    return persisted != null ? persisted : new PerlLocalSettings();
+  }
 }

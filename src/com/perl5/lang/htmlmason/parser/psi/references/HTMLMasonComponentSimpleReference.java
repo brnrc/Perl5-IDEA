@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.util.IncorrectOperationException;
 import com.perl5.lang.htmlmason.parser.psi.impl.HTMLMasonFileImpl;
 import com.perl5.lang.perl.psi.PerlString;
@@ -30,48 +29,29 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.03.2016.
  */
-public class HTMLMasonComponentSimpleReference extends HTMLMasonStringReference
-{
-	protected static final ResolveCache.PolyVariantResolver<HTMLMasonComponentSimpleReference> RESOLVER = new HTMLMasonSelfReferenceResolver();
+public class HTMLMasonComponentSimpleReference extends HTMLMasonStringReference {
+  public HTMLMasonComponentSimpleReference(@NotNull PerlString element, TextRange textRange) {
+    super(element, textRange);
+  }
 
-	public HTMLMasonComponentSimpleReference(@NotNull PerlString element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    return myElement;
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, incompleteCode);
-	}
+  @Override
+  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    return myElement;
+  }
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		return myElement;
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PsiFile psiFile = getElement().getContainingFile();
 
-	@Override
-	public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException
-	{
-		return myElement;
-	}
+    if (psiFile instanceof HTMLMasonFileImpl) {
+      return new ResolveResult[]{new PsiElementResolveResult(psiFile)};
+    }
 
-	private static class HTMLMasonSelfReferenceResolver implements ResolveCache.PolyVariantResolver<HTMLMasonComponentSimpleReference>
-	{
-		@NotNull
-		@Override
-		public ResolveResult[] resolve(@NotNull HTMLMasonComponentSimpleReference reference, boolean incompleteCode)
-		{
-			PsiFile psiFile = reference.getElement().getContainingFile();
-
-			if (psiFile instanceof HTMLMasonFileImpl)
-			{
-				return new ResolveResult[]{new PsiElementResolveResult(psiFile)};
-			}
-
-			return ResolveResult.EMPTY_ARRAY;
-		}
-	}
+    return ResolveResult.EMPTY_ARRAY;
+  }
 }

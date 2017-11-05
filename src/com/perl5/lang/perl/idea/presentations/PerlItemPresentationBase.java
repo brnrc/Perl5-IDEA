@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,62 +28,43 @@ import javax.swing.*;
 /**
  * Created by hurricup on 05.06.2015.
  */
-public abstract class PerlItemPresentationBase implements ColoredItemPresentation
-{
-	PsiElement myElement;
-	TextAttributesKey myAttributesKey;
+public abstract class PerlItemPresentationBase implements ColoredItemPresentation {
+  PsiElement myElement;
+  TextAttributesKey myAttributesKey;
 
-	public PerlItemPresentationBase(PsiElement element)
-	{
-		myElement = element;
-		myAttributesKey = myElement instanceof PerlDeprecatable && ((PerlDeprecatable) myElement).isDeprecated()
-				? CodeInsightColors.DEPRECATED_ATTRIBUTES
-				: null;
-	}
+  public PerlItemPresentationBase(PsiElement element) {
+    myElement = element;
+    myAttributesKey = myElement instanceof PerlDeprecatable && ((PerlDeprecatable)myElement).isDeprecated()
+                      ? CodeInsightColors.DEPRECATED_ATTRIBUTES
+                      : null;
+  }
 
-	@Nullable
-	@Override
-	public String getLocationString()
-	{
-		if (!myElement.isValid())
-		{
-			return null;
-		}
+  @Nullable
+  @Override
+  public String getLocationString() {
+    if (!myElement.isValid()) {
+      return null;
+    }
+    return getElement().getContainingFile().getName();// + suffix;
+  }
 
-/*		fixme seems this reparses file
-		String suffix = "";
+  @Nullable
+  @Override
+  public Icon getIcon(boolean unused) {
+    return myElement.getIcon(0);
+  }
 
-		PsiFile file = myElement.getContainingFile();
-		Document document = PsiDocumentManager.getInstance(myElement.getProject()).getCachedDocument(file);
+  public PsiElement getElement() {
+    return myElement;
+  }
 
-		if (document != null)
-			suffix = ", line " + (document.getLineNumber(myElement.getTextOffset()) + 1);
-*/
+  @Nullable
+  @Override
+  public TextAttributesKey getTextAttributesKey() {
+    return myAttributesKey;
+  }
 
-		return getElement().getContainingFile().getName();// + suffix;
-	}
-
-	@Nullable
-	@Override
-	public Icon getIcon(boolean unused)
-	{
-		return myElement.getIcon(0);
-	}
-
-	public PsiElement getElement()
-	{
-		return myElement;
-	}
-
-	@Nullable
-	@Override
-	public TextAttributesKey getTextAttributesKey()
-	{
-		return myAttributesKey;
-	}
-
-	public void setAttributesKey(TextAttributesKey myAttributesKey)
-	{
-		this.myAttributesKey = myAttributesKey;
-	}
+  public void setAttributesKey(TextAttributesKey myAttributesKey) {
+    this.myAttributesKey = myAttributesKey;
+  }
 }

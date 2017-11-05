@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,33 +21,28 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.util.Processor;
-import com.perl5.lang.perl.parser.Class.Accessor.psi.PerlClassAccessorDeclaration;
+import com.perl5.lang.perl.parser.Class.Accessor.psi.impl.PerlClassAccessorMethod;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 23.01.2016.
  */
-public class ClassAccessorReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>
-{
-	public ClassAccessorReferencesSearcher()
-	{
-		super(true);
-	}
+public class ClassAccessorReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> {
+  public ClassAccessorReferencesSearcher() {
+    super(true);
+  }
 
-	@Override
-	public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer)
-	{
-		PsiElement element = queryParameters.getElementToSearch();
-		if (element instanceof PerlClassAccessorDeclaration && ((PerlClassAccessorDeclaration) element).isFollowsBestPractice())
-		{
-			if (((PerlClassAccessorDeclaration) element).isAccessorReadable())
-			{
-				queryParameters.getOptimizer().searchWord(((PerlClassAccessorDeclaration) element).getGetterName(), queryParameters.getEffectiveSearchScope(), true, element);
-			}
-			if (((PerlClassAccessorDeclaration) element).isAccessorWritable())
-			{
-				queryParameters.getOptimizer().searchWord(((PerlClassAccessorDeclaration) element).getSetterName(), queryParameters.getEffectiveSearchScope(), true, element);
-			}
-		}
-	}
+  @Override
+  public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+    PsiElement element = queryParameters.getElementToSearch();
+    if (element instanceof PerlClassAccessorMethod) {
+      queryParameters.getOptimizer()
+        .searchWord(((PerlClassAccessorMethod)element).getSubName(), queryParameters.getEffectiveSearchScope(), true, element);
+
+      PerlClassAccessorMethod pairedMethod = ((PerlClassAccessorMethod)element).getPairedMethod();
+      if (pairedMethod != null) {
+        queryParameters.getOptimizer().searchWord(pairedMethod.getSubName(), queryParameters.getEffectiveSearchScope(), true, pairedMethod);
+      }
+    }
+  }
 }

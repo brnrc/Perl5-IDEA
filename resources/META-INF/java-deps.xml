@@ -14,10 +14,8 @@
   ~ limitations under the License.
   -->
 
-<idea-plugin version="2">
+<idea-plugin>
     <extensions defaultExtensionNs="com.intellij">
-
-        <compileServer.plugin classpath="camelcade.jar"/>
 
         <moduleType id="PERL5_MODULE" implementationClass="com.perl5.lang.perl.idea.modules.PerlModuleType"/>
 
@@ -30,11 +28,5 @@
     <project-components>
     </project-components>
     <actions>
-        <!-- Should be in java depts ? -->
-        <action id="Perl.MarkAsLibraryDirectory"
-                class="com.perl5.lang.perl.idea.actions.PerlMarkLibrarySourceRootAction">
-            <add-to-group group-id="MarkRootGroup"/>
-        </action>
-
     </actions>
 </idea-plugin>

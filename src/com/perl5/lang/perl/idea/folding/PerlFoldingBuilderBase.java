@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import com.intellij.lang.folding.FoldingDescriptor;
 import com.intellij.openapi.editor.Document;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionWithIdentifier;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -29,38 +29,34 @@ import java.util.List;
 /**
  * Created by hurricup on 03.04.2016.
  */
-public abstract class PerlFoldingBuilderBase extends FoldingBuilderEx
-{
-	/**
-	 * Finding psi elements of specific types and add Folding descriptor for them if they are more than certain lines lenght
-	 *
-	 * @param element     root element for searching
-	 * @param startMargin beginning margin for collapsable block
-	 * @param endMargin   end margin for collapsable block
-	 * @return list of folding descriptors
-	 */
-	protected static void addDescriptorFor(
-			@NotNull List<FoldingDescriptor> result,
-			@NotNull Document document,
-			@NotNull PsiElement element,
-			int startMargin,
-			int endMargin,
-			int minLines
-	)
-	{
-		if (!(element.getParent() instanceof PerlNamespaceDefinition))
-		{
+public abstract class PerlFoldingBuilderBase extends FoldingBuilderEx {
+  /**
+   * Finding psi elements of specific types and add Folding descriptor for them if they are more than certain lines lenght
+   *
+   * @param element     root element for searching
+   * @param startMargin beginning margin for collapsable block
+   * @param endMargin   end margin for collapsable block
+   * @return list of folding descriptors
+   */
+  protected static void addDescriptorFor(
+    @NotNull List<FoldingDescriptor> result,
+    @NotNull Document document,
+    @NotNull PsiElement element,
+    int startMargin,
+    int endMargin,
+    int minLines
+  ) {
+    if (!(element.getParent() instanceof PerlNamespaceDefinitionWithIdentifier)) {
 
-			TextRange range = element.getTextRange();
-			int startOffset = range.getStartOffset() + startMargin;
-			int endOffset = range.getEndOffset() - endMargin;
-			int startLine = document.getLineNumber(startOffset);
-			int endLine = document.getLineNumber(endOffset);
+      TextRange range = element.getTextRange();
+      int startOffset = range.getStartOffset() + startMargin;
+      int endOffset = range.getEndOffset() - endMargin;
+      int startLine = document.getLineNumber(startOffset);
+      int endLine = document.getLineNumber(endOffset);
 
-			if (endLine - startLine > minLines)
-			{
-				result.add(new FoldingDescriptor(element.getNode(), new TextRange(startOffset, endOffset)));
-			}
-		}
-	}
+      if (endLine - startLine > minLines) {
+        result.add(new FoldingDescriptor(element.getNode(), new TextRange(startOffset, endOffset)));
+      }
+    }
+  }
 }

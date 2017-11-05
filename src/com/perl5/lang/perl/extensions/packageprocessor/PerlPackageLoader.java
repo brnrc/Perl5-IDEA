@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,13 +25,12 @@ import java.util.List;
  * Created by hurricup on 25.08.2015.
  * Marks that current package loading others
  */
-public interface PerlPackageLoader
-{
-	/**
-	 * Returns list of canonical names of loaded packages
-	 *
-	 * @return list of canonical package names
-	 */
-	@NotNull
-	List<String> getLoadedPackageNames(PerlUseStatement useStatement);
+public interface PerlPackageLoader {
+  /**
+   * Returns list of canonical names of loaded packages
+   *
+   * @return list of canonical package names
+   */
+  @NotNull
+  List<String> getLoadedPackageNames(PerlUseStatement useStatement);
 }

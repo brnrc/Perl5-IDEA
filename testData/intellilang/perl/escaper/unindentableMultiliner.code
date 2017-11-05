@@ -1,0 +1,4 @@
+<<HTML;
+  one <caret> line
+    two lines
+HTML

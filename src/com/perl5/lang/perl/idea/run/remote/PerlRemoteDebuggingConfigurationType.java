@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +26,20 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 09.05.2016.
  */
-public class PerlRemoteDebuggingConfigurationType extends ConfigurationTypeBase
-{
-	public PerlRemoteDebuggingConfigurationType()
-	{
-		super("#PerlRemoteDebuggingConfigurationType", "Perl Remote Debugging", "", PerlIcons.PERL_LANGUAGE_ICON);
+public class PerlRemoteDebuggingConfigurationType extends ConfigurationTypeBase {
+  public PerlRemoteDebuggingConfigurationType() {
+    super("#PerlRemoteDebuggingConfigurationType", "Perl Remote Debugging", "", PerlIcons.PERL_LANGUAGE_ICON);
 
-		addFactory(new ConfigurationFactory(this)
-		{
-			@Override
-			public RunConfiguration createTemplateConfiguration(Project project)
-			{
-				return new PerlRemoteDebuggingConfiguration(project, this, "Unnamed");
-			}
-		});
-	}
+    addFactory(new ConfigurationFactory(this) {
+      @Override
+      public RunConfiguration createTemplateConfiguration(Project project) {
+        return new PerlRemoteDebuggingConfiguration(project, this, "Unnamed");
+      }
+    });
+  }
 
-	@NotNull
-	public static PerlRemoteDebuggingConfigurationType getInstance()
-	{
-		return CONFIGURATION_TYPE_EP.findExtension(PerlRemoteDebuggingConfigurationType.class);
-	}
-
+  @NotNull
+  public static PerlRemoteDebuggingConfigurationType getInstance() {
+    return CONFIGURATION_TYPE_EP.findExtension(PerlRemoteDebuggingConfigurationType.class);
+  }
 }

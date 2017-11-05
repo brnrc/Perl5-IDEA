@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,20 @@ import java.util.List;
 /**
  * Created by hurricup on 18.05.2016.
  */
-public class PerlSetUpDescriptor
-{
-	private List<PerlLineBreakPointDescriptor> breakpoints;
-	private String charset;
-	private String startMode;
-	private boolean enableCompileTimeBreakpoints;
-	private boolean enableNonInteractiveMode;
-	private String initCode;
+public class PerlSetUpDescriptor {
+  private List<PerlLineBreakPointDescriptor> breakpoints;
+  private String charset;
+  private String startMode;
+  private boolean enableCompileTimeBreakpoints;
+  private boolean enableNonInteractiveMode;
+  private String initCode;
 
-	public PerlSetUpDescriptor(List<PerlLineBreakPointDescriptor> breakpoints, PerlDebugOptions debugProfileState)
-	{
-		this.breakpoints = breakpoints;
-		this.charset = debugProfileState.getScriptCharset();
-		this.startMode = debugProfileState.getStartMode();
-		this.enableCompileTimeBreakpoints = debugProfileState.isCompileTimeBreakpointsEnabled();
-		this.enableNonInteractiveMode = debugProfileState.isNonInteractiveModeEnabled();
-		this.initCode = debugProfileState.getInitCode();
-	}
+  public PerlSetUpDescriptor(List<PerlLineBreakPointDescriptor> breakpoints, PerlDebugOptions debugProfileState) {
+    this.breakpoints = breakpoints;
+    this.charset = debugProfileState.getScriptCharset();
+    this.startMode = debugProfileState.getStartMode();
+    this.enableCompileTimeBreakpoints = debugProfileState.isCompileTimeBreakpointsEnabled();
+    this.enableNonInteractiveMode = debugProfileState.isNonInteractiveModeEnabled();
+    this.initCode = debugProfileState.getInitCode();
+  }
 }

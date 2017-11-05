@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,30 +21,26 @@ import com.intellij.openapi.vfs.VirtualFile;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlLibProvider;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlPragmaProcessorBase;
 import com.perl5.lang.perl.psi.PerlUseStatement;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
 
 /**
  * Created by hurricup on 19.09.2015.
  */
-public class LibProcessor extends PerlPragmaProcessorBase implements PerlLibProvider
-{
-	@Override
-	public void addLibDirs(PerlUseStatement useStatement, List<VirtualFile> libDirs)
-	{
-		int fileIndex = 0;
+public class LibProcessor extends PerlPragmaProcessorBase implements PerlLibProvider {
+  @Override
+  public void addLibDirs(@NotNull PerlUseStatement useStatement, @NotNull List<VirtualFile> libDirs) {
+    int fileIndex = 0;
 
-		List<String> importParameters = useStatement.getImportParameters();
-		if (importParameters != null)
-		{
-			for (String parameter : importParameters)
-			{
-				VirtualFile file = LocalFileSystem.getInstance().findFileByPath(parameter);
-				if (file != null && file.isDirectory())
-				{
-					libDirs.add(fileIndex++, file);
-				}
-			}
-		}
-	}
+    List<String> importParameters = useStatement.getImportParameters();
+    if (importParameters != null) {
+      for (String parameter : importParameters) {
+        VirtualFile file = LocalFileSystem.getInstance().findFileByPath(parameter);
+        if (file != null && file.isDirectory()) {
+          libDirs.add(fileIndex++, file);
+        }
+      }
+    }
+  }
 }

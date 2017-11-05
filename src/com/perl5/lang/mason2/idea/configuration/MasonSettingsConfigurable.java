@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,6 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.ui.Messages;
 import com.intellij.openapi.ui.VerticalFlowLayout;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.ui.AnActionButton;
-import com.intellij.ui.AnActionButtonRunnable;
 import com.intellij.ui.CollectionListModel;
 import com.intellij.ui.ToolbarDecorator;
 import com.intellij.ui.components.JBList;
@@ -38,121 +36,95 @@ import java.util.ArrayList;
 /**
  * Created by hurricup on 03.01.2016.
  */
-public class MasonSettingsConfigurable extends AbstractMasonSettingsConfigurable
-{
-	protected final MasonSettings mySettings;
+public class MasonSettingsConfigurable extends AbstractMasonSettingsConfigurable {
+  protected final MasonSettings mySettings;
 
-	protected CollectionListModel<String> autobaseModel;
-	protected JBList autobaseList;
+  protected CollectionListModel<String> autobaseModel;
+  protected JBList autobaseList;
 
-	public MasonSettingsConfigurable(Project myProject)
-	{
-		this(myProject, "Mason2");
-	}
+  public MasonSettingsConfigurable(Project myProject) {
+    this(myProject, "Mason2");
+  }
 
-	public MasonSettingsConfigurable(Project myProject, String windowTitile)
-	{
-		super(myProject, windowTitile);
-		mySettings = MasonSettings.getInstance(myProject);
-	}
+  public MasonSettingsConfigurable(Project myProject, String windowTitile) {
+    super(myProject, windowTitile);
+    mySettings = MasonSettings.getInstance(myProject);
+  }
 
 
-	@Nullable
-	@Override
-	public JComponent createComponent()
-	{
-		FormBuilder builder = FormBuilder.createFormBuilder();
-		builder.getPanel().setLayout(new VerticalFlowLayout());
+  @Nullable
+  @Override
+  public JComponent createComponent() {
+    FormBuilder builder = FormBuilder.createFormBuilder();
+    builder.getPanel().setLayout(new VerticalFlowLayout());
 
-		createRootsListComponent(builder);
-		createGlobalsComponent(builder);
-		createAutobaseNamesComponent(builder);
+    createGlobalsComponent(builder);
+    createAutobaseNamesComponent(builder);
 
-		return builder.getPanel();
-	}
+    return builder.getPanel();
+  }
 
-	@Override
-	public boolean isModified()
-	{
-		return
-				!mySettings.componentRoots.equals(rootsModel.getItems()) ||
-						!mySettings.globalVariables.equals(globalsModel.getItems()) ||
-						!mySettings.autobaseNames.equals(autobaseModel.getItems())
-				;
-	}
+  @Override
+  public boolean isModified() {
+    return
+      !mySettings.globalVariables.equals(globalsModel.getItems()) ||
+      !mySettings.autobaseNames.equals(autobaseModel.getItems())
+      ;
+  }
 
-	@Override
-	public void apply() throws ConfigurationException
-	{
-		mySettings.componentRoots.clear();
-		mySettings.componentRoots.addAll(rootsModel.getItems());
+  @Override
+  public void apply() throws ConfigurationException {
+    mySettings.autobaseNames.clear();
+    mySettings.autobaseNames.addAll(autobaseModel.getItems());
 
-		mySettings.autobaseNames.clear();
-		mySettings.autobaseNames.addAll(autobaseModel.getItems());
-
-		mySettings.globalVariables.clear();
-		for (VariableDescription variableDescription : new ArrayList<VariableDescription>(globalsModel.getItems()))
-		{
-			if (StringUtil.isNotEmpty(variableDescription.variableName))
-			{
-				mySettings.globalVariables.add(variableDescription);
-			}
-			else
-			{
-				globalsModel.removeRow(globalsModel.indexOf(variableDescription));
-			}
-		}
-		mySettings.settingsUpdated();
-	}
+    mySettings.globalVariables.clear();
+    for (VariableDescription variableDescription : new ArrayList<>(globalsModel.getItems())) {
+      if (StringUtil.isNotEmpty(variableDescription.variableName)) {
+        mySettings.globalVariables.add(variableDescription);
+      }
+      else {
+        globalsModel.removeRow(globalsModel.indexOf(variableDescription));
+      }
+    }
+    mySettings.settingsUpdated();
+  }
 
 
-	@Override
-	public void reset()
-	{
-		rootsModel.removeAll();
-		rootsModel.add(mySettings.componentRoots);
+  @Override
+  public void reset() {
+    autobaseModel.removeAll();
+    autobaseModel.add(mySettings.autobaseNames);
 
-		autobaseModel.removeAll();
-		autobaseModel.add(mySettings.autobaseNames);
+    globalsModel.setItems(new ArrayList<>());
+    for (VariableDescription variableDescription : mySettings.globalVariables) {
+      globalsModel.addRow(variableDescription.clone());
+    }
+  }
 
-		globalsModel.setItems(new ArrayList<VariableDescription>());
-		for (VariableDescription variableDescription : mySettings.globalVariables)
-		{
-			globalsModel.addRow(variableDescription.clone());
-		}
-	}
+  @Override
+  public void disposeUIResources() {
+  }
 
-	@Override
-	public void disposeUIResources()
-	{
-	}
-
-	protected void createAutobaseNamesComponent(FormBuilder builder)
-	{
-		autobaseModel = new CollectionListModel<String>();
-		autobaseList = new JBList(autobaseModel);
-		builder.addLabeledComponent(new JLabel("Autobase names (autobase_names option. Order is important, later components may be inherited from early):"), ToolbarDecorator
-				.createDecorator(autobaseList)
-				.setAddAction(new AnActionButtonRunnable()
-				{
-					@Override
-					public void run(AnActionButton anActionButton)
-					{
-						String fileName = Messages.showInputDialog(
-								myProject,
-								"Type new Autobase filename:",
-								"New Autobase Filename",
-								Messages.getQuestionIcon(),
-								"",
-								null);
-						if (StringUtil.isNotEmpty(fileName) && !autobaseModel.getItems().contains(fileName))
-						{
-							autobaseModel.add(fileName);
-						}
-					}
-				})
-				.setPreferredSize(JBUI.size(0, PerlConfigurationUtil.WIDGET_HEIGHT))
-				.createPanel());
-	}
-
+  protected void createAutobaseNamesComponent(FormBuilder builder) {
+    autobaseModel = new CollectionListModel<>();
+    autobaseList = new JBList<>(autobaseModel);
+    builder.addLabeledComponent(
+      new JLabel("Autobase names (autobase_names option. Order is important, later components may be inherited from early):"),
+      ToolbarDecorator
+        .createDecorator(autobaseList)
+        .setAddAction(anActionButton -> {
+          String fileName = Messages.showInputDialog(
+            myProject,
+            "Type new Autobase filename:",
+            "New Autobase Filename",
+            Messages.getQuestionIcon(),
+            "",
+            null);
+          if (StringUtil.isNotEmpty(fileName) && !autobaseModel.getItems().contains(fileName)) {
+            autobaseModel.add(fileName);
+          }
+        })
+        .setPreferredSize(JBUI.size(0, PerlConfigurationUtil.WIDGET_HEIGHT))
+        .createPanel());
+  }
 }

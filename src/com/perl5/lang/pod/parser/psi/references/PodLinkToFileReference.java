@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,9 +22,9 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.util.IncorrectOperationException;
 import com.perl5.lang.perl.fileTypes.PerlFileTypePackage;
+import com.perl5.lang.perl.psi.references.PerlCachingReference;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import com.perl5.lang.pod.filetypes.PodFileType;
 import com.perl5.lang.pod.parser.psi.PodFormatterL;
@@ -36,76 +36,53 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 07.04.2016.
  */
-public class PodLinkToFileReference extends PodReferenceBase<PodFormatterL>
-{
-	protected static final ResolveCache.PolyVariantResolver<PodLinkToFileReference> RESOLVER = new PodFileReferenceResolver();
+public class PodLinkToFileReference extends PerlCachingReference<PodFormatterL> {
+  public PodLinkToFileReference(PodFormatterL element, TextRange range) {
+    super(element, range);
+  }
 
-	public PodLinkToFileReference(PodFormatterL element, TextRange range)
-	{
-		super(element, range);
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PodFormatterL podLink = getElement();
+    PodLinkDescriptor descriptor = podLink.getLinkDescriptor();
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, incompleteCode);
-	}
+    if (descriptor != null && !descriptor.isUrl() && descriptor.getFileId() != null) {
+      PsiFile targetFile = PodFileUtil.getPodOrPackagePsiByDescriptor(podLink.getProject(), descriptor);
+      if (targetFile != null) {
+        return new ResolveResult[]{new PsiElementResolveResult(targetFile)};
+      }
+    }
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		PodLinkDescriptor descriptor = myElement.getLinkDescriptor();
-		if (descriptor != null)
-		{
-			String currentName = descriptor.getFileId();
+    return ResolveResult.EMPTY_ARRAY;
+  }
 
-			if (StringUtil.isNotEmpty(currentName) && newElementName.endsWith("." + PerlFileTypePackage.EXTENSION) || newElementName.endsWith("." + PodFileType.EXTENSION))
-			{
-				String[] nameChunks = currentName.split(PerlPackageUtil.PACKAGE_SEPARATOR);
-				nameChunks[nameChunks.length - 1] = newElementName.replaceFirst(PodFileUtil.PM_OR_POD_EXTENSION_PATTERN, "");
-				newElementName = StringUtils.join(nameChunks, PerlPackageUtil.PACKAGE_SEPARATOR);
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    PodLinkDescriptor descriptor = myElement.getLinkDescriptor();
+    if (descriptor != null) {
+      String currentName = descriptor.getFileId();
 
-				return super.handleElementRename(newElementName);
-			}
-//			throw new IncorrectOperationException("Can't bind package use/require to a non-pm file: " + newElementName);
-		}
-		return myElement;
-	}
+      if (StringUtil.isNotEmpty(currentName) && newElementName.endsWith("." + PerlFileTypePackage.EXTENSION) ||
+          newElementName.endsWith("." + PodFileType.EXTENSION)) {
+        String[] nameChunks = currentName.split(PerlPackageUtil.PACKAGE_SEPARATOR);
+        nameChunks[nameChunks.length - 1] = newElementName.replaceFirst(PodFileUtil.PM_OR_POD_EXTENSION_PATTERN, "");
+        newElementName = StringUtils.join(nameChunks, PerlPackageUtil.PACKAGE_SEPARATOR);
 
-	@Override
-	public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException
-	{
-		if (element instanceof PsiFile)
-		{
-			String newName = PodFileUtil.getPackageName((PsiFile) element);
-			if (StringUtil.isNotEmpty(newName))
-			{
-				return super.handleElementRename(newName);
-			}
-		}
-		return myElement;
-	}
+        return super.handleElementRename(newElementName);
+      }
+      //			throw new IncorrectOperationException("Can't bind package use/require to a non-pm file: " + newElementName);
+    }
+    return myElement;
+  }
 
-	private static class PodFileReferenceResolver implements ResolveCache.PolyVariantResolver<PodLinkToFileReference>
-	{
-		@NotNull
-		@Override
-		public ResolveResult[] resolve(@NotNull PodLinkToFileReference podLinkToFileReference, boolean incompleteCode)
-		{
-			PodFormatterL podLink = podLinkToFileReference.getElement();
-			PodLinkDescriptor descriptor = podLink.getLinkDescriptor();
-
-			if (descriptor != null && !descriptor.isUrl() && descriptor.getFileId() != null)
-			{
-				PsiFile targetFile = PodFileUtil.getPodOrPackagePsiByDescriptor(podLink.getProject(), descriptor);
-				if (targetFile != null)
-				{
-					return new ResolveResult[]{new PsiElementResolveResult(targetFile)};
-				}
-			}
-
-			return ResolveResult.EMPTY_ARRAY;
-		}
-	}
+  @Override
+  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    if (element instanceof PsiFile) {
+      String newName = PodFileUtil.getPackageName((PsiFile)element);
+      if (StringUtil.isNotEmpty(newName)) {
+        return super.handleElementRename(newName);
+      }
+    }
+    return myElement;
+  }
 }

@@ -16,6 +16,12 @@
   -->
 
 <list>
+    <option name="PERL_REGEX_CHAR_CLASS">
+        <value>
+            <option name="FOREGROUND" value="800080"/>
+            <option name="FONT_TYPE" value="1"/>
+        </value>
+    </option>
     <option name="PERL_SCALAR">
         <value>
             <option name="FOREGROUND" value="FF8000"/>
@@ -134,6 +140,13 @@
         <value>
             <option name="FOREGROUND" value="ff"/>
             <option name="FONT_TYPE" value="1"/>
+        </value>
+    </option>
+    <option name="PERL_LABEL">
+        <value>
+            <option name="FOREGROUND" value="0"/>
+            <option name="EFFECT_COLOR" value="0"/>
+            <option name="EFFECT_TYPE" value="1"/>
         </value>
     </option>
 </list>

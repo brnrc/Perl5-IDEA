@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,15 @@
 
 package com.perl5.lang.perl.psi;
 
-import com.intellij.psi.StubBasedPsiElement;
-import com.perl5.lang.perl.idea.PerlElementPatterns;
-import com.perl5.lang.perl.idea.stubs.namespaces.PerlNamespaceDefinitionStub;
-import com.perl5.lang.perl.psi.mixins.PerlNamespaceDefinitionImplMixin;
-import com.perl5.lang.perl.psi.properties.PerlNamedElement;
-import com.perl5.lang.perl.psi.properties.PerlNamespaceElementContainer;
+import com.intellij.openapi.project.Project;
+import com.intellij.psi.PsiInvalidElementAccessException;
+import com.perl5.lang.perl.psi.mro.PerlMro;
+import com.perl5.lang.perl.psi.mro.PerlMroC3;
+import com.perl5.lang.perl.psi.mro.PerlMroDfs;
+import com.perl5.lang.perl.psi.mro.PerlMroType;
+import com.perl5.lang.perl.psi.utils.PerlNamespaceAnnotations;
+import com.perl5.lang.perl.util.PerlPackageUtil;
+import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -31,74 +34,94 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * Created by hurricup on 31.05.2015.
+ * Describes api for perl namespace definition; Should be used only for inheritance
  */
-public interface PerlNamespaceDefinition extends
-		StubBasedPsiElement<PerlNamespaceDefinitionStub>,
-		PerlNamespaceElementContainer,
-		PerlNamedElement,
-		PerlNamespaceContainer,
-		PerlDeprecatable,
-		PerlElementPatterns
-{
-	/**
-	 * Retuns block or namespace content with statements
-	 *
-	 * @return PsiElement
-	 */
-	@Nullable
-	PsiPerlBlock getBlock();
+public interface PerlNamespaceDefinition extends PerlDeprecatable {
+  @NotNull
+  @Contract(pure = true)
+  Project getProject() throws PsiInvalidElementAccessException;
 
-	/**
-	 * Populates result with linear ISA according to the namespace MRO
-	 *
-	 * @param recursionMap recursion map
-	 * @param result       array to populate
-	 */
-	void getLinearISA(HashSet<String> recursionMap, ArrayList<String> result);
+  /**
+   * Returns package name
+   *
+   * @return canonical package name
+   */
+  String getPackageName();
 
-	/**
-	 * Retuns list of exports from this module
-	 *
-	 * @return list of @EXPORTs
-	 */
-	@NotNull
-	List<String> getEXPORT();
+  /**
+   * Get mro type for current package
+   *
+   * @return mro type
+   */
+  PerlMroType getMroType();
 
-	/**
-	 * .
-	 * Returns list of optional exports from this module
-	 *
-	 * @return list of @EXPORT_OKs
-	 */
-	@NotNull
-	List<String> getEXPORT_OK();
+  /**
+   * Returns MRO instance for current package
+   *
+   * @return mro class instance
+   */
+  default PerlMro getMro() {
+    return getMroType() == PerlMroType.C3 ? PerlMroC3.INSTANCE : PerlMroDfs.INSTANCE;
+  }
 
-	/**
-	 * Returns map of exported tags
-	 *
-	 * @return map of %EXPORT_TAGS
-	 */
-	@NotNull
-	Map<String, List<String>> getEXPORT_TAGS();
+  /**
+   * Returns list of parent namespace names from stub or psi
+   *
+   * @return list of names
+   */
+  @NotNull
+  List<String> getParentNamespacesNames();
 
-	/**
-	 * Collects, cached and returns exporter arrays and hashes
-	 *
-	 * @return exporter info
-	 */
-	@NotNull
-	PerlNamespaceDefinitionImplMixin.ExporterInfo getExporterInfo();
+  /**
+   * Returns stubbed, local or external namespace annotations
+   *
+   * @return annotations or null
+   */
+  @Nullable
+  PerlNamespaceAnnotations getAnnotations();
+
+  /**
+   * Retuns list of exports from this module
+   *
+   * @return list of @EXPORTs
+   */
+  @NotNull
+  List<String> getEXPORT();
+
+  /**
+   * .
+   * Returns list of optional exports from this module
+   *
+   * @return list of @EXPORT_OKs
+   */
+  @NotNull
+  List<String> getEXPORT_OK();
+
+  /**
+   * Returns map of exported tags
+   *
+   * @return map of %EXPORT_TAGS
+   */
+  @NotNull
+  Map<String, List<String>> getEXPORT_TAGS();
 
 
-	/**
-	 * Returns list of parent namespace names from stub or psi
-	 *
-	 * @return list of names
-	 */
-	@NotNull
-	List<String> getParentNamepsacesNames();
+  default List<PerlNamespaceDefinitionElement> getParentNamespaceDefinitions() {
+    return PerlPackageUtil.collectNamespaceDefinitions(getProject(), getParentNamespacesNames());
+  }
 
-	@Nullable
-	String getName();
+  @NotNull
+  default List<PerlNamespaceDefinitionElement> getChildNamespaceDefinitions() {
+    return PerlPackageUtil.getChildNamespaces(getProject(), getPackageName());
+  }
+
+  default void getLinearISA(HashSet<String> recursionMap, ArrayList<String> result) {
+    getMro().getLinearISA(getProject(), getParentNamespaceDefinitions(), recursionMap, result);
+  }
+
+  @Override
+  default boolean isDeprecated() {
+    PerlNamespaceAnnotations namespaceAnnotations = getAnnotations();
+    return namespaceAnnotations != null && namespaceAnnotations.isDeprecated();
+  }
 }

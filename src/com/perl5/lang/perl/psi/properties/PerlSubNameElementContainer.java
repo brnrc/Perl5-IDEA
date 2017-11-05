@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@
 package com.perl5.lang.perl.psi.properties;
 
 import com.perl5.lang.perl.psi.PerlSubNameElement;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 31.05.2015.
  * Interface for objets, containing SubNameElement
  */
-public interface PerlSubNameElementContainer
-{
-	/**
-	 * Trying to find nested PerlSubName element
-	 *
-	 * @return psi element or null
-	 */
-	PerlSubNameElement getSubNameElement();
+public interface PerlSubNameElementContainer {
+  /**
+   * Trying to find nested PerlSubName element
+   *
+   * @return psi element or null
+   */
+  @Nullable
+  PerlSubNameElement getSubNameElement();
 }

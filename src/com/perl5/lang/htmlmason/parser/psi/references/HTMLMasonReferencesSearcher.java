@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,22 +28,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.03.2016.
  */
-public class HTMLMasonReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> implements HTMLMasonSyntaxElements
-{
-	public HTMLMasonReferencesSearcher()
-	{
-		super(true);
-	}
+public class HTMLMasonReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>
+  implements HTMLMasonSyntaxElements {
+  public HTMLMasonReferencesSearcher() {
+    super(true);
+  }
 
-	@Override
-	public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer)
-	{
-		PsiElement element = queryParameters.getElementToSearch();
-		if (element instanceof HTMLMasonFileImpl)
-		{
-			queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_SELF, queryParameters.getEffectiveSearchScope(), true, element);
-			queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_PARENT, queryParameters.getEffectiveSearchScope(), true, element);
-			queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_REQUEST, queryParameters.getEffectiveSearchScope(), true, element);
-		}
-	}
+  @Override
+  public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+    PsiElement element = queryParameters.getElementToSearch();
+    if (element instanceof HTMLMasonFileImpl) {
+      queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_SELF, queryParameters.getEffectiveSearchScope(), true, element);
+      queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_PARENT, queryParameters.getEffectiveSearchScope(), true, element);
+      queryParameters.getOptimizer().searchWord(COMPONENT_SLUG_REQUEST, queryParameters.getEffectiveSearchScope(), true, element);
+    }
+  }
 }

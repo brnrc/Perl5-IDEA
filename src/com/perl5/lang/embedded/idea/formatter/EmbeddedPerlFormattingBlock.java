@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,43 +18,33 @@ package com.perl5.lang.embedded.idea.formatter;
 
 import com.intellij.formatting.Alignment;
 import com.intellij.formatting.Indent;
-import com.intellij.formatting.SpacingBuilder;
 import com.intellij.formatting.Wrap;
 import com.intellij.lang.ASTNode;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.psi.formatter.common.InjectedLanguageBlockBuilder;
 import com.perl5.lang.embedded.EmbeddedPerlParserDefinition;
+import com.perl5.lang.perl.idea.formatter.PerlFormattingContext;
 import com.perl5.lang.perl.idea.formatter.blocks.PerlFormattingBlock;
-import com.perl5.lang.perl.idea.formatter.settings.PerlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 11.01.2016.
  */
-public class EmbeddedPerlFormattingBlock extends PerlFormattingBlock
-{
-	public EmbeddedPerlFormattingBlock(@NotNull ASTNode node,
-									   @Nullable Wrap wrap,
-									   @Nullable Alignment alignment,
-									   @NotNull CommonCodeStyleSettings codeStyleSettings,
-									   @NotNull PerlCodeStyleSettings perlCodeStyleSettings,
-									   @NotNull SpacingBuilder spacingBuilder,
-									   @NotNull InjectedLanguageBlockBuilder injectedLanguageBlockBuilder
+public class EmbeddedPerlFormattingBlock extends PerlFormattingBlock {
+  public EmbeddedPerlFormattingBlock(@NotNull ASTNode node,
+                                     @Nullable Wrap wrap,
+                                     @Nullable Alignment alignment,
+                                     @NotNull PerlFormattingContext context
 
-	)
-	{
-		super(node, wrap, alignment, codeStyleSettings, perlCodeStyleSettings, spacingBuilder, injectedLanguageBlockBuilder);
-	}
+  ) {
+    super(node, wrap, alignment, context);
+  }
 
-	@Nullable
-	@Override
-	protected Indent getChildIndent()
-	{
-		if (getElementType() == EmbeddedPerlParserDefinition.FILE)
-		{
-			return Indent.getNoneIndent();
-		}
-		return super.getChildIndent();
-	}
+  @Nullable
+  @Override
+  protected Indent getChildIndent() {
+    if (getElementType() == EmbeddedPerlParserDefinition.FILE) {
+      return Indent.getNoneIndent();
+    }
+    return super.getChildIndent();
+  }
 }

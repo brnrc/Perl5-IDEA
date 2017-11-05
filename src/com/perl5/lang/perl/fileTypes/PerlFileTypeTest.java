@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.perl5.lang.perl.fileTypes;
 
+import com.intellij.openapi.fileTypes.FileType;
 import com.perl5.PerlIcons;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -25,36 +26,31 @@ import javax.swing.*;
 /**
  * Created by hurricup on 26.05.2015.
  */
-public class PerlFileTypeTest extends PerlFileType
-{
-	public static final PerlFileTypeTest INSTANCE = new PerlFileTypeTest();
+public class PerlFileTypeTest extends PurePerlFileType {
+  public static final FileType INSTANCE = new PerlFileTypeTest();
+  public static final String EXTENSION = "t";
 
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return "Perl5 test";
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return "Perl5 test";
+  }
 
-	@NotNull
-	@Override
-	public String getDescription()
-	{
-		return "Perl5 test";
-	}
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Perl5 test";
+  }
 
-	@NotNull
-	@Override
-	public String getDefaultExtension()
-	{
-		return "t";
-	}
+  @NotNull
+  @Override
+  public String getDefaultExtension() {
+    return EXTENSION;
+  }
 
-	@Nullable
-	@Override
-	public Icon getIcon()
-	{
-		return PerlIcons.TEST_FILE;
-	}
-
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return PerlIcons.TEST_FILE;
+  }
 }

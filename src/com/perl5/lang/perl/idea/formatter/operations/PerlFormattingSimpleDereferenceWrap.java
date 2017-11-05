@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,13 @@ import com.perl5.lang.perl.psi.PsiPerlScalarVariable;
 /**
  * Created by evstigneev on 17.11.2015.
  */
-public class PerlFormattingSimpleDereferenceWrap extends PerlFormattingSimpleDereferenceUnwrap
-{
-	public PerlFormattingSimpleDereferenceWrap(PerlCastExpression myCastElement, PsiPerlScalarVariable myVariableElement)
-	{
-		super(myCastElement, myVariableElement);
-	}
+public class PerlFormattingSimpleDereferenceWrap extends PerlFormattingSimpleDereferenceUnwrap {
+  public PerlFormattingSimpleDereferenceWrap(PerlCastExpression myCastElement, PsiPerlScalarVariable myVariableElement) {
+    super(myCastElement, myVariableElement);
+  }
 
-	@Override
-	protected String getCode()
-	{
-		return myCastElement.getFirstChild().getNode().getText() + "{" + myVariableElement.getNode().getText() + "}";
-	}
+  @Override
+  protected String getCode() {
+    return myCastElement.getFirstChild().getNode().getText() + "{" + myVariableElement.getNode().getText() + "}";
+  }
 }

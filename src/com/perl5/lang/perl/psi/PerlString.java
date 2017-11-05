@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,42 +16,10 @@
 
 package com.perl5.lang.perl.psi;
 
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
-import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 08.08.2015.
  */
-public interface PerlString extends PsiElement
-{
-	/**
-	 * Returns string content text
-	 *
-	 * @return String content text
-	 */
-	@NotNull
-	String getStringContent();
-
-	/**
-	 * Changing string contents
-	 *
-	 * @param newContent new string content
-	 */
-	void setStringContent(String newContent);
-
-	/**
-	 * Returns text content range
-	 *
-	 * @return text content range
-	 */
-	@NotNull
-	TextRange getContentTextRangeInParent();
-
-	/**
-	 * Returns the lenght of string content
-	 *
-	 * @return string content length
-	 */
-	int getContentLength();
+public interface PerlString extends PsiElement {
 }

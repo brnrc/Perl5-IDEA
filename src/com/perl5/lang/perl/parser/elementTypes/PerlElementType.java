@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,23 +16,14 @@
 
 package com.perl5.lang.perl.parser.elementTypes;
 
-import com.intellij.psi.tree.IElementType;
-import com.perl5.lang.perl.PerlLanguage;
 import org.jetbrains.annotations.NonNls;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 24.04.2015.
  */
-public class PerlElementType extends IElementType
-{
-	public PerlElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, PerlLanguage.INSTANCE);
-	}
-
-	public String toString()
-	{
-		return "PerlElementType." + super.toString();
-	}
+public class PerlElementType extends PerlTokenType {
+  public PerlElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 }

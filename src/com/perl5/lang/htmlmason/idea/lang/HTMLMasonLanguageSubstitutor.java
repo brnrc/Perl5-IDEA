@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,33 +22,29 @@ import com.intellij.openapi.project.Project;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.LanguageSubstitutor;
 import com.perl5.lang.htmlmason.HTMLMasonLanguage;
-import com.perl5.lang.htmlmason.HTMLMasonUtils;
+import com.perl5.lang.htmlmason.HTMLMasonUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 06.03.2016.
  */
-public class HTMLMasonLanguageSubstitutor extends LanguageSubstitutor
-{
-	protected final FileNameMatcher myFileNameMatcher;
-	protected final Project myProject;
+public class HTMLMasonLanguageSubstitutor extends LanguageSubstitutor {
+  protected final FileNameMatcher myFileNameMatcher;
+  protected final Project myProject;
 
-	public HTMLMasonLanguageSubstitutor(Project project, FileNameMatcher fileNameMatcher)
-	{
-		myFileNameMatcher = fileNameMatcher;
-		myProject = project;
-	}
+  public HTMLMasonLanguageSubstitutor(Project project, FileNameMatcher fileNameMatcher) {
+    myFileNameMatcher = fileNameMatcher;
+    myProject = project;
+  }
 
-	@Nullable
-	@Override
-	public Language getLanguage(@NotNull VirtualFile file, @NotNull Project project)
-	{
-		if (myFileNameMatcher.accept(file.getName()) && HTMLMasonUtils.getComponentRoot(myProject, file) != null)
-		{
-//			System.err.println(file.getName() +  " substituted as HTML::Mason");
-			return HTMLMasonLanguage.INSTANCE;
-		}
-		return null;
-	}
+  @Nullable
+  @Override
+  public Language getLanguage(@NotNull VirtualFile file, @NotNull Project project) {
+    if (myFileNameMatcher.accept(file.getName()) && HTMLMasonUtil.getComponentRoot(myProject, file) != null) {
+      //			System.err.println(file.getName() +  " substituted as HTML::Mason");
+      return HTMLMasonLanguage.INSTANCE;
+    }
+    return null;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,53 +30,35 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.03.2016.
  */
-public class HTMLMasonComponentParentReference extends HTMLMasonStringReference
-{
-	protected static final ResolveCache.PolyVariantResolver<HTMLMasonComponentParentReference> RESOLVER = new HTMLMasonParentReferenceResolver();
+public class HTMLMasonComponentParentReference extends HTMLMasonStringReference {
 
-	public HTMLMasonComponentParentReference(@NotNull PerlString element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  public HTMLMasonComponentParentReference(@NotNull PerlString element, TextRange textRange) {
+    super(element, textRange);
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, incompleteCode);
-	}
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		return myElement;
-	}
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    return myElement;
+  }
 
-	@Override
-	public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException
-	{
-		ResolveCache.getInstance(element.getProject()).clearCache(true);
-		return myElement;
-	}
+  @Override
+  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    ResolveCache.getInstance(element.getProject()).clearCache(true);
+    return myElement;
+  }
 
-	private static class HTMLMasonParentReferenceResolver implements ResolveCache.PolyVariantResolver<HTMLMasonComponentParentReference>
-	{
-		@NotNull
-		@Override
-		public ResolveResult[] resolve(@NotNull HTMLMasonComponentParentReference reference, boolean incompleteCode)
-		{
-			PsiFile psiFile = reference.getElement().getContainingFile();
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PsiFile psiFile = getElement().getContainingFile();
 
-			if (psiFile instanceof HTMLMasonFileImpl)
-			{
-				PsiFile parentComponent = ((HTMLMasonFileImpl) psiFile).getParentComponent();
-				if (parentComponent != null)
-				{
-					return new ResolveResult[]{new PsiElementResolveResult(parentComponent)};
-				}
-			}
+    if (psiFile instanceof HTMLMasonFileImpl) {
+      PsiFile parentComponent = ((HTMLMasonFileImpl)psiFile).getParentComponent();
+      if (parentComponent != null) {
+        return new ResolveResult[]{new PsiElementResolveResult(parentComponent)};
+      }
+    }
 
-			return ResolveResult.EMPTY_ARRAY;
-		}
-	}
+    return ResolveResult.EMPTY_ARRAY;
+  }
 }

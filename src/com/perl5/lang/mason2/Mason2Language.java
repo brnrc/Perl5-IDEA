@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,14 +22,10 @@ import com.perl5.lang.perl.PerlLanguage;
 /**
  * Created by hurricup on 20.12.2015.
  */
-public class Mason2Language extends Language
-{
-	public static final Mason2Language INSTANCE = new Mason2Language();
+public class Mason2Language extends Language {
+  public static final Mason2Language INSTANCE = new Mason2Language();
 
-	public Mason2Language()
-	{
-		super(PerlLanguage.INSTANCE, "Mason2");
-	}
-
-
+  public Mason2Language() {
+    super(PerlLanguage.INSTANCE, "Mason2");
+  }
 }

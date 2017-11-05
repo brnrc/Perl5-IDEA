@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,7 +26,7 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveResult;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import com.perl5.lang.perl.psi.PerlSubBase;
+import com.perl5.lang.perl.psi.PerlSubElement;
 import com.perl5.lang.pod.parser.PodElementPatterns;
 import com.perl5.lang.pod.parser.psi.PodRecursiveVisitor;
 import com.perl5.lang.pod.parser.psi.PodSectionTitle;
@@ -43,89 +43,73 @@ import java.util.List;
 /**
  * Created by hurricup on 24.04.2016.
  */
-public class PodTitleCompletionProvider extends CompletionProvider<CompletionParameters> implements PodElementPatterns
-{
-	public static final List<String> DEFAULT_POD_SECTIONS = new ArrayList<String>(
-			Arrays.asList(
-					"VERSION",
-					"SYNOPSIS",
-					"API",
-					"DESCRIPTION",
-					"INSTALLATION",
-					"NAME",
-					"AUTHORS",
-					"CONTRIBUTORS",
-					"COPYRIGHT AND LICENSE"
-			)
-	);
+public class PodTitleCompletionProvider extends CompletionProvider<CompletionParameters> implements PodElementPatterns {
+  public static final List<String> DEFAULT_POD_SECTIONS = new ArrayList<>(
+    Arrays.asList(
+      "VERSION",
+      "SYNOPSIS",
+      "API",
+      "DESCRIPTION",
+      "INSTALLATION",
+      "NAME",
+      "AUTHORS",
+      "CONTRIBUTORS",
+      "COPYRIGHT AND LICENSE"
+    )
+  );
 
-	@Override
-	protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result)
-	{
-		final PsiElement element = parameters.getOriginalPosition();
-		if (element == null)
-		{
-			return;
-		}
+  @Override
+  protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
+    final PsiElement element = parameters.getOriginalPosition();
+    if (element == null) {
+      return;
+    }
 
-		PsiElement prevElement = element.getPrevSibling();
+    PsiElement prevElement = element.getPrevSibling();
 
-		if (prevElement == null || prevElement instanceof PodSectionTitle)
-		{
-			if (HEADER1_ELEMENT.accepts(element))
-			{
-				for (String title : DEFAULT_POD_SECTIONS)
-				{
-					result.addElement(LookupElementBuilder.create(title));
-				}
-			}
+    if (prevElement == null || prevElement instanceof PodSectionTitle) {
+      if (HEADER1_ELEMENT.accepts(element)) {
+        for (String title : DEFAULT_POD_SECTIONS) {
+          result.addElement(LookupElementBuilder.create(title));
+        }
+      }
 
 
-			final PsiFile elementFile = element.getContainingFile();
-			final PsiFile perlFile = PodFileUtil.getTargetPerlFile(elementFile);
-			if (perlFile != null)
-			{
-				final Collection<PerlSubBase> possibleTargets = PsiTreeUtil.findChildrenOfType(perlFile, PerlSubBase.class);
-				element.getContainingFile().accept(new PodRecursiveVisitor()
-				{
-					@Override
-					public void visitTargetableSection(PodTitledSection o)
-					{
-						PsiElement titleBlock = o.getTitleBlock();
-						if (titleBlock != null)
-						{
-							PsiElement firstChild = titleBlock.getFirstChild();
-							if (firstChild != null)
-							{
-								for (PsiReference reference : firstChild.getReferences())
-								{
-									if (reference instanceof PodSubReference)
-									{
-										for (ResolveResult resolveResult : ((PodSubReference) reference).multiResolve(false))
-										{
-											PsiElement targetElement = resolveResult.getElement();
+      final PsiFile elementFile = element.getContainingFile();
+      final PsiFile perlFile = PodFileUtil.getTargetPerlFile(elementFile);
+      if (perlFile != null) {
+        final Collection<PerlSubElement> possibleTargets = PsiTreeUtil.findChildrenOfType(perlFile, PerlSubElement.class);
+        element.getContainingFile().accept(new PodRecursiveVisitor() {
+          @Override
+          public void visitTargetableSection(PodTitledSection o) {
+            PsiElement titleBlock = o.getTitleBlock();
+            if (titleBlock != null) {
+              PsiElement firstChild = titleBlock.getFirstChild();
+              if (firstChild != null) {
+                for (PsiReference reference : firstChild.getReferences()) {
+                  if (reference instanceof PodSubReference) {
+                    for (ResolveResult resolveResult : ((PodSubReference)reference).multiResolve(false)) {
+                      PsiElement targetElement = resolveResult.getElement();
 
-											if (targetElement instanceof PerlSubBase)
-											{
-												possibleTargets.remove(targetElement);
-											}
-										}
-									}
-								}
-							}
-						}
-						super.visitTargetableSection(o);
-					}
-				});
+                      if (targetElement instanceof PerlSubElement) {
+                        possibleTargets.remove(targetElement);
+                      }
+                    }
+                  }
+                }
+              }
+            }
+            super.visitTargetableSection(o);
+          }
+        });
 
-				for (PerlSubBase untargetedSub : possibleTargets)
-				{
-					result.addElement(LookupElementBuilder
-							.create(untargetedSub.getPresentableName())
-							.withIcon(untargetedSub.getIcon(0))
-					);
-				}
-			}
-		}
-	}
+        for (PerlSubElement untargetedSub : possibleTargets) {
+          result.addElement(LookupElementBuilder
+                              .create(untargetedSub.getPresentableName())
+                              .withIcon(untargetedSub.getIcon(0))
+          );
+        }
+      }
+    }
+  }
 }

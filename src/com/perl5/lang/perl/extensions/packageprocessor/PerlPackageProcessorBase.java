@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,8 +16,13 @@
 
 package com.perl5.lang.perl.extensions.packageprocessor;
 
+import com.intellij.lang.PsiBuilder;
 import com.intellij.openapi.util.text.StringUtil;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.intellij.psi.tree.IElementType;
+import com.perl5.lang.perl.parser.PerlParserImpl;
+import com.perl5.lang.perl.parser.PerlParserUtil;
+import com.perl5.lang.perl.parser.builder.PerlBuilder;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 import com.perl5.lang.perl.psi.PerlUseStatement;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.jetbrains.annotations.NotNull;
@@ -30,81 +35,70 @@ import java.util.Set;
 /**
  * Created by hurricup on 18.08.2015.
  */
-public abstract class PerlPackageProcessorBase implements PerlPackageProcessor
-{
-	@Override
-	public boolean isPragma()
-	{
-		return false;
-	}
+public abstract class PerlPackageProcessorBase implements PerlPackageProcessor {
+  @Override
+  public boolean isPragma() {
+    return false;
+  }
 
-	@Override
-	public void use(PerlUseStatement useStatement)
-	{
+  public void addExports(@NotNull PerlUseStatement useStatement, @NotNull Set<String> export, @NotNull Set<String> exportOk) {
+    String packageName = useStatement.getPackageName();
 
-	}
+    if (StringUtil.isEmpty(packageName)) {
+      return;
+    }
 
-	@Override
-	public void no(PerlUseStatement noStatement)
-	{
-
-	}
-
-	public void addExports(@NotNull PerlUseStatement useStatement, @NotNull Set<String> export, @NotNull Set<String> exportOk)
-	{
-		String packageName = useStatement.getPackageName();
-
-		if (StringUtil.isEmpty(packageName))
-		{
-			return;
-		}
-
-		// fixme handle tags
-		for (PerlNamespaceDefinition namespaceDefinition : PerlPackageUtil.getNamespaceDefinitions(useStatement.getProject(), packageName))
-		{
-			export.addAll(namespaceDefinition.getEXPORT());
-			exportOk.addAll(namespaceDefinition.getEXPORT_OK());
-		}
-		exportOk.addAll(export);
-	}
+    // fixme handle tags
+    for (PerlNamespaceDefinitionElement namespaceDefinition : PerlPackageUtil
+      .getNamespaceDefinitions(useStatement.getProject(), packageName)) {
+      export.addAll(namespaceDefinition.getEXPORT());
+      exportOk.addAll(namespaceDefinition.getEXPORT_OK());
+    }
+    exportOk.addAll(export);
+  }
 
 
-	@Override
-	@NotNull
-	public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement)
-	{
-		List<PerlExportDescriptor> result = new ArrayList<PerlExportDescriptor>();
-		String packageName = useStatement.getPackageName();
-		if (packageName != null)
-		{
-			List<String> parameters = useStatement.getImportParameters();
-//			System.err.println("Import parameters for " + packageName + " are " + parameters);
-			Set<String> exportNames = new HashSet<String>();
-			Set<String> exportOkNames = new HashSet<String>();
+  @Override
+  @NotNull
+  public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement) {
+    List<PerlExportDescriptor> result = new ArrayList<>();
+    String packageName = useStatement.getPackageName();
+    if (packageName != null) {
+      List<String> parameters = useStatement.getImportParameters();
+      //			System.err.println("Import parameters for " + packageName + " are " + parameters);
+      Set<String> exportNames = new HashSet<>();
+      Set<String> exportOkNames = new HashSet<>();
 
-			addExports(useStatement, exportNames, exportOkNames);
+      addExports(useStatement, exportNames, exportOkNames);
 
-			if (parameters == null)    // default import
-			{
-				for (String item : exportNames)
-				{
-					result.add(new PerlExportDescriptor(item, packageName));
-				}
-			}
-			else
-			{
-				for (String parameter : parameters)
-				{
-					if (exportOkNames.contains(parameter))
-					{
-						result.add(new PerlExportDescriptor(parameter, packageName));
-					}
-				}
-			}
-		}
+      if (parameters == null)    // default import
+      {
+        for (String item : exportNames) {
+          result.add(PerlExportDescriptor.create(packageName, item));
+        }
+      }
+      else {
+        for (String parameter : parameters) {
+          if (exportOkNames.contains(parameter)) {
+            result.add(PerlExportDescriptor.create(packageName, parameter));
+          }
+        }
+      }
+    }
 
-//		System.err.println("Imported from " + packageName + ": " + result);
+    //		System.err.println("Imported from " + packageName + ": " + result);
 
-		return result;
-	}
+    return result;
+  }
+
+  protected static boolean wrapExpression(@NotNull IElementType elementType, @NotNull PerlBuilder b, int l) {
+    PerlParserUtil.passPackageAndVersion(b, l);
+    PsiBuilder.Marker m = b.mark();
+    if (PerlParserImpl.expr(b, l, -1)) {
+      m.done(elementType);
+      return true;
+    }
+    m.rollbackTo();
+    return false;
+  }
 }

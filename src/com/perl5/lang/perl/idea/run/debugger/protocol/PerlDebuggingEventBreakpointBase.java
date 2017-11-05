@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,37 +18,32 @@ package com.perl5.lang.perl.idea.run.debugger.protocol;
 
 import com.intellij.xdebugger.XDebugSession;
 import com.intellij.xdebugger.breakpoints.XLineBreakpoint;
-import com.perl5.lang.perl.util.PerlDebugUtils;
+import com.perl5.lang.perl.util.PerlDebugUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 07.05.2016.
  */
-public abstract class PerlDebuggingEventBreakpointBase extends PerlDebuggingEventBase implements PerlDebuggingEventBreakpoint
-{
-	private String path;
-	private int line;
+public abstract class PerlDebuggingEventBreakpointBase extends PerlDebuggingEventBase implements PerlDebuggingEventBreakpoint {
+  private String path;
+  private int line;
 
-	@Override
-	public void run()
-	{
-		XDebugSession session = getDebugSession();
-		XLineBreakpoint breakpoint = PerlDebugUtils.findBreakpoint(session.getProject(), this);
-		if (breakpoint != null)
-		{
-			processBreakPoint(breakpoint, session);
-		}
-	}
+  @Override
+  public void run() {
+    XDebugSession session = getDebugSession();
+    XLineBreakpoint breakpoint = PerlDebugUtil.findBreakpoint(session.getProject(), this);
+    if (breakpoint != null) {
+      processBreakPoint(breakpoint, session);
+    }
+  }
 
-	protected abstract void processBreakPoint(@NotNull XLineBreakpoint breakpoint, XDebugSession session);
+  protected abstract void processBreakPoint(@NotNull XLineBreakpoint breakpoint, XDebugSession session);
 
-	public String getPath()
-	{
-		return path;
-	}
+  public String getPath() {
+    return path;
+  }
 
-	public int getLine()
-	{
-		return line;
-	}
+  public int getLine() {
+    return line;
+  }
 }

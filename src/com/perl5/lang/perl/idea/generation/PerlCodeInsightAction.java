@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,11 +26,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 11.10.2015.
  */
-public abstract class PerlCodeInsightAction extends CodeInsightAction
-{
-	@Override
-	protected boolean isValidForFile(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file)
-	{
-		return super.isValidForFile(project, editor, file) && file instanceof PerlFileImpl;
-	}
+public abstract class PerlCodeInsightAction extends CodeInsightAction {
+  @Override
+  protected boolean isValidForFile(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    return super.isValidForFile(project, editor, file) && file instanceof PerlFileImpl;
+  }
 }

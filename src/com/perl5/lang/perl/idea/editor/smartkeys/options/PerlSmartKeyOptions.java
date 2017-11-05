@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,23 +26,19 @@ import javax.swing.*;
 /**
  * Created by hurricup on 22.11.2015.
  */
-public class PerlSmartKeyOptions extends BeanConfigurable<Perl5CodeInsightSettings> implements UnnamedConfigurable
-{
-	public PerlSmartKeyOptions()
-	{
-		super(Perl5CodeInsightSettings.getInstance());
-		checkBox("HEREDOC_AUTO_INSERTION", "Automatically insert here-doc terminator");
-	}
+public class PerlSmartKeyOptions extends BeanConfigurable<Perl5CodeInsightSettings> implements UnnamedConfigurable {
+  public PerlSmartKeyOptions() {
+    super(Perl5CodeInsightSettings.getInstance());
+    checkBox("HEREDOC_AUTO_INSERTION", "Automatically insert here-doc terminator");
+  }
 
-	@Override
-	public JComponent createComponent()
-	{
-		JComponent panel = super.createComponent();
-		if (panel != null)
-		{
-			panel.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(null, "Perl5", 0, 0, null, null));
-		}
+  @Override
+  public JComponent createComponent() {
+    JComponent panel = super.createComponent();
+    if (panel != null) {
+      panel.setBorder(IdeBorderFactory.PlainSmallWithIndent.createTitledBorder(null, "Perl5", 0, 0, null, null));
+    }
 
-		return panel;
-	}
+    return panel;
+  }
 }

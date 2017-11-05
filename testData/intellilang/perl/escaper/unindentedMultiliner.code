@@ -1,0 +1,4 @@
+<<~ "HTML";
+  some <caret> thing
+      here
+HTML

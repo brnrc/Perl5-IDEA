@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import java.util.List;
 /**
  * Created by hurricup on 20.03.2016.
  */
-public interface HTMLMasonParametrizedEntity
-{
-	List<HTMLMasonCompositeElement> getArgsBlocks();
+public interface HTMLMasonParametrizedEntity {
+  List<HTMLMasonCompositeElement> getArgsBlocks();
 }

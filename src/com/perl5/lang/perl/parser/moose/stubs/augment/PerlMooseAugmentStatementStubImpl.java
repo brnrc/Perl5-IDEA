@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,16 @@ import com.perl5.lang.perl.parser.moose.psi.PerlMooseAugmentStatement;
 /**
  * Created by hurricup on 25.01.2016.
  */
-public class PerlMooseAugmentStatementStubImpl extends StubBase<PerlMooseAugmentStatement> implements PerlMooseAugmentStatementStub
-{
-	private final String mySubName;
+public class PerlMooseAugmentStatementStubImpl extends StubBase<PerlMooseAugmentStatement> implements PerlMooseAugmentStatementStub {
+  private final String mySubName;
 
-	public PerlMooseAugmentStatementStubImpl(StubElement parent, IStubElementType elementType, String subName)
-	{
-		super(parent, elementType);
-		mySubName = subName;
-	}
+  public PerlMooseAugmentStatementStubImpl(StubElement parent, IStubElementType elementType, String subName) {
+    super(parent, elementType);
+    mySubName = subName;
+  }
 
-	@Override
-	public String getSubName()
-	{
-		return mySubName;
-	}
+  @Override
+  public String getSubName() {
+    return mySubName;
+  }
 }

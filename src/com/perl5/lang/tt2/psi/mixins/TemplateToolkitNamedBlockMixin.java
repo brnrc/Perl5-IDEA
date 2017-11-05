@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -36,68 +36,57 @@ import javax.swing.*;
 /**
  * Created by hurricup on 15.06.2016.
  */
-public abstract class TemplateToolkitNamedBlockMixin extends TemplateToolkitCompositeElementImpl implements TemplateToolkitNamedBlock
-{
-	public TemplateToolkitNamedBlockMixin(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public abstract class TemplateToolkitNamedBlockMixin extends TemplateToolkitCompositeElementImpl implements TemplateToolkitNamedBlock {
+  public TemplateToolkitNamedBlockMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Nullable
-	@Override
-	public PsiElement getNameIdentifier()
-	{
-		PsiBlockName blockName = getBlockDirective().getBlockName();
-		if (blockName == null)
-		{
-			return null;
-		}
+  @Nullable
+  @Override
+  public PsiElement getNameIdentifier() {
+    PsiBlockName blockName = getBlockDirective().getBlockName();
+    if (blockName == null) {
+      return null;
+    }
 
-		return blockName.getFirstChild();
-	}
+    return blockName.getFirstChild();
+  }
 
-	@Override
-	public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException
-	{
-		if (StringUtil.isEmpty(name))
-		{
-			throw new IncorrectOperationException(PerlBundle.message("ttk2.error.empty.block.name"));
-		}
+  @Override
+  public PsiElement setName(@NonNls @NotNull String name) throws IncorrectOperationException {
+    if (StringUtil.isEmpty(name)) {
+      throw new IncorrectOperationException(PerlBundle.message("ttk2.error.empty.block.name"));
+    }
 
-		PsiElement nameIdentifier = getNameIdentifier();
-		if (nameIdentifier instanceof LeafPsiElement)
-		{
-			((LeafPsiElement) nameIdentifier).replaceWithText(name);
-		}
+    PsiElement nameIdentifier = getNameIdentifier();
+    if (nameIdentifier instanceof LeafPsiElement) {
+      ((LeafPsiElement)nameIdentifier).replaceWithText(name);
+    }
 
-		return this;
-	}
+    return this;
+  }
 
-	@NotNull
-	@Override
-	public SearchScope getUseScope()
-	{
-		return super.getUseScope();
-	}
+  @NotNull
+  @Override
+  public SearchScope getUseScope() {
+    return super.getUseScope();
+  }
 
-	@Override
-	public String getName()
-	{
-		PsiElement nameIdentifier = getNameIdentifier();
-		return nameIdentifier == null ? super.getName() : nameIdentifier.getText();
-	}
+  @Override
+  public String getName() {
+    PsiElement nameIdentifier = getNameIdentifier();
+    return nameIdentifier == null ? super.getName() : nameIdentifier.getText();
+  }
 
-	@Override
-	public int getTextOffset()
-	{
-		PsiElement nameIdentifier = getNameIdentifier();
-		return nameIdentifier == null ? super.getTextOffset() : nameIdentifier.getTextOffset();
-	}
+  @Override
+  public int getTextOffset() {
+    PsiElement nameIdentifier = getNameIdentifier();
+    return nameIdentifier == null ? super.getTextOffset() : nameIdentifier.getTextOffset();
+  }
 
-	@Nullable
-	@Override
-	public Icon getIcon(int flags)
-	{
-		return PerlIcons.TTK2_BLOCK_ICON;
-	}
+  @Nullable
+  @Override
+  public Icon getIcon(int flags) {
+    return PerlIcons.TTK2_BLOCK_ICON;
+  }
 }

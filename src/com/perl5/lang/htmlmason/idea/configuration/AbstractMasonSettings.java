@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,12 +16,14 @@
 
 package com.perl5.lang.htmlmason.idea.configuration;
 
+import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.ui.EditorNotifications;
 import com.intellij.util.xmlb.annotations.Transient;
 import com.perl5.lang.mason2.idea.configuration.VariableDescription;
+import com.perl5.lang.perl.idea.modules.PerlSourceRootType;
+import com.perl5.lang.perl.idea.project.PerlProjectManager;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -30,54 +32,35 @@ import java.util.List;
 /**
  * Created by hurricup on 05.03.2016.
  */
-public abstract class AbstractMasonSettings
-{
-	public List<String> componentRoots = new ArrayList<String>();
-	public List<VariableDescription> globalVariables = new ArrayList<VariableDescription>();
+public abstract class AbstractMasonSettings {
+  public List<VariableDescription> globalVariables = new ArrayList<>();
 
-	@Transient
-	protected int changeCounter = 0;
+  @Transient
+  protected int changeCounter = 0;
 
-	@Transient
-	protected Project myProject;
-	@Transient
-	private List<VirtualFile> componentsRootsVirtualFiles = null;
+  @Transient
+  protected Project myProject;
 
-	protected AbstractMasonSettings setProject(Project project)
-	{
-		myProject = project;
-		return this;
-	}
+  protected AbstractMasonSettings setProject(Project project) {
+    myProject = project;
+    return this;
+  }
 
-	public void settingsUpdated()
-	{
-		componentsRootsVirtualFiles = null;
-		changeCounter++;
-		EditorNotifications.getInstance(myProject).updateAllNotifications();
-	}
+  public void settingsUpdated() {
+    changeCounter++;
+    if (!ApplicationManager.getApplication().isUnitTestMode()) {
+      EditorNotifications.getInstance(myProject).updateAllNotifications();
+    }
+  }
 
-	@NotNull
-	public List<VirtualFile> getComponentsRootsVirtualFiles()
-	{
-		if (componentsRootsVirtualFiles == null)
-		{
-			componentsRootsVirtualFiles = new ArrayList<VirtualFile>();
-			for (String relativeRoot : componentRoots)
-			{
-				VirtualFile rootFile = VfsUtil.findRelativeFile(relativeRoot, myProject.getBaseDir());
-				if (rootFile != null && rootFile.exists())
-				{
-					componentsRootsVirtualFiles.add(rootFile);
-				}
-			}
-		}
-		return componentsRootsVirtualFiles;
-	}
+  protected abstract PerlSourceRootType getSourceRootType();
 
-	public int getChangeCounter()
-	{
-		return changeCounter;
-	}
+  @NotNull
+  public List<VirtualFile> getComponentsRoots() {
+    return PerlProjectManager.getInstance(myProject).getModulesRootsOfType(getSourceRootType());
+  }
 
-
+  public int getChangeCounter() {
+    return changeCounter;
+  }
 }

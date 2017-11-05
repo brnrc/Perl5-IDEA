@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,7 +18,7 @@ package com.perl5.lang.perl.parser.perlswitch.idea.annotator;
 
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.idea.annotators.PerlAnnotator;
+import com.perl5.lang.perl.idea.annotators.PerlBaseAnnotator;
 import com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter;
 import com.perl5.lang.perl.parser.PerlSwitchParserExtensionImpl;
 import org.jetbrains.annotations.NotNull;
@@ -26,15 +26,11 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 22.01.2016.
  */
-public class PerlSwitchAnnotator extends PerlAnnotator
-{
-	@Override
-	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder)
-	{
-		if (PerlSwitchParserExtensionImpl.getTokenSet().contains(element.getNode().getElementType()))
-		{
-			holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_KEYWORD);
-		}
-
-	}
+public class PerlSwitchAnnotator extends PerlBaseAnnotator {
+  @Override
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (PerlSwitchParserExtensionImpl.getTokenSet().contains(element.getNode().getElementType())) {
+      holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_KEYWORD);
+    }
+  }
 }

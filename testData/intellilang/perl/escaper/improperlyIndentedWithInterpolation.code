@@ -1,0 +1,6 @@
+{
+<<~ "HTML";
+    some <caret> $somevar multi
+          line
+       HTML
+}

@@ -20,12 +20,13 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IElementType;
 import org.jetbrains.annotations.NotNull;
 
-
 %%
 
-%class PerlLexerGenerated
+// http://perldoc.perl.org/perlop.html#Gory-details-of-parsing-quoted-constructs
+// http://perldoc.perl.org/perldata.html#Identifier-parsing
+
+%class PerlLexer
 %extends PerlBaseLexer
-%abstract
 %unicode
 %public
 
@@ -34,46 +35,42 @@ import org.jetbrains.annotations.NotNull;
 %type IElementType
 
 
-%{
-
-    protected int trenarCounter = 0;
-
-	public abstract IElementType guessDiv();
-	public abstract IElementType getIdentifierToken();
-	public abstract IElementType checkOperatorXSticked();
-	public abstract IElementType parseVersion();
-	public abstract IElementType parseNumber();
-	public abstract IElementType parseOperatorDereference();
-	public abstract IElementType parseCappedVariableName();
-	public abstract IElementType parseHeredocOpener();
-	public abstract IElementType parseHeredocOpenerBackref();
-	public abstract IElementType guessLtNumeric();
-%}
-
-
 /*
 // Char classes
 */
-NEW_LINE = \r?\n
-WHITE_SPACE     = [ \t\f]
+NEW_LINE = \R
+WHITE_SPACE = [ \t\f]
+ANY_SPACE = [ \t\f\n\r]
+NON_SPACE = [^ \t\f\n\r]
+LINE_COMMENT = "#" .*
+LINE_COMMENT_ANNOTATION = "#@" .*
+LINE_COMMENT_WITH_NEW_LINE = {LINE_COMMENT} \R
+SPACE_OR_COMMENT = {ANY_SPACE}|{LINE_COMMENT_WITH_NEW_LINE}
+SPACES_OR_COMMENTS = {SPACE_OR_COMMENT}*
+NON_SPACE_AHEAD = {SPACES_OR_COMMENTS}[^ \t\f\n\r\#]
+ESCAPED_SPACE_OR_COMMENT = "\\"({ANY_SPACE}|"#")
 
 // http://perldoc.perl.org/perldata.html#Identifier-parsing
-//PERL_XIDS = [\w && \p{XID_Start}]
-//PERL_XIDC = [\w && \p{XID_Continue}]
-
-// added digits to opener for package Encode::KR::2022_KR;
-PERL_XIDS = [_a-zA-Z0-9]
-PERL_XIDC = [_a-zA-Z0-9]
+PERL_XIDS = [\w && \p{XID_Start}_]
+PERL_XIDC = [\w && \p{XID_Continue}]
 
 IDENTIFIER = {PERL_XIDS} {PERL_XIDC}*
+// following chunks may start with a number
+IDENTIFIER_CONTINUE = {PERL_XIDC}+
 
-BAREWORD_MINUS = "-" * {IDENTIFIER}
+FARROW = "=>"
+BAREWORD_MINUS = "-" ? {IDENTIFIER}
 
-CAPPED_VARIABLE_NAME = "^"{PERL_XIDC}+
+// qualified identifer can't start with ', but variable can
+QUALIFIED_IDENTIFIER = ("::"+ "'" ?) ? {IDENTIFIER} (("::"+ "'" ? | "::"* "'" ) {IDENTIFIER_CONTINUE} )*  "::" *
+VARIABLE_QUALIFIED_IDENTIFIER = ("::"* "'" ?) ? {IDENTIFIER_CONTINUE} (("::"+ "'" ? | "::"* "'" ) {IDENTIFIER_CONTINUE} )*  "::" *
 
-PACKAGE = ("::" + "'" ?) ? ({IDENTIFIER} ("::"+ "'" ? | "::"* "'" )) * {IDENTIFIER} "::" +
-PACKAGE_PARSABLE = ("::" + "'" ?) ? ({IDENTIFIER} ("::"+ "'" ? | "::"* "'" )) + {IDENTIFIER}
-PACKAGE_SHORT = "::"+ "'" ?
+DQ_STRING = "\"" ([^\"]|"\\\\"|"\\\"" )* "\""?
+SQ_STRING = "\'" ([^\']|"\\\\"|"\\\'" )* "\'"?
+XQ_STRING = "\`" ([^\`]|"\\\\"|"\\\`" )* "\`"?
+
+QUOTE_LIKE_SUFFIX= ("'" {IDENTIFIER_CONTINUE}? ("'" {IDENTIFIER_CONTINUE}? "'") ? )?
+CORE_PREFIX = "CORE::"?
 
 PERL_VERSION_CHUNK = [0-9][0-9_]*
 PERL_VERSION = "v"?{PERL_VERSION_CHUNK}("." {PERL_VERSION_CHUNK})*
@@ -81,128 +78,962 @@ PERL_VERSION = "v"?{PERL_VERSION_CHUNK}("." {PERL_VERSION_CHUNK})*
 
 // duplicated in Pod lexer
 NUMBER_EXP = [eE][+-]?[0-9_]+
-NUMBER_FLOAT = "." ([0-9][0-9_]*)?
-NUMBER_INT_SIMPLE = [0-9]+
-NUMBER_INT = [0-9][0-9_] *  {NUMBER_FLOAT}? {NUMBER_EXP}?
-NUMBER_SMALL = {NUMBER_FLOAT}{NUMBER_EXP}?
+NUMBER_INT = [0-9][0-9_]*
 NUMBER_HEX = "0"[xX][0-9a-fA-F_]+
 NUMBER_BIN = "0"[bB][01_]+
-NUMBER = {NUMBER_HEX} | {NUMBER_BIN}| {NUMBER_INT} | {NUMBER_SMALL}
 
-// fixme this can be done in bareword parser
-X_OP_STICKED = "x"[0-9]+[^a-zA-Z]
+SPECIAL_VARIABLE_NAME = [\"\'\[\]\`\\\!\%\&\(\)\+\,\-\.\/\;\<\=\>\|\~\?\:\*\^\@\_\$]
+CAPPED_SINGLE_LETTER_VARIABLE_NAME = "^"[\]\[A-Z\^_?\\]
+VARIABLE_NAME = {VARIABLE_QUALIFIED_IDENTIFIER} | "::" | {CAPPED_SINGLE_LETTER_VARIABLE_NAME} | {SPECIAL_VARIABLE_NAME}
+CAPPED_BRACED_VARIABLE = {CAPPED_SINGLE_LETTER_VARIABLE_NAME}[\w_]*
+
+AMBIGUOUS_SIGIL_SUFFIX = {SPACES_OR_COMMENTS} ("{"|[\"\'\[\]\`\\\!\)\+\,\-\.\/\;\<\=\>\|\~\?\:\^]|{CAPPED_SINGLE_LETTER_VARIABLE_NAME} )
 
 // atm making the same, but seems unary are different
-PERL_OPERATORS_FILETEST = "-" [rwxoRWXOezsfdlpSbctugkTBMAC][^a-zA-Z0-9_]
+PERL_OPERATORS_FILETEST = "-" [rwxoRWXOezsfdlpSbctugkTBMAC]
 
-HEREDOC_MARKER = [a-zA-Z0-9_]+
+// fixme this regexps allows to start from space, unsure if it's right
 HEREDOC_MARKER_DQ = [^\"\n\r]*
 HEREDOC_MARKER_SQ = [^\'\n\r]*
 HEREDOC_MARKER_XQ = [^\`\n\r]*
-HEREDOC_OPENER = "<<"({WHITE_SPACE}* \'{HEREDOC_MARKER_SQ}\' | {WHITE_SPACE}* \"{HEREDOC_MARKER_DQ}\" | {WHITE_SPACE}* \`{HEREDOC_MARKER_XQ}\` | {HEREDOC_MARKER})
-HEREDOC_OPENER_BACKREF = "<<\\"[a-zA-Z0-9_]+
+QUOTED_HEREDOC_MARKER = {WHITE_SPACE}*(\'{HEREDOC_MARKER_SQ}\'| \"{HEREDOC_MARKER_DQ}\" | \`{HEREDOC_MARKER_XQ}\`)
 
-%state LEX_CODE
+HEREDOC_MARKER_DQ_NON_EMPTY = [^\"\n\r\s][^\`\n\r]*
+HEREDOC_MARKER_SQ_NON_EMPTY = [^\'\n\r\s][^\`\n\r]*
+HEREDOC_MARKER_XQ_NON_EMPTY = [^\`\n\r\s][^\`\n\r]*
+QUOTED_HEREDOC_MARKER_NON_EMPTY = {WHITE_SPACE}*(\'{HEREDOC_MARKER_SQ_NON_EMPTY}\'| \"{HEREDOC_MARKER_DQ_NON_EMPTY}\" | \`{HEREDOC_MARKER_XQ_NON_EMPTY}\`)
 
-%state LEX_HEREDOC_WAITING, LEX_HEREDOC_WAITING_QQ, LEX_HEREDOC_WAITING_QX
-%state LEX_FORMAT_WAITING
+UNQUOTED_HEREDOC_MARKER = [a-zA-Z_] \d* {IDENTIFIER}?
 
-%state LEX_QUOTE_LIKE_OPENER_Q, LEX_QUOTE_LIKE_OPENER_QQ, LEX_QUOTE_LIKE_OPENER_QX, LEX_QUOTE_LIKE_OPENER_QW
-%state LEX_TRANS_OPENER, LEX_REGEX_OPENER
+END_BLOCK = "__END__" [^]+
+DATA_BLOCK = "__DATA__" [^] +
 
-// custom lexical states to avoid crossing with navie ones
-%state LEX_CUSTOM1, LEX_CUSTOM2, LEX_CUSTOM3, LEX_CUSTOM4, LEX_CUSTOM5, LEX_CUSTOM6, LEX_CUSTOM7, LEX_CUSTOM8, LEX_CUSTOM9, LEX_CUSTOM10
-%state LEX_PREPARSED_ITEMS
+SUB_PROTOTYPE = [\s\[\$\@\%\&\*\]\;\+\\_]+
+
+POD_START = "="[\w].* {NEW_LINE} ?
+POD_END = "=cut" ({WHITE_SPACE} .*)?
+
+BLOCK_NAMES = "BEGIN"|"UNITCHECK"|"CHECK"|"INIT"|"END"|"AUTOLOAD"|"DESTROY"
+TAG_NAMES = "__FILE__"|"__LINE__"|"__SUB__"
+
+// Types for Type::Standard
+TYPES_TINY = "ArrayRef"|"ConsumerOf"|"CycleTuple"|"Dict"|"Enum"|"HasMethods"|"HashRef"|"InstanceOf"|"Join"|"Map"|"Maybe"|"Optional"|"Overload"|"Ref"|"ScalarRef"|"Split"|"StrMatch"|"Tied"|"Tuple"
+
+// auto-generated by handlesubs.pl
+NAMED_UNARY_OPERATORS = "umask"|"srand"|"sleep"|"shift"|"setservent"|"setprotoent"|"setnetent"|"sethostent"|"reset"|"readline"|"rand"|"prototype"|"pop"|"localtime"|"gmtime"|"getsockname"|"getpwuid"|"getpwnam"|"getprotobyname"|"getpgrp"|"getpeername"|"getnetbyname"|"gethostbyname"|"getgrnam"|"getgrgid"|"exit"|"exists"|"caller"
+BARE_HANDLE_ACCEPTORS = "truncate"|"syswrite"|"sysseek"|"sysread"|"sysopen"|"stat"|"select"|"seekdir"|"seek"|"read"|"opendir"|"open"|"lstat"|"ioctl"|"flock"|"fcntl"|"binmode"
+NAMED_UNARY_BARE_HANDLE_ACCEPTORS = "write"|"telldir"|"tell"|"rewinddir"|"readdir"|"getc"|"fileno"|"eof"|"closedir"|"close"|"chdir"
+LIST_OPERATORS = "warn"|"waitpid"|"vec"|"utime"|"untie"|"unshift"|"tied"|"tie"|"system"|"syscall"|"symlink"|"substr"|"sprintf"|"splice"|"socketpair"|"socket"|"shutdown"|"shmwrite"|"shmread"|"shmget"|"shmctl"|"setsockopt"|"setpriority"|"setpgrp"|"send"|"semop"|"semget"|"semctl"|"scalar"|"rindex"|"rename"|"recv"|"push"|"pipe"|"pack"|"msgsnd"|"msgrcv"|"msgget"|"msgctl"|"lock"|"listen"|"link"|"kill"|"join"|"index"|"getsockopt"|"getservbyport"|"getservbyname"|"getprotobynumber"|"getpriority"|"getnetbyaddr"|"gethostbyaddr"|"formline"|"exec"|"dump"|"die"|"delete"|"dbmopen"|"dbmclose"|"crypt"|"connect"|"chown"|"chmod"|"bless"|"bind"|"atan2"|"accept"
+NAMED_ARGUMENTLESS = "wantarray"|"wait"|"times"|"time"|"setpwent"|"setgrent"|"getservent"|"getpwent"|"getprotoent"|"getppid"|"getnetent"|"getlogin"|"gethostent"|"getgrent"|"fork"|"endservent"|"endpwent"|"endprotoent"|"endnetent"|"endhostent"|"endgrent"|"break"
+IMPLICIT_USERS = "unpack"|"unlink"|"ucfirst"|"uc"|"study"|"stat"|"sqrt"|"sin"|"rmdir"|"reverse"|"ref"|"readpipe"|"readlink"|"quotemeta"|"pos"|"ord"|"oct"|"mkdir"|"lstat"|"log"|"length"|"lcfirst"|"lc"|"int"|"hex"|"glob"|"fc"|"exp"|"evalbytes"|"defined"|"cos"|"chroot"|"chr"|"chop"|"chomp"|"alarm"|"abs"
+CORE_LIST = "NEXT"|"bigrat"|"version"|"Win32"|"Memoize"|"experimental"|"bignum"|"bigint"|"autodie"|"Socket"|"DB_File"|"parent"|"Encode"|"Digest"|"Fatal"|"perlfaq"|"CPAN"|"encoding"
+
+REGEX_COMMENT = "(?#"[^)]*")"
+REGEX_ARRAY_NEGATING = [\^\:\\\[\{]
+REGEX_HASH_NEGATING = [\^\:\\\[\{]
+HANDLE_NEGATING = {SPACES_OR_COMMENTS} ("("|"->"|":")
+PRINT_HANDLE_NEGATING = {SPACES_OR_COMMENTS} ("("|"->"|":"|";")
+
+//REGEX_CHAR_CLASS = "\\" [dswDSW]
+REGEX_POSIX_CHARGROUPS = "alpha"|"alnum"|"ascii"|"cntrl"|"digit"|"graph"|"lower"|"print"|"punct"|"space"|"uppper"|"xdigit"|"word"|"blank"
+POSIX_CHARGROUP = "[:" "^"? {REGEX_POSIX_CHARGROUPS} ":]"
+POSIX_CHARGROUP_DOUBLE = "[[:" "^"? {REGEX_POSIX_CHARGROUPS} ":]]"
+POSIX_CHARGROUP_ANY = {POSIX_CHARGROUP}|{POSIX_CHARGROUP_DOUBLE}
+//REGEX_POSIX_OPEN = "[:"
+//REGEX_POSIX_CLOSE = ":]"
+//REGEX_POSIX_END = "^"? {REGEX_POSIX_CHARGROUPS}? {REGEX_POSIX_CLOSE}
+
+//REGEX_NUMBER_OCTAL = "0"[0-7]+
+//REGEX_NUMBER_HEX = [xX][0-9a-fA-F]+
+//REGEX_ESCAPES = '\\' ([nNtra]| {REGEX_NUMBER_OCTAL} | {REGEX_NUMBER_HEX})
+
+%state LEX_HANDLE, LEX_HANDLE_STRICT,LEX_PRINT_HANDLE,LEX_PRINT_HANDLE_STRICT
+%state END_BLOCK
+%xstate POD_STATE
+
+%xstate QUOTE_LIKE_OPENER_Q, QUOTE_LIKE_OPENER_QQ, QUOTE_LIKE_OPENER_QX, QUOTE_LIKE_OPENER_QW
+%xstate QUOTE_LIKE_OPENER_Q_NOSHARP, QUOTE_LIKE_OPENER_QQ_NOSHARP, QUOTE_LIKE_OPENER_QX_NOSHARP, QUOTE_LIKE_OPENER_QW_NOSHARP
+
+%xstate TRANS_OPENER, TRANS_OPENER_NO_SHARP
+%xstate REGEX_OPENER, REGEX_OPENER_NO_SHARP
+
+%state PACKAGE_ARGUMENTS, VERSION_OR_OPERAND, REQUIRE_ARGUMENTS, SUB_DECLARATION, BRACED_STRING, ATTRIBUTES, METHOD_DECLARATION
+%state VERSION_OR_OPERAND_USE, BAREWORD_USE
+%state PACKAGE_DECLARATION_ARGUMENTS
+
+%xstate STRING_Q, STRING_QQ, STRING_QX, STRING_LIST
+%xstate MATCH_REGEX, MATCH_REGEX_X, MATCH_REGEX_XX, REPLACEMENT_REGEX
+%xstate REGEX_CHARCLASS_X, REGEX_CHARCLASS_XX
+%xstate REGEX_QUOTED_X
+//%xstate LEX_REGEX_CHAR_CLASS, LEX_REGEX_CHAR_CLASS_START
+//%xstate REGEX_POSIX_CHAR_CLASS
+
+%state PREPARSED_ITEMS
+%xstate SUB_PROTOTYPE
+%state SUB_ATTRIBUTES
+%state HANDLE_WITH_ANGLE
+
+%state VARIABLE_DECLARATION,VARIABLE_DECLARATION_STRICT,VAR_ATTRIBUTES,VAR_ATTRIBUTES_START
+
+// this is a hack for stupid tailing commas in calls
+%state QUOTED_HEREDOC_OPENER, BARE_HEREDOC_OPENER, BACKREF_HEREDOC_OPENER
+%state QUOTED_HEREDOC_OPENER_INDENTABLE, BARE_HEREDOC_OPENER_INDENTABLE, BACKREF_HEREDOC_OPENER_INDENTABLE
+%state BLOCK_AS_VALUE
+
+%state USE_VARS_STRING
+%xstate ANNOTATION,ANNOTATION_KEY,ANNOTATION_TYPE,ANNOTATION_TYPE_NESTED,ANNOTATION_PACKAGE_RETURNS,ANNOTATION_STRING,ANNOTATION_FALLBACK
+
+%state VARIABLE_UNBRACED, VARIABLE_BRACED
+
+%state AFTER_VARIABLE, AFTER_IDENTIFIER, AFTER_DEREFERENCE, AFTER_COMMA, AFTER_VALUE
+%state AFTER_POSSIBLE_SIGIL
+
+%xstate CAPTURE_FORMAT,CAPTURE_FORMAT_NON_EMPTY
+%xstate CAPTURE_HEREDOC, CAPTURE_NON_EMPTY_HEREDOC
+%xstate CAPTURE_HEREDOC_INDENTABLE_TERMINATOR
+%xstate CAPTURE_HEREDOC_WITH_EMPTY_MARKER, CAPTURE_NON_EMPTY_HEREDOC_WITH_EMPTY_MARKER
+
+%state AFTER_IDENTIFIER_WITH_LABEL
+%state HASH_ACCEPTOR
+%state CATCH, CATCH_PACKAGE
+%xstate LEX_SUB_NAME
+%xstate INTERPOLATED_VARIABLE_SUFFIX
 
 %%
 
-// inclusive states
-{NEW_LINE}   {return TokenType.NEW_LINE_INDENT;}
-{WHITE_SPACE}+   {return TokenType.WHITE_SPACE;}
-";"     {return SEMICOLON;}
+<LEX_SUB_NAME>{
+	{IDENTIFIER_CONTINUE} |
+	{CAPPED_SINGLE_LETTER_VARIABLE_NAME} |
+	{SPECIAL_VARIABLE_NAME} {popState();return SUB_NAME;}
+}
 
-///////////////////////// package definition ///////////////////////////////////////////////////////////////////////////
+/////////////////////////////////////// pod capture ////////////////////////////////////////////////////////////////////
 
-{HEREDOC_OPENER}   {return parseHeredocOpener();}
-{HEREDOC_OPENER_BACKREF} {return parseHeredocOpenerBackref();}
+<POD_STATE> {
+	{POD_END}  	{yybegin(YYINITIAL);return POD;}
+	.+			{}
+	\R+			{}
+	<<EOF>>		{yybegin(YYINITIAL);return POD;}
+}
 
-"\"" {return QUOTE_DOUBLE;}
-"`" {return QUOTE_TICK;}
-"'" {return QUOTE_SINGLE;}
+/////////////////////////////////// end of pod capture /////////////////////////////////////////////////////////////////
 
-"<=>" {return OPERATOR_CMP_NUMERIC;}
-"<" {return guessLtNumeric();}
-">" {return OPERATOR_GT_NUMERIC;}
+/////////////////////////////////// heredoc capture ////////////////////////////////////////////////////////////////////
 
-"->" {return parseOperatorDereference();}
-"=>" {return OPERATOR_COMMA_ARROW;}
-"," {return OPERATOR_COMMA;}
+<CAPTURE_NON_EMPTY_HEREDOC_WITH_EMPTY_MARKER>{
+	.+ \R?	{}
+	\R		{yypushback(1);yybegin(CAPTURE_HEREDOC_WITH_EMPTY_MARKER);return heredocQueue.peekFirst().getTargetElement();}
+	<<EOF>>	{yybegin(YYINITIAL);return heredocQueue.peekFirst().getTargetElement();}
+}
 
-"..." {return OPERATOR_HELLIP;}
-".." {return OPERATOR_FLIP_FLOP;}
-"." {return OPERATOR_CONCAT;}
+<CAPTURE_HEREDOC_WITH_EMPTY_MARKER>{
+	\R		{
+		heredocQueue.pullFirst();
+		popState();
 
-"++" {return OPERATOR_PLUS_PLUS;}
-"--" {return OPERATOR_MINUS_MINUS;}
+		if (!heredocQueue.isEmpty())
+		{
+			startHeredocCapture();
+		}
+		return HEREDOC_END;
+	}
+	.+ \R?	{yybegin(CAPTURE_NON_EMPTY_HEREDOC_WITH_EMPTY_MARKER);}
+}
 
-"=~" {return OPERATOR_RE;}
-"!~" {return OPERATOR_NOT_RE;}
+<CAPTURE_NON_EMPTY_HEREDOC>{
+	.+			{
+		if( isCloseMarker())
+		{
+			pullback(0);
+			yybegin(CAPTURE_HEREDOC);
+			return heredocQueue.peekFirst().getTargetElement();
+		}
+	}
+	\R+			{}
+	<<EOF>>		{yybegin(YYINITIAL);return heredocQueue.peekFirst().getTargetElement();}
+}
 
-"<<" {return OPERATOR_SHIFT_LEFT;}
-">>" {return OPERATOR_SHIFT_RIGHT;}
+<CAPTURE_HEREDOC>{
+	.+		{
+		if( isCloseMarker()){
+			PerlHeredocQueueElement currentHeredoc = heredocQueue.pullFirst();
+			if( currentHeredoc.isIndentable() ){
+			        pullback(0);
+			        yybegin(CAPTURE_HEREDOC_INDENTABLE_TERMINATOR);
+			}
+			else{
+        			popState();
+                		return HEREDOC_END;
+			}
+		}
+		else
+		{
+			yybegin(CAPTURE_NON_EMPTY_HEREDOC);
+		}
+	}
+	\R		{yybegin(CAPTURE_NON_EMPTY_HEREDOC);}
+}
 
-"&&" {return OPERATOR_AND;}
-"||" {return OPERATOR_OR;}
-"!" {return OPERATOR_NOT;}
+<CAPTURE_HEREDOC_INDENTABLE_TERMINATOR>{
+  {WHITE_SPACE}+    {return TokenType.WHITE_SPACE;}
+  {NON_SPACE}.*     {popState();return HEREDOC_END_INDENTABLE;}
+}
 
-{X_OP_STICKED} {return checkOperatorXSticked();} // fixme split this ?
-
-
-"?"  {return QUESTION;}
-":"  {return COLON;}
-
-"\\" {return OPERATOR_REFERENCE;}
-
-"+" {return OPERATOR_PLUS;}
-"-" {return OPERATOR_MINUS;}
-"/"   { return guessDiv(); }
-"*" {return OPERATOR_MUL;}
-"%" {return OPERATOR_MOD;}
-"&" {return OPERATOR_BITWISE_AND;}
-
-"|" {return OPERATOR_BITWISE_OR;}
-"^" {return OPERATOR_BITWISE_XOR;}
-"~" {return OPERATOR_BITWISE_NOT;}
-
-"=" {return OPERATOR_ASSIGN;}
-
-"@" {return SIGIL_ARRAY;}
-"$#" {return SIGIL_SCALAR_INDEX;}
-"$" { return SIGIL_SCALAR; }
-
-"{"             {return LEFT_BRACE;}
-"}"             {return RIGHT_BRACE;}
-"["             {return LEFT_BRACKET;}
-"]"             {return RIGHT_BRACKET;}
-"("             {return LEFT_PAREN;}
-")"             {return RIGHT_PAREN;}
-
-{NUMBER_INT_SIMPLE} {return NUMBER_SIMPLE;}
-{NUMBER}        {return parseNumber();}
-{PERL_VERSION}  {return parseVersion();}
-
-///////////////////////////////// PERL VARIABLE ////////////////////////////////////////////////////////////////////////
+////////////////////////////////// end of heredoc capture //////////////////////////////////////////////////////////////
 
 
-{PERL_OPERATORS_FILETEST} {yypushback(1);return OPERATOR_FILETEST;}
+/////////////////////////////////// format capture /////////////////////////////////////////////////////////////////////
+<CAPTURE_FORMAT_NON_EMPTY>{
+	"." 		{yypushback(1);yybegin(CAPTURE_FORMAT);return FORMAT;}
+	.+			{}
+	\R			{}
+	<<EOF>>		{yybegin(YYINITIAL);return FORMAT;}
+}
 
-{CAPPED_VARIABLE_NAME} {return parseCappedVariableName();}
 
-// fixme refactor
-{BAREWORD_MINUS} {return adjustAndParseBarewordMinus();}
-{PACKAGE_PARSABLE} {return adjustAndParsePackage(); }	// has :: inside
-{PACKAGE_SHORT} {return adjustAndParsePackageShort();}			// only ::
-{PACKAGE} {return adjustAndParsePackageCanonical();}	// ends with ::
+<CAPTURE_FORMAT>{
+	"." 		{yybegin(YYINITIAL);return FORMAT_TERMINATOR;}
+	.+			{yybegin(CAPTURE_FORMAT_NON_EMPTY);}
+	\R			{yybegin(CAPTURE_FORMAT_NON_EMPTY);}
+}
+/////////////////////////////////// end of format capture //////////////////////////////////////////////////////////////
+
+/////////////////////////////////// quote like openers /////////////////////////////////////////////////////////////////
+
+<QUOTE_LIKE_OPENER_Q, QUOTE_LIKE_OPENER_QQ, QUOTE_LIKE_OPENER_QX, QUOTE_LIKE_OPENER_QW, TRANS_OPENER, REGEX_OPENER>{
+	{WHITE_SPACE}+	{setNoSharpState(); return TokenType.WHITE_SPACE;}
+	{NEW_LINE}		{return getNewLineToken();}
+}
+
+<QUOTE_LIKE_OPENER_Q_NOSHARP,QUOTE_LIKE_OPENER_QQ_NOSHARP,QUOTE_LIKE_OPENER_QX_NOSHARP,QUOTE_LIKE_OPENER_QW_NOSHARP,TRANS_OPENER_NO_SHARP,REGEX_OPENER_NO_SHARP>
+{
+	{WHITE_SPACE}+	{return TokenType.WHITE_SPACE;}
+	{LINE_COMMENT}	{return COMMENT_LINE;}
+	{NEW_LINE}		{return getNewLineToken();}
+}
+
+<QUOTE_LIKE_OPENER_Q, QUOTE_LIKE_OPENER_QQ, QUOTE_LIKE_OPENER_QX, QUOTE_LIKE_OPENER_QW,QUOTE_LIKE_OPENER_Q_NOSHARP, QUOTE_LIKE_OPENER_QQ_NOSHARP, QUOTE_LIKE_OPENER_QX_NOSHARP, QUOTE_LIKE_OPENER_QW_NOSHARP>{
+	[^]	{return captureString();}
+}
+
+<TRANS_OPENER,TRANS_OPENER_NO_SHARP> [^] {return captureTr();}
+<REGEX_OPENER,REGEX_OPENER_NO_SHARP> [^] {return captureRegex();}
+
+/////////////////////////////////// annotations ////////////////////////////////////////////////////////////////////////
+<ANNOTATION_FALLBACK>{
+	[^]+			{yybegin(YYINITIAL);return COMMENT_LINE;}
+}
+<ANNOTATION> "#@"			{yybegin(ANNOTATION_KEY);}
+
+<ANNOTATION_STRING,ANNOTATION_TYPE,ANNOTATION_PACKAGE_RETURNS>
+{
+	{WHITE_SPACE}+			{return TokenType.WHITE_SPACE;}
+}
+
+<ANNOTATION_TYPE,ANNOTATION_TYPE_NESTED,ANNOTATION_PACKAGE_RETURNS>{
+        "ArrayRef"              {pushStateAndBegin(ANNOTATION_TYPE_NESTED);return TYPE_ARRAYREF;}
+        "HashRef"               {pushStateAndBegin(ANNOTATION_TYPE_NESTED);return TYPE_HASHREF;}
+}
+
+<ANNOTATION_TYPE_NESTED>{
+        "["                     {return LEFT_BRACKET;}
+        "]"                     {popState();return RIGHT_BRACKET;}
+	"__PACKAGE__"           {return TAG_PACKAGE;}
+	{QUALIFIED_IDENTIFIER}	{return PACKAGE;}
+        "*"                     {return OPERATOR_MUL;}
+}
+
+<ANNOTATION_TYPE,ANNOTATION_TYPE_NESTED,ANNOTATION_PACKAGE_RETURNS>{
+	"__PACKAGE__"           {return TAG_PACKAGE;}
+	{QUALIFIED_IDENTIFIER}	{yybegin(ANNOTATION_FALLBACK);return PACKAGE;}
+        "*"                     {yybegin(ANNOTATION_FALLBACK);return OPERATOR_MUL;}
+}
+
+<ANNOTATION_STRING>{
+	{IDENTIFIER}			{yybegin(ANNOTATION_FALLBACK);return STRING_CONTENT;}
+}
+
+<ANNOTATION_KEY>{
+	"deprecated"	{yybegin(ANNOTATION_FALLBACK);return ANNOTATION_DEPRECATED_KEY;}
+	"returns"		{yybegin(ANNOTATION_PACKAGE_RETURNS);return ANNOTATION_RETURNS_KEY;}
+	"type"			{yybegin(ANNOTATION_TYPE);return ANNOTATION_TYPE_KEY;}
+	"override"		{yybegin(ANNOTATION_FALLBACK);return ANNOTATION_OVERRIDE_KEY;}
+	"method"		{yybegin(ANNOTATION_FALLBACK);return ANNOTATION_METHOD_KEY;}
+	"abstract"		{yybegin(ANNOTATION_FALLBACK);return ANNOTATION_ABSTRACT_KEY;}
+	"inject"		{yybegin(ANNOTATION_STRING);return ANNOTATION_INJECT_KEY;}
+	"noinspection"	{yybegin(ANNOTATION_STRING);return ANNOTATION_NOINSPECTION_KEY;}
+	{IDENTIFIER}	{yybegin(ANNOTATION_FALLBACK);return ANNOTATION_UNKNOWN_KEY;}
+	<<EOF>>			{yybegin(YYINITIAL);return COMMENT_LINE;}
+}
+
+<ANNOTATION,ANNOTATION_TYPE,ANNOTATION_TYPE_NESTED,ANNOTATION_PACKAGE_RETURNS,ANNOTATION_KEY,ANNOTATION_STRING>
+{
+	[^]				{yypushback(1);yybegin(ANNOTATION_FALLBACK);}
+}
+/////////////////////////////////// end of annotations /////////////////////////////////////////////////////////////////
+
+<QUOTED_HEREDOC_OPENER>{
+	{DQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC_QQ, QUOTE_LIKE_OPENER_QQ, false);}
+	{SQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC, QUOTE_LIKE_OPENER_Q, false);}
+	{XQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC_QX, QUOTE_LIKE_OPENER_QX, false);}
+}
+
+<BACKREF_HEREDOC_OPENER>{
+	{UNQUOTED_HEREDOC_MARKER} {return captureBareHeredocMarker(HEREDOC, false);}
+}
+
+<BARE_HEREDOC_OPENER>{
+	"\\" 			  {yybegin(BACKREF_HEREDOC_OPENER);return OPERATOR_REFERENCE;}
+	{UNQUOTED_HEREDOC_MARKER} {return captureBareHeredocMarker(HEREDOC_QQ, false);}
+}
+
+<QUOTED_HEREDOC_OPENER_INDENTABLE>{
+	{DQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC_QQ, QUOTE_LIKE_OPENER_QQ, true);}
+	{SQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC, QUOTE_LIKE_OPENER_Q, true);}
+	{XQ_STRING}   { return captureQuotedHeredocMarker(HEREDOC_QX, QUOTE_LIKE_OPENER_QX, true);}
+}
+
+<BACKREF_HEREDOC_OPENER_INDENTABLE>{
+	{UNQUOTED_HEREDOC_MARKER} {return captureBareHeredocMarker(HEREDOC, true);}
+}
+
+<BARE_HEREDOC_OPENER_INDENTABLE>{
+	"\\" 			  {yybegin(BACKREF_HEREDOC_OPENER_INDENTABLE);return OPERATOR_REFERENCE;}
+	{UNQUOTED_HEREDOC_MARKER} {return captureBareHeredocMarker(HEREDOC_QQ, true);}
+}
+
+
+<INTERPOLATED_VARIABLE_SUFFIX>{
+	"{" / {WHITE_SPACE}* {BAREWORD_MINUS} {WHITE_SPACE}* "}"
+											{return startBracedBlockWithState(BRACED_STRING);	}
+	"["										{return startBracketedBlock();}
+	"["	/ {REGEX_ARRAY_NEGATING}			{pushback();popState();}
+	"{"	/ {REGEX_HASH_NEGATING}				{pushback();popState();}
+	"{"										{return startBracedBlock();}
+	"->" / [\{\[] {REGEX_ARRAY_NEGATING} 	{pushback();popState();}
+	"->" / [\{\[]							{return OPERATOR_DEREFERENCE;}
+	[^]										{yypushback(1);popState();}
+	<<EOF>>									{yybegin(YYINITIAL);}
+}
+
+//////////////////////////////////// REGULAR EXPRESSION ////////////////////////////////////////////////////////////////
+
+/*
+<REGEX_POSIX_CHAR_CLASS>{
+	{REGEX_POSIX_CHARGROUPS}	{return REGEX_POSIX_CLASS_NAME;}
+	"^"							{return OPERATOR_BITWISE_XOR;}
+	{REGEX_POSIX_CLOSE}			{yybegin(LEX_REGEX_CHAR_CLASS);return REGEX_POSIX_RIGHT_BRACKET;}
+}
+
+<LEX_REGEX_CHAR_CLASS_START>{
+	"^" / "-"					{return OPERATOR_BITWISE_XOR;}
+	"^"							{yybegin(LEX_REGEX_CHAR_CLASS); return OPERATOR_BITWISE_XOR;}
+	"-"							{yybegin(LEX_REGEX_CHAR_CLASS); return REGEX_CHAR_CLASS;}
+	[^]							{yypushback(1);yybegin(LEX_REGEX_CHAR_CLASS);}
+}
+
+<LEX_REGEX_CHAR_CLASS>{
+	"]"										{popState();return REGEX_RIGHT_BRACKET;}
+	"-" / "]"								{return REGEX_CHAR_CLASS;}
+	"@" / [\]%\\]							{return REGEX_CHAR_CLASS;}
+	"$" / \s+ "]"							{return REGEX_CHAR_CLASS;}
+	{REGEX_POSIX_OPEN} / {REGEX_POSIX_END}	{yybegin(REGEX_POSIX_CHAR_CLASS);return REGEX_POSIX_LEFT_BRACKET;}
+	{REGEX_CHAR_CLASS}						{return REGEX_CHAR_CLASS;}
+	"\\".									{return REGEX_CHAR_CLASS;}
+	"-"										{return OPERATOR_MINUS;}
+	[^]										{return REGEX_CHAR_CLASS;}
+}
+*/
+
+<REGEX_CHARCLASS_X, REGEX_CHARCLASS_XX>{
+  {POSIX_CHARGROUP_ANY} {return REGEX_TOKEN;}
+  "]"                   {popState();return REGEX_TOKEN;}
+}
+
+<REGEX_CHARCLASS_XX>{
+  {ANY_SPACE}+	          {return TokenType.WHITE_SPACE;}
+  [^\\\]\[$@ \t\f\n\r]+   {return REGEX_TOKEN;}
+}
+
+<REGEX_CHARCLASS_X>{
+  [^\\\]\[$@]+            {return REGEX_TOKEN;}
+}
+
+<REGEX_QUOTED_X>{
+  "\\E"       {popState();return REGEX_TOKEN;}
+  [^\\$@]+    {return REGEX_TOKEN;}
+}
+
+<REGEX_CHARCLASS_X,REGEX_QUOTED_X,REGEX_CHARCLASS_XX>{
+  "\\".     {return REGEX_TOKEN;}
+  [^]       {return REGEX_TOKEN;}
+  <<EOF>>   {popState();}
+}
+
+<MATCH_REGEX_XX>{
+        "["                             {pushStateAndBegin(REGEX_CHARCLASS_XX);return REGEX_TOKEN;}
+}
+
+<MATCH_REGEX_X,MATCH_REGEX_XX>
+{
+	{ESCAPED_SPACE_OR_COMMENT}	{return REGEX_TOKEN;}
+	{ANY_SPACE}+			{return TokenType.WHITE_SPACE;}
+	{LINE_COMMENT}			{return COMMENT_LINE;}
+        "["                             {pushStateAndBegin(REGEX_CHARCLASS_X);return REGEX_TOKEN;}
+        "\\Q"                           {pushStateAndBegin(REGEX_QUOTED_X);return REGEX_TOKEN;}
+
+	<MATCH_REGEX>
+	{
+		{REGEX_COMMENT}		{return COMMENT_LINE;}
+//		"["					{pushStateAndBegin(LEX_REGEX_CHAR_CLASS_START);return REGEX_LEFT_BRACKET;}
+//		{REGEX_CHAR_CLASS}	{return REGEX_CHAR_CLASS;}
+
+		<REPLACEMENT_REGEX>{
+			"@" / [\]%\\]							{return REGEX_TOKEN;}
+			"$" / \s+ "]"							{return REGEX_TOKEN;}
+			"\\".		{return REGEX_TOKEN;}
+		}
+	}
+}
+
+<MATCH_REGEX_X,MATCH_REGEX_XX>
+	[^\\ \t\f\n\r$@#\(\[]+	{return REGEX_TOKEN;}
+<MATCH_REGEX>
+	[^$@\\\(\[]+			{return REGEX_TOKEN;}
+<REPLACEMENT_REGEX>
+	[^$@\\]+ 				{return REGEX_TOKEN;}
+
+<MATCH_REGEX,MATCH_REGEX_X,MATCH_REGEX_XX,REPLACEMENT_REGEX>
+	[^] 					{return REGEX_TOKEN;}
+
+<MATCH_REGEX, MATCH_REGEX_X,MATCH_REGEX_XX,REGEX_CHARCLASS_X,REGEX_CHARCLASS_XX,REGEX_QUOTED_X>{
+  "$" / {SPACES_OR_COMMENTS}[()]      {return REGEX_TOKEN;}
+  "$#" / {SPACES_OR_COMMENTS}[()]     {return REGEX_TOKEN;}
+  "@" / {SPACES_OR_COMMENTS}[()]     {return REGEX_TOKEN;}
+}
+
+//////////////////////////////////// END OF REGULAR EXPRESSION /////////////////////////////////////////////////////////
+
+// ,LEX_REGEX_CHAR_CLASS
+<STRING_QQ,STRING_QX,MATCH_REGEX,MATCH_REGEX_X,MATCH_REGEX_XX,REGEX_QUOTED_X,REGEX_CHARCLASS_X,REGEX_CHARCLASS_XX,REPLACEMENT_REGEX>
+{
+	"@" /  {NON_SPACE_AHEAD} 	{pushState();yybegin(INTERPOLATED_VARIABLE_SUFFIX);return startUnbracedVariable(SIGIL_ARRAY);}
+	"$#" / {NON_SPACE_AHEAD} 	{return startUnbracedVariable(SIGIL_SCALAR_INDEX);}
+	"$" /  {NON_SPACE_AHEAD}   	{pushState();yybegin(INTERPOLATED_VARIABLE_SUFFIX);return startUnbracedVariable(SIGIL_SCALAR); }
+}
+
+<STRING_QQ>{
+	"\\"[\$\@]					{return STRING_CONTENT_QQ;}
+	// chars with special treatments
+	[^$\@\\]+					{return STRING_CONTENT_QQ;}
+	[^]							{return STRING_CONTENT_QQ;}
+}
+
+<STRING_QX>{
+	"\\"[\$\@]					{return STRING_CONTENT_XQ;}
+	// chars with special treatments
+	[^\$\@\\]+					{return STRING_CONTENT_XQ;}
+	[^]							{return STRING_CONTENT_XQ;}
+}
+
+<STRING_LIST>
+{
+	{NON_SPACE}+			{return STRING_CONTENT;}
+	{ANY_SPACE}+			{return TokenType.WHITE_SPACE;}
+}
+
+<STRING_Q>{
+	[^]+					{return STRING_CONTENT;}
+}
+
+^{POD_START} 				{yybegin(POD_STATE);}
+{NEW_LINE}   				{return getNewLineToken();}
+{WHITE_SPACE}+  			{return TokenType.WHITE_SPACE;}
+{END_BLOCK}					{yybegin(END_BLOCK);return COMMENT_BLOCK;}
+{DATA_BLOCK}				{yybegin(END_BLOCK);return COMMENT_BLOCK;}
+{LINE_COMMENT_ANNOTATION}	{return COMMENT_ANNOTATION;}
+{LINE_COMMENT}				{return COMMENT_LINE;}
+
+<CATCH_PACKAGE>	{QUALIFIED_IDENTIFIER}	{yybegin(YYINITIAL);return PACKAGE;}
+
+<CATCH>{
+	"("		{return getLeftParen(CATCH_PACKAGE);}
+	<CATCH_PACKAGE>{
+		[^]		{pushback();yybegin(YYINITIAL);}
+	}
+}
+
+<HANDLE_WITH_ANGLE>{
+	{IDENTIFIER} 	{return HANDLE;}
+	">"				{yybegin(AFTER_IDENTIFIER);return RIGHT_ANGLE;}
+	[^]				{yybegin(YYINITIAL);yypushback(1);break;}
+}
+
+<END_BLOCK>{
+	[^]+ 		{return COMMENT_BLOCK;}
+}
+
+<METHOD_DECLARATION,SUB_DECLARATION>{
+	{QUALIFIED_IDENTIFIER} 		{return getIdentifierTokenWithoutIndex();}
+}
+
+<METHOD_DECLARATION>{
+	"(" 						{return startParethesizedBlock(SUB_ATTRIBUTES, YYINITIAL);}
+}
+
+<SUB_DECLARATION>{
+	"(" / {SUB_PROTOTYPE}? ")"	{return startParethesizedBlock(SUB_ATTRIBUTES, SUB_PROTOTYPE);}
+	"(" 						{return startSubSignatureBlock();}
+}
+
+<SUB_DECLARATION,SUB_ATTRIBUTES,ATTRIBUTES,METHOD_DECLARATION>{
+	"{"     					{return getLeftBraceCode(YYINITIAL);}
+}
+
+<SUB_DECLARATION,SUB_ATTRIBUTES, METHOD_DECLARATION>{
+	":"							{yybegin(ATTRIBUTES);return COLON;}
+	[^]							{yypushback(1);yybegin(YYINITIAL);break;}
+}
+
+<SUB_PROTOTYPE>{
+	{SUB_PROTOTYPE}			{return SUB_PROTOTYPE_TOKEN;}
+	")"						{return getRightParen(SUB_ATTRIBUTES);}
+}
+
+<VAR_ATTRIBUTES_START> ":"	{yybegin(VAR_ATTRIBUTES); return COLON;}
+
+<ATTRIBUTES,VAR_ATTRIBUTES>
+{
+	":"					{return COLON;}
+	{IDENTIFIER} / "("	{pushState();yybegin(QUOTE_LIKE_OPENER_Q);return ATTRIBUTE_IDENTIFIER;}
+	{IDENTIFIER}		{return ATTRIBUTE_IDENTIFIER;}
+}
+
+<ATTRIBUTES> 	 [^]						{yypushback(1);yybegin(YYINITIAL);}
+<VAR_ATTRIBUTES,VAR_ATTRIBUTES_START> [^]	{yypushback(1);yybegin(AFTER_VARIABLE);}
+
+<VARIABLE_DECLARATION>
+{
+	{CORE_PREFIX}"sub" 		{yybegin(SUB_DECLARATION);return  RESERVED_SUB;}
+	"__PACKAGE__"                   {yybegin(VARIABLE_DECLARATION_STRICT);return TAG_PACKAGE;}
+	{QUALIFIED_IDENTIFIER}		{yybegin(VARIABLE_DECLARATION_STRICT);return PACKAGE;}
+	<VARIABLE_DECLARATION_STRICT>{
+		"$" 		{return startUnbracedVariable(VAR_ATTRIBUTES_START, SIGIL_SCALAR);}
+		"@"			{return startUnbracedVariable(VAR_ATTRIBUTES_START, SIGIL_ARRAY);}
+		"%"			{return startUnbracedVariable(VAR_ATTRIBUTES_START, SIGIL_HASH);}
+		"("			{return startParethesizedBlock(VAR_ATTRIBUTES_START, YYINITIAL);}
+		[^]			{yypushback(1);yybegin(AFTER_VARIABLE);}
+	}
+}
+
+
+<VERSION_OR_OPERAND_USE>{
+	{PERL_VERSION}					{yybegin(BAREWORD_USE);return NUMBER_VERSION;}
+}
+
+<VERSION_OR_OPERAND,REQUIRE_ARGUMENTS,PACKAGE_ARGUMENTS,PACKAGE_DECLARATION_ARGUMENTS>{
+	{PERL_VERSION}					{yybegin(YYINITIAL);return NUMBER_VERSION;}
+}
+
+<VERSION_OR_OPERAND_USE,BAREWORD_USE>{
+  "-"{IDENTIFIER}  {yybegin(YYINITIAL); return STRING_CONTENT;}
+}
+
+<VERSION_OR_OPERAND,VERSION_OR_OPERAND_USE,REQUIRE_ARGUMENTS,BAREWORD_USE>{
+	[^]								{yypushback(1);yybegin(YYINITIAL);}
+}
+
+<PACKAGE_ARGUMENTS>{
+	{QUALIFIED_IDENTIFIER}			{yybegin(VERSION_OR_OPERAND_USE);return PACKAGE;}
+	[^]								{yybegin(YYINITIAL);pushback();}
+}
+
+<PACKAGE_DECLARATION_ARGUMENTS>{
+	{QUALIFIED_IDENTIFIER}			{yybegin(VERSION_OR_OPERAND);return registerPackage(PACKAGE);}
+	[^]								{yybegin(YYINITIAL);pushback();}
+}
+
+<USE_VARS_STRING>
+{
+	"@" 	{return startUnbracedVariable(SIGIL_ARRAY);}
+	"$#" 	{return startUnbracedVariable(SIGIL_SCALAR_INDEX);}
+	"$" 	{return startUnbracedVariable(SIGIL_SCALAR); }
+	"%"		{return startUnbracedVariable(SIGIL_HASH);}
+	"*" 	{return startUnbracedVariable(SIGIL_GLOB);}
+	"&"		{return startUnbracedVariable(SIGIL_CODE);}
+}
+
+<VARIABLE_UNBRACED>{
+	// this is a subset of builtins, $;, $, for example, can't be dereferenced
+	"$" / [\{\"\'\[\]\`\\\!\%\&\(\+\-\.\/\<\=\>\|\~\?\:\*\^\@\_\$\:\w_\d]		{return processUnbracedScalarSigil();}
+	"{"											{return startBracedVariable();}
+	{VARIABLE_NAME}								{return getUnbracedVariableNameToken();}
+}
+
+<VARIABLE_BRACED>{
+	{VARIABLE_NAME}	/ {SPACES_OR_COMMENTS}"}"				{return getBracedVariableNameToken();}
+	{CAPPED_BRACED_VARIABLE} / {SPACES_OR_COMMENTS}"}"		{return getBracedVariableNameToken();}
+	[^]														{yypushback(1);yybegin(YYINITIAL);}
+}
+
+////////////////////////// COMMON PART /////////////////////////////////////////////////////////////////////////////////
+
+<BRACED_STRING>{
+	{BAREWORD_MINUS}	{return STRING_CONTENT;}
+	"}"					{return getRightBrace(AFTER_VARIABLE);}
+}
+
+
+<YYINITIAL,AFTER_COMMA,AFTER_VARIABLE,AFTER_VALUE,AFTER_IDENTIFIER,AFTER_IDENTIFIER_WITH_LABEL,LEX_HANDLE,LEX_HANDLE_STRICT,LEX_PRINT_HANDLE,LEX_PRINT_HANDLE_STRICT>{
+	{CORE_PREFIX}"if"	 	{ yybegin(YYINITIAL); return RESERVED_IF;}
+	{CORE_PREFIX}"unless"	{ yybegin(YYINITIAL); return RESERVED_UNLESS;}
+	{CORE_PREFIX}"while"	{ yybegin(YYINITIAL); return RESERVED_WHILE;}
+	{CORE_PREFIX}"until"	{ yybegin(YYINITIAL); return RESERVED_UNTIL;}
+	{CORE_PREFIX}"for"	 	{ yybegin(YYINITIAL); return RESERVED_FOR;}
+	{CORE_PREFIX}"foreach"	{ yybegin(YYINITIAL); return RESERVED_FOREACH;}
+	{CORE_PREFIX}"when"	 	{ yybegin(YYINITIAL); return RESERVED_WHEN;}
+}
+
+<AFTER_IDENTIFIER_WITH_LABEL>{
+	{IDENTIFIER}	{yybegin(YYINITIAL);return IDENTIFIER;}
+	[^]				{yypushback(1);yybegin(YYINITIAL);}
+}
+
+<YYINITIAL,AFTER_COMMA,AFTER_IDENTIFIER>{
+	":"  	{yybegin(YYINITIAL);return COLON;}
+}
+
+<AFTER_VALUE,AFTER_VARIABLE,AFTER_IDENTIFIER>{
+	"*" 	{yybegin(AFTER_POSSIBLE_SIGIL);return OPERATOR_MUL;}
+	"%" 	{yybegin(AFTER_POSSIBLE_SIGIL);return OPERATOR_MOD;}
+	"&" 	{yybegin(AFTER_POSSIBLE_SIGIL);return OPERATOR_BITWISE_AND;}
+
+	"<" 	{yybegin(YYINITIAL);return OPERATOR_LT_NUMERIC;}
+	"&&" 	{yybegin(YYINITIAL);return OPERATOR_AND;}
+	"**"	{yybegin(YYINITIAL);return OPERATOR_POW;}
+	"%=" 	{yybegin(YYINITIAL);return OPERATOR_MOD_ASSIGN;}
+	"*=" 	{yybegin(YYINITIAL);return OPERATOR_MUL_ASSIGN;}
+	"&=" 	{yybegin(YYINITIAL);return OPERATOR_BITWISE_AND_ASSIGN;}
+	"**=" 	{yybegin(YYINITIAL);return OPERATOR_POW_ASSIGN;}
+	"&&="	{yybegin(YYINITIAL);return OPERATOR_AND_ASSIGN;}
+
+	// ambiguous with double negation
+	"~~"	{yybegin(YYINITIAL);return OPERATOR_SMARTMATCH;}
+
+	// ambiguous with nyi
+	"..." 	{yybegin(YYINITIAL);return OPERATOR_HELLIP;}
+}
+
+<AFTER_VALUE,AFTER_VARIABLE,AFTER_IDENTIFIER,LEX_HANDLE,LEX_HANDLE_STRICT,LEX_PRINT_HANDLE,LEX_PRINT_HANDLE_STRICT>{
+	"x" / [\d]*	{yybegin(YYINITIAL); return OPERATOR_X;}
+	"and"		{yybegin(YYINITIAL); return OPERATOR_AND_LP;}
+	"or"		{yybegin(YYINITIAL); return OPERATOR_OR_LP;}
+	"xor"		{yybegin(YYINITIAL); return OPERATOR_XOR_LP;}
+	"lt" / {QUOTE_LIKE_SUFFIX}		{yybegin(YYINITIAL); return OPERATOR_LT_STR;}
+	"gt" / {QUOTE_LIKE_SUFFIX}		{yybegin(YYINITIAL); return OPERATOR_GT_STR;}
+	"le" / {QUOTE_LIKE_SUFFIX}		{yybegin(YYINITIAL); return OPERATOR_LE_STR;}
+	"ge" / {QUOTE_LIKE_SUFFIX}		{yybegin(YYINITIAL); return OPERATOR_GE_STR;}
+	"eq" / {QUOTE_LIKE_SUFFIX} 		{yybegin(YYINITIAL); return OPERATOR_EQ_STR;}
+	"ne" / {QUOTE_LIKE_SUFFIX}		{yybegin(YYINITIAL); return OPERATOR_NE_STR;}
+	"cmp" / {QUOTE_LIKE_SUFFIX} 	{yybegin(YYINITIAL); return OPERATOR_CMP_STR;}
+}
+
+<YYINITIAL>{
+	"..." 	{yybegin(YYINITIAL);return OPERATOR_NYI;}
+}
+
+<AFTER_DEREFERENCE>{
+	"$*"	{yybegin(AFTER_VALUE);return DEREF_SCALAR;}
+	"$#*"	{yybegin(AFTER_VALUE);return DEREF_SCALAR_INDEX;}
+	"@*"	{yybegin(AFTER_VALUE);return DEREF_ARRAY;}
+	"%*"	{yybegin(AFTER_VALUE);return DEREF_HASH;}
+	"**"	{yybegin(AFTER_VALUE);return DEREF_GLOB;}
+	"&*"	{yybegin(AFTER_VALUE);return DEREF_CODE;}
+
+	"@"		{yybegin(AFTER_VARIABLE); return SIGIL_ARRAY;}
+	"%"		{yybegin(AFTER_VARIABLE); return SIGIL_HASH;}
+	"*"		{yybegin(AFTER_VARIABLE); return SIGIL_GLOB;}
+	"&"		{yybegin(AFTER_VARIABLE); return SIGIL_CODE;}
+}
+
+// normal variable, unambiguous
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_DEREFERENCE,AFTER_COMMA,AFTER_IDENTIFIER,AFTER_VARIABLE,AFTER_POSSIBLE_SIGIL,AFTER_VALUE>{
+	"@" 	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_ARRAY);}
+	"$#" 	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_SCALAR_INDEX);}
+	"$" 	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_SCALAR); }
+}
+
+// ambiguous variable in unambiguous situation
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA,AFTER_POSSIBLE_SIGIL,HASH_ACCEPTOR>{
+	"%"		{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_HASH);}
+	"*"		{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_GLOB);}
+	"&"		{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_CODE);}
+}
+
+<HASH_ACCEPTOR>
+{
+	[^]	{yypushback(1);yybegin(AFTER_IDENTIFIER);}
+}
+
+// ambiguous variable in ambiguous situation
+<AFTER_IDENTIFIER>
+{
+        "&" / {SPACES_OR_COMMENTS} "~"  {yybegin(AFTER_POSSIBLE_SIGIL);return OPERATOR_BITWISE_AND;}
+	"%" / {AMBIGUOUS_SIGIL_SUFFIX}	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_HASH);}
+	"*"	/ {AMBIGUOUS_SIGIL_SUFFIX}	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_GLOB);}
+	"&"	/ {AMBIGUOUS_SIGIL_SUFFIX}	{return startUnbracedVariable(AFTER_VARIABLE, SIGIL_CODE);}
+}
+
+// postfix operators
+<AFTER_VARIABLE,AFTER_VALUE>{
+	"++" 	{yybegin(AFTER_VALUE);return OPERATOR_PLUS_PLUS;}
+	"--" 	{yybegin(AFTER_VALUE);return OPERATOR_MINUS_MINUS;}
+}
+
+// prefix operators
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA>{
+	"++" 	{yybegin(YYINITIAL);return OPERATOR_PLUS_PLUS;}
+	"--" 	{yybegin(YYINITIAL);return OPERATOR_MINUS_MINUS;}
+}
+
+
+// operands and starters
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA>{
+	"<" / {IDENTIFIER}">"  		{yybegin(HANDLE_WITH_ANGLE);return LEFT_ANGLE;}
+	"<"							{yybegin(AFTER_VALUE);pushState();yybegin(QUOTE_LIKE_OPENER_QQ);return captureString();}
+}
+
+<AFTER_VALUE,AFTER_VARIABLE,AFTER_IDENTIFIER>{
+	"/"   	{yybegin(YYINITIAL);return OPERATOR_DIV;}
+	"//" 	{yybegin(YYINITIAL);return OPERATOR_OR_DEFINED;}
+	"/=" 	{yybegin(YYINITIAL);return OPERATOR_DIV_ASSIGN;}
+	"//=" 	{yybegin(YYINITIAL);return OPERATOR_OR_DEFINED_ASSIGN;}
+}
+
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA>{
+	"/"   						{yybegin(AFTER_VALUE);return captureImplicitRegex();}
+}
+
+<YYINITIAL>{
+	"switch"					{return getPerlSwitchToken(RESERVED_SWITCH);}
+	"case"						{return getPerlSwitchToken(RESERVED_CASE);}
+}
+
+// known identifiers
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA,AFTER_IDENTIFIER,AFTER_VARIABLE,LEX_HANDLE,LEX_HANDLE_STRICT,LEX_PRINT_HANDLE,LEX_PRINT_HANDLE_STRICT>{
+	"split"						{yybegin(YYINITIAL); return BUILTIN_LIST;}
+	"keys"|"values"|"each"		{yybegin(HASH_ACCEPTOR);return BUILTIN_UNARY;}
+	"defined" / {SPACES_OR_COMMENTS}[\*\%]	{yybegin(YYINITIAL);return BUILTIN_UNARY;}
+	{BARE_HANDLE_ACCEPTORS}				{yybegin(LEX_HANDLE);return BUILTIN_LIST;}
+	{NAMED_UNARY_BARE_HANDLE_ACCEPTORS}	{yybegin(LEX_HANDLE); return BUILTIN_UNARY;}
+	{NAMED_UNARY_OPERATORS}				{yybegin(AFTER_IDENTIFIER); return BUILTIN_UNARY;}
+	{TYPES_TINY}                            {yybegin(AFTER_IDENTIFIER);return CUSTOM_UNARY;}
+
+	{IMPLICIT_USERS}					{yybegin(AFTER_IDENTIFIER);return BUILTIN_UNARY;}
+	{PERL_OPERATORS_FILETEST} / [^a-zA-Z0-9_] 	{yybegin(AFTER_IDENTIFIER);return OPERATOR_FILETEST;}
+
+	{NAMED_ARGUMENTLESS}				{yybegin(AFTER_VALUE);return BUILTIN_ARGUMENTLESS;}	// fixme we can return special token here to help parser
+	{LIST_OPERATORS}					{yybegin(YYINITIAL);return BUILTIN_LIST;}
+
+	"not"						{yybegin(YYINITIAL); return OPERATOR_NOT_LP;}
+
+	{CORE_PREFIX}"my"		{yybegin(VARIABLE_DECLARATION); return RESERVED_MY;}
+	{CORE_PREFIX}"our"		{yybegin(VARIABLE_DECLARATION); return RESERVED_OUR;}
+	{CORE_PREFIX}"local"		{yybegin(YYINITIAL); return RESERVED_LOCAL;}
+	{CORE_PREFIX}"state"		{yybegin(VARIABLE_DECLARATION); return RESERVED_STATE;}
+
+	{CORE_PREFIX}"elsif"	 	{yybegin(YYINITIAL); return RESERVED_ELSIF;}
+	{CORE_PREFIX}"else"	 		{yybegin(YYINITIAL); return RESERVED_ELSE;}
+	{CORE_PREFIX}"given"	 	{yybegin(YYINITIAL); return RESERVED_GIVEN;}
+	{CORE_PREFIX}"default"	 	{yybegin(YYINITIAL); return RESERVED_DEFAULT;}
+	{CORE_PREFIX}"continue"	 	{yybegin(YYINITIAL); return RESERVED_CONTINUE;}
+
+	{CORE_PREFIX}"format"	 	{myFormatWaiting = true; yybegin(AFTER_IDENTIFIER); return RESERVED_FORMAT;}
+	{CORE_PREFIX}"sub" 		{yybegin(SUB_DECLARATION);return  RESERVED_SUB;}
+
+	{CORE_PREFIX}"package"	 	{yybegin(PACKAGE_DECLARATION_ARGUMENTS); return RESERVED_PACKAGE;}
+	{CORE_PREFIX}"use"	 		{yybegin(PACKAGE_ARGUMENTS); return RESERVED_USE;}
+	{CORE_PREFIX}"no"	 		{yybegin(PACKAGE_ARGUMENTS); return RESERVED_NO;}
+	{CORE_PREFIX}"require"	 	{yybegin(REQUIRE_ARGUMENTS); return RESERVED_REQUIRE;}
+
+	{CORE_PREFIX}"undef"		{yybegin(AFTER_IDENTIFIER); return RESERVED_UNDEF;}
+
+	"method"					{yybegin(METHOD_DECLARATION); return RESERVED_METHOD;}
+	"func"						{yybegin(METHOD_DECLARATION); return RESERVED_FUNC;}
+
+	"try"						{yybegin(YYINITIAL); return RESERVED_TRY;}
+	"catch"						{yybegin(CATCH); return RESERVED_CATCH;}
+	"finally"					{yybegin(YYINITIAL); return RESERVED_FINALLY;}
+
+	"with"					{yybegin(YYINITIAL); return RESERVED_WITH;}
+	"extends"				{yybegin(YYINITIAL); return RESERVED_EXTENDS;}
+	"meta"					{yybegin(YYINITIAL); return RESERVED_META;}
+	"override"				{yybegin(YYINITIAL); return RESERVED_OVERRIDE;}
+	"around"				{yybegin(YYINITIAL); return RESERVED_AROUND;}
+	"augment"				{yybegin(YYINITIAL); return RESERVED_AUGMENT;}
+	"after"					{yybegin(YYINITIAL); return RESERVED_AFTER;}
+	"before"				{yybegin(YYINITIAL); return RESERVED_BEFORE;}
+	"has"					{yybegin(YYINITIAL); return RESERVED_HAS;}
+
+	// special treatment?
+	{CORE_PREFIX}"print"	 	{yybegin(LEX_PRINT_HANDLE); return RESERVED_PRINT;}
+	{CORE_PREFIX}"printf"	 	{yybegin(LEX_PRINT_HANDLE); return RESERVED_PRINTF;}
+	{CORE_PREFIX}"say"	 		{yybegin(LEX_PRINT_HANDLE); return RESERVED_SAY;}
+
+	{CORE_PREFIX}"grep"	 { yybegin(YYINITIAL); return RESERVED_GREP;}
+	{CORE_PREFIX}"map"	 { yybegin(YYINITIAL); return RESERVED_MAP;}
+	{CORE_PREFIX}"sort"	 { yybegin(YYINITIAL); return RESERVED_SORT;}
+
+	{CORE_PREFIX}"do"	 { yybegin(BLOCK_AS_VALUE); return RESERVED_DO;}
+	{CORE_PREFIX}"eval"	 { yybegin(BLOCK_AS_VALUE); return RESERVED_EVAL;}
+
+	{CORE_PREFIX}"goto"	 { yybegin(AFTER_IDENTIFIER_WITH_LABEL); return RESERVED_GOTO;}
+	{CORE_PREFIX}"redo"	 { yybegin(AFTER_IDENTIFIER_WITH_LABEL); return RESERVED_REDO;}
+	{CORE_PREFIX}"next"	 { yybegin(AFTER_IDENTIFIER_WITH_LABEL); return RESERVED_NEXT;}
+	{CORE_PREFIX}"last"	 { yybegin(AFTER_IDENTIFIER_WITH_LABEL); return RESERVED_LAST;}
+
+	{CORE_PREFIX}"return"	 { yybegin(YYINITIAL); return RESERVED_RETURN;}
+
+	{BLOCK_NAMES} / {SPACES_OR_COMMENTS}"{"		{yybegin(YYINITIAL);return BLOCK_NAME;}
+	{TAG_NAMES}									{yybegin(AFTER_VALUE); return TAG;}
+
+	{CORE_PREFIX}"y"  / {QUOTE_LIKE_SUFFIX} {pushStateAndBegin(TRANS_OPENER);return RESERVED_Y;}
+	{CORE_PREFIX}"tr" / {QUOTE_LIKE_SUFFIX} {pushStateAndBegin(TRANS_OPENER);return RESERVED_TR;}
+
+	{CORE_PREFIX}"qw" / {QUOTE_LIKE_SUFFIX} {return processQuoteLikeStringOpener(RESERVED_QW);}
+	{CORE_PREFIX}"qq" / {QUOTE_LIKE_SUFFIX} {return processQuoteLikeStringOpener(RESERVED_QQ);}
+	{CORE_PREFIX}"qx" / {QUOTE_LIKE_SUFFIX} {return processQuoteLikeStringOpener(RESERVED_QX);}
+	{CORE_PREFIX}"q" / {QUOTE_LIKE_SUFFIX}  {return processQuoteLikeStringOpener(RESERVED_Q);}
+
+	{CORE_PREFIX}"qr" / {QUOTE_LIKE_SUFFIX} {return processRegexOpener(RESERVED_QR);}
+	{CORE_PREFIX}"m" / {QUOTE_LIKE_SUFFIX}  {return processRegexOpener(RESERVED_M);}
+	{CORE_PREFIX}"s" / {QUOTE_LIKE_SUFFIX}  {return processRegexOpener(RESERVED_S);}
+}
+
+<AFTER_DEREFERENCE>{
+	"helper"			{yybegin(AFTER_VALUE);return MOJO_HELPER_METHOD;}
+	{QUALIFIED_IDENTIFIER} 		{yybegin(AFTER_VALUE);return getIdentifierTokenWithoutIndexWithCustomTokens();}
+}
+
+// following is for require
+<REQUIRE_ARGUMENTS>{
+	{QUALIFIED_IDENTIFIER} / "("	{yybegin(YYINITIAL);return getIdentifierToken();}
+	{QUALIFIED_IDENTIFIER}			{yybegin(AFTER_IDENTIFIER);return PACKAGE;}
+}
+
+// block start after eval/do
+<BLOCK_AS_VALUE>{
+	"{"		{return startBracedBlock(AFTER_VALUE);}
+}
+
+// handles hash indexes after variable and/or ->
+<AFTER_DEREFERENCE,AFTER_VARIABLE>{
+	"["															{return startBracketedBlock(AFTER_VARIABLE);}
+	"{"															{return startBracedBlock(AFTER_VARIABLE);}
+	"{" / {WHITE_SPACE}* {BAREWORD_MINUS} {WHITE_SPACE}* "}"	{return getLeftBrace(BRACED_STRING);}
+}
+
+<AFTER_DEREFERENCE> "("     	{return getLeftParen(YYINITIAL);}
+
+<AFTER_VALUE,AFTER_VARIABLE> "." / {NUMBER_INT} {return OPERATOR_CONCAT;}
+
+// always checked except explicit states
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA,AFTER_VARIABLE,AFTER_VALUE,AFTER_IDENTIFIER,AFTER_POSSIBLE_SIGIL>{
+	{FARROW} 	{yybegin(AFTER_COMMA);return FAT_COMMA;}
+	"," 		{yybegin(AFTER_COMMA);return COMMA;}
+	";"     	{yybegin(YYINITIAL);return SEMICOLON;}
+	"=" 		{yybegin(BLOCK_AS_VALUE);return OPERATOR_ASSIGN;}
+	"->" 		{yybegin(AFTER_DEREFERENCE); return OPERATOR_DEREFERENCE;}
+	"["     	{return getLeftBracket(YYINITIAL);}
+	"("     	{return getLeftParen(YYINITIAL);}
+	"{"     	{return getLeftBrace(YYINITIAL);}
+	"}"     	{return getRightBrace(YYINITIAL);}
+	"]"     	{return getRightBracket(AFTER_VALUE);}
+	")"     	{return getRightParen(AFTER_VALUE);}
+	":"			{yybegin(YYINITIAL);return COLON;}
+
+	"||" 	{yybegin(YYINITIAL);return OPERATOR_OR;}
+	">="	{yybegin(YYINITIAL);return OPERATOR_GE_NUMERIC;}
+	"<="	{yybegin(YYINITIAL);return OPERATOR_LE_NUMERIC;}
+	"=="	{yybegin(YYINITIAL);return OPERATOR_EQ_NUMERIC;}
+	"!="	{yybegin(YYINITIAL);return OPERATOR_NE_NUMERIC;}
+	"+="	{yybegin(YYINITIAL);return OPERATOR_PLUS_ASSIGN;}
+	"-="	{yybegin(YYINITIAL);return OPERATOR_MINUS_ASSIGN;}
+	".=" 	{yybegin(YYINITIAL);return OPERATOR_CONCAT_ASSIGN;}
+	"x=" 	{yybegin(YYINITIAL);return OPERATOR_X_ASSIGN;}
+	"|=" 	{yybegin(YYINITIAL);return OPERATOR_BITWISE_OR_ASSIGN;}
+	"^=" 	{yybegin(YYINITIAL);return OPERATOR_BITWISE_XOR_ASSIGN;}
+	"<<=" 	{yybegin(YYINITIAL);return OPERATOR_SHIFT_LEFT_ASSIGN;}
+	">>=" 	{yybegin(YYINITIAL);return OPERATOR_SHIFT_RIGHT_ASSIGN;}
+	"||=" 	{yybegin(YYINITIAL);return OPERATOR_OR_ASSIGN;}
+	"<=>" 	{yybegin(YYINITIAL);return OPERATOR_CMP_NUMERIC;}
+	">" 	{yybegin(YYINITIAL);return OPERATOR_GT_NUMERIC;}
+
+	"=~" 	{yybegin(YYINITIAL);return OPERATOR_RE;}
+	"!~" 	{yybegin(YYINITIAL);return OPERATOR_NOT_RE;}
+
+	"<<" 	{yybegin(YYINITIAL);setHeredocLike(true);return OPERATOR_SHIFT_LEFT;}
+	"<<" / {QUALIFIED_IDENTIFIER}"(" 	{yybegin(YYINITIAL);setHeredocLike(true);return OPERATOR_SHIFT_LEFT;}
+	">>" 	{yybegin(YYINITIAL);return OPERATOR_SHIFT_RIGHT;}
+
+	"?"  	{yybegin(YYINITIAL);return QUESTION;}
+	"|" 	{yybegin(YYINITIAL);return OPERATOR_BITWISE_OR;}
+	"^" 	{yybegin(YYINITIAL);return OPERATOR_BITWISE_XOR;}
+
+	"+" 		{yybegin(YYINITIAL);return OPERATOR_PLUS;}
+	"-" 		{yybegin(YYINITIAL);return OPERATOR_MINUS;}
+	"!" 		{yybegin(YYINITIAL);return OPERATOR_NOT;}
+	"~" 		{yybegin(YYINITIAL);return OPERATOR_BITWISE_NOT;}
+	"\\" 		{yybegin(YYINITIAL);return OPERATOR_REFERENCE;}
+
+	".." 	{yybegin(YYINITIAL);return OPERATOR_FLIP_FLOP;}
+	"." 	{yybegin(YYINITIAL);return OPERATOR_CONCAT;}
+
+	"<<" / {QUOTED_HEREDOC_MARKER}   	{yybegin(QUOTED_HEREDOC_OPENER);return OPERATOR_HEREDOC;}
+	"<<" / "\\"?{UNQUOTED_HEREDOC_MARKER} 	{yybegin(BARE_HEREDOC_OPENER);return OPERATOR_HEREDOC;}
+
+	"<<~" / {QUOTED_HEREDOC_MARKER_NON_EMPTY} {yybegin(QUOTED_HEREDOC_OPENER_INDENTABLE);return OPERATOR_HEREDOC;}
+	"<<~" / "\\"?{UNQUOTED_HEREDOC_MARKER} 	  {yybegin(BARE_HEREDOC_OPENER_INDENTABLE);return OPERATOR_HEREDOC;}
+
+	{DQ_STRING}	{yybegin(AFTER_VALUE);pushState();yybegin(QUOTE_LIKE_OPENER_QQ);return captureString();}
+	{SQ_STRING} {yybegin(AFTER_VALUE);pushState();yybegin(QUOTE_LIKE_OPENER_Q);return captureString();}
+	{XQ_STRING} {yybegin(AFTER_VALUE);pushState();yybegin(QUOTE_LIKE_OPENER_QX);return captureString();}
+
+	// fixme optimize via merging?
+	{BAREWORD_MINUS} / {SPACES_OR_COMMENTS}* {FARROW}	{yybegin(AFTER_VALUE);return STRING_CONTENT;}
+
+	{NUMBER_BIN}									 {yybegin(AFTER_VALUE);return NUMBER;}
+	{NUMBER_HEX}									 {yybegin(AFTER_VALUE);return NUMBER;}
+	{NUMBER_INT} / ".."                              {yybegin(AFTER_VALUE);return NUMBER;}
+	"." {NUMBER_INT} {NUMBER_EXP}?	 				 {yybegin(AFTER_VALUE);return NUMBER;}
+	{NUMBER_INT} ("." {NUMBER_INT}? )? {NUMBER_EXP}? {yybegin(AFTER_VALUE);return NUMBER;}
+	{PERL_VERSION}  		                {yybegin(AFTER_VALUE);return NUMBER_VERSION;}
+}
+
+<LEX_HANDLE>{
+	"("						{return getLeftParen(LEX_HANDLE_STRICT);}
+	<LEX_HANDLE_STRICT>{
+		{IDENTIFIER} / {HANDLE_NEGATING}	{yybegin(YYINITIAL);pushback();}
+		{IDENTIFIER}				{yybegin(AFTER_IDENTIFIER);return HANDLE;}
+		[^]					{pushback();yybegin(YYINITIAL);}
+	}
+}
+
+<LEX_PRINT_HANDLE>{
+	"("						{return getLeftParen(LEX_PRINT_HANDLE_STRICT);}
+	<LEX_PRINT_HANDLE_STRICT>{
+		{IDENTIFIER} / {PRINT_HANDLE_NEGATING}	{yybegin(YYINITIAL);pushback();}
+		{IDENTIFIER}				{yybegin(YYINITIAL);return HANDLE;}
+		[^]					{pushback();yybegin(YYINITIAL);}
+	}
+}
+
+<YYINITIAL,BLOCK_AS_VALUE,AFTER_COMMA,AFTER_VARIABLE,AFTER_VALUE,AFTER_IDENTIFIER,AFTER_POSSIBLE_SIGIL>{
+	{CORE_LIST}				{return PACKAGE;}
+	"__PACKAGE__"           {return TAG_PACKAGE;}
+	{QUALIFIED_IDENTIFIER} 	{return getIdentifierToken();}
+}
+
 
 /* error fallback [^] */
-[^]    { return lexBadCharacter(); }
+[^]    { return TokenType.BAD_CHARACTER; }

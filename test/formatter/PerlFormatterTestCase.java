@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,31 +16,16 @@
 
 package formatter;
 
-import base.PerlLightCodeInsightFixtureTestCase;
-import com.intellij.psi.codeStyle.CodeStyleSettingsManager;
-import com.perl5.lang.perl.PerlLanguage;
+import base.PerlLightTestCase;
 
-/**
- * Created by hurricup on 13.03.2016.
- */
-public class PerlFormatterTestCase extends PerlLightCodeInsightFixtureTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/formatter/perl";
-	}
+public abstract class PerlFormatterTestCase extends PerlLightTestCase {
+  @Override
+  protected void setUp() throws Exception {
+    super.setUp();
+  }
 
-	public void testStatementModifiersSpacing() throws Exception
-	{
-		CodeStyleSettingsManager.getSettings(getProject()).getCommonSettings(PerlLanguage.INSTANCE).SPACE_BEFORE_IF_PARENTHESES = false;
-		doFormatTest("statement_modifier_spacing", "");
-	}
-
-	public void testStatementModifiersSpacingWithSpace() throws Exception
-	{
-		CodeStyleSettingsManager.getSettings(getProject()).getCommonSettings(PerlLanguage.INSTANCE).SPACE_BEFORE_IF_PARENTHESES = true;
-		doFormatTest("statement_modifier_spacing", "_with_space");
-	}
-
+  @Override
+  protected void tearDown() throws Exception {
+    super.tearDown();
+  }
 }

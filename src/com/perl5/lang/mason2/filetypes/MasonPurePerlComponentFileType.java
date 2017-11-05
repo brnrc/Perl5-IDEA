@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@ package com.perl5.lang.mason2.filetypes;
 import com.intellij.lang.Language;
 import com.perl5.lang.mason2.Mason2Icons;
 import com.perl5.lang.mason2.Mason2Language;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
+import com.perl5.lang.perl.fileTypes.PurePerlFileType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -28,57 +28,48 @@ import javax.swing.*;
 /**
  * Created by hurricup on 20.12.2015.
  */
-public class MasonPurePerlComponentFileType extends PerlFileType
-{
-	public final static MasonPurePerlComponentFileType INSTANCE = new MasonPurePerlComponentFileType();
+public class MasonPurePerlComponentFileType extends PurePerlFileType {
+  public final static MasonPurePerlComponentFileType INSTANCE = new MasonPurePerlComponentFileType();
 
-	public MasonPurePerlComponentFileType()
-	{
-		super(Mason2Language.INSTANCE);
-	}
+  public MasonPurePerlComponentFileType() {
+    this(Mason2Language.INSTANCE);
+  }
 
-	public MasonPurePerlComponentFileType(Language language)
-	{
-		super(language);
-	}
+  public MasonPurePerlComponentFileType(Language language) {
+    super(language);
+  }
 
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return "Mason2 pure Perl component";
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return "Mason2 pure Perl component";
+  }
 
-	@NotNull
-	@Override
-	public String getDescription()
-	{
-		return "Mason2 pure Perl component";
-	}
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Mason2 pure Perl component";
+  }
 
-	@NotNull
-	@Override
-	public String getDefaultExtension()
-	{
-		return "mp";
-	}
+  @NotNull
+  @Override
+  public String getDefaultExtension() {
+    return "mp";
+  }
 
-	@Nullable
-	@Override
-	public Icon getIcon()
-	{
-		return Mason2Icons.MASON_PURE_PERL_COMPONENT_ICON;
-	}
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return Mason2Icons.MASON_PURE_PERL_COMPONENT_ICON;
+  }
 
-	@Override
-	public boolean checkStrictPragma()
-	{
-		return false;
-	}
+  @Override
+  public boolean checkStrictPragma() {
+    return false;
+  }
 
-	@Override
-	public boolean checkWarningsPragma()
-	{
-		return false;
-	}
+  @Override
+  public boolean checkWarningsPragma() {
+    return false;
+  }
 }

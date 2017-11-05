@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,20 +17,18 @@
 package com.perl5.lang.perl.psi;
 
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.properties.PerlNamedElement;
-import com.perl5.lang.perl.psi.properties.PerlNamespaceElementContainer;
+import com.perl5.lang.perl.psi.properties.PerlIdentifierOwner;
 import com.perl5.lang.perl.psi.properties.PerlPackageMember;
 import com.perl5.lang.perl.psi.properties.PerlVariableNameElementContainer;
 
 /**
  * Created by hurricup on 25.05.2015.
  */
-public interface PerlGlobVariable extends PsiElement, PerlPackageMember, PerlNamespaceElementContainer, PerlVariableNameElementContainer, PerlNamedElement
-{
-	/**
-	 * Checks if this typeglob is left part of assignment
-	 *
-	 * @return result
-	 */
-	boolean isLeftSideOfAssignment();
+public interface PerlGlobVariable extends PsiElement, PerlPackageMember, PerlVariableNameElementContainer, PerlIdentifierOwner {
+  /**
+   * Checks if this typeglob is left part of assignment
+   *
+   * @return result
+   */
+  boolean isLeftSideOfAssignment();
 }

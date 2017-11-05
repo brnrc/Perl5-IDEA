@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,21 +28,18 @@ import org.jetbrains.annotations.Nullable;
  */
 
 @State(
-		name = "PerlCodeFoldingSettings",
-		storages = @Storage(file = PerlPathMacros.APP_CODEINSIGHT_SETTINGS_FILE)
+  name = "PerlCodeFoldingSettings",
+  storages = @Storage(file = PerlPathMacros.APP_CODEINSIGHT_SETTINGS_FILE)
 )
-public class PerlFoldingSettingsImpl extends PerlFoldingSettings implements PersistentStateComponent<PerlFoldingSettings>
-{
-	@Nullable
-	@Override
-	public PerlFoldingSettings getState()
-	{
-		return this;
-	}
+public class PerlFoldingSettingsImpl extends PerlFoldingSettings implements PersistentStateComponent<PerlFoldingSettings> {
+  @Nullable
+  @Override
+  public PerlFoldingSettings getState() {
+    return this;
+  }
 
-	@Override
-	public void loadState(PerlFoldingSettings state)
-	{
-		XmlSerializerUtil.copyBean(state, this);
-	}
+  @Override
+  public void loadState(PerlFoldingSettings state) {
+    XmlSerializerUtil.copyBean(state, this);
+  }
 }

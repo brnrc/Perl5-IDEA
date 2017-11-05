@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,9 +17,8 @@
 package com.perl5.lang.tt2.psi.impl;
 
 import com.intellij.lang.ASTNode;
-import com.perl5.lang.perl.PerlLanguage;
-import com.perl5.lang.perl.psi.PerlVariableDeclarationWrapper;
-import com.perl5.lang.perl.psi.impl.PerlVariableLightImpl;
+import com.perl5.lang.perl.psi.PerlVariableDeclarationElement;
+import com.perl5.lang.perl.psi.impl.PerlImplicitVariableDeclaration;
 import com.perl5.lang.tt2.psi.TemplateToolkitRawPerlBlockElement;
 import org.jetbrains.annotations.NotNull;
 
@@ -28,37 +27,19 @@ import java.util.List;
 /**
  * Created by hurricup on 11.06.2016.
  */
-public class TemplateToolkitRawPerlBlockElementImpl extends TemplateToolkitPerlBlockElementImpl implements TemplateToolkitRawPerlBlockElement
-{
-	public TemplateToolkitRawPerlBlockElementImpl(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class TemplateToolkitRawPerlBlockElementImpl extends TemplateToolkitPerlBlockElementImpl
+  implements TemplateToolkitRawPerlBlockElement {
+  public TemplateToolkitRawPerlBlockElementImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@NotNull
-	@Override
-	protected List<PerlVariableDeclarationWrapper> buildImplicitVariables()
-	{
-		List<PerlVariableDeclarationWrapper> variables = super.buildImplicitVariables();
-		variables.add(new PerlVariableLightImpl(
-				getManager(),
-				PerlLanguage.INSTANCE,
-				"$output",
-				true,
-				false,
-				false,
-				this
-		));
-		variables.add(new PerlVariableLightImpl(
-				getManager(),
-				PerlLanguage.INSTANCE,
-				"$error",
-				true,
-				false,
-				false,
-				this
-		));
-		return variables;
-	}
+  @NotNull
+  @Override
+  protected List<PerlVariableDeclarationElement> buildImplicitVariables() {
+    List<PerlVariableDeclarationElement> variables = super.buildImplicitVariables();
+    variables.add(PerlImplicitVariableDeclaration.createLexical(this, "$output"));
+    variables.add(PerlImplicitVariableDeclaration.createLexical(this, "$error"));
+    return variables;
+  }
 }
 

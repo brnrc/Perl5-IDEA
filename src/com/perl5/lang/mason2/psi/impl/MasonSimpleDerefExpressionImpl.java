@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,23 +25,19 @@ import com.perl5.lang.perl.psi.impl.PsiPerlDerefExprImpl;
 /**
  * Created by hurricup on 08.01.2016.
  */
-public class MasonSimpleDerefExpressionImpl extends PsiPerlDerefExprImpl
-{
-	public MasonSimpleDerefExpressionImpl(ASTNode node)
-	{
-		super(node);
-	}
+public class MasonSimpleDerefExpressionImpl extends PsiPerlDerefExprImpl {
+  public MasonSimpleDerefExpressionImpl(ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public String getCurrentElementType(PsiElement currentElement)
-	{
-		MasonNamespaceDefinition namespaceDefinition = PsiTreeUtil.getParentOfType(this, MasonNamespaceDefinition.class);
+  @Override
+  public String getCurrentElementNamespace(PsiElement currentElement) {
+    MasonNamespaceDefinition namespaceDefinition = PsiTreeUtil.getParentOfType(this, MasonNamespaceDefinition.class);
 
-		if (namespaceDefinition != null)
-		{
-			return namespaceDefinition.getPackageName();
-		}
+    if (namespaceDefinition != null) {
+      return namespaceDefinition.getPackageName();
+    }
 
-		return super.getCurrentElementType(currentElement);
-	}
+    return super.getCurrentElementNamespace(currentElement);
+  }
 }

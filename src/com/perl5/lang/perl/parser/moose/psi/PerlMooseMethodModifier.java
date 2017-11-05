@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,5 @@ import com.perl5.lang.perl.extensions.parser.PerlReferencesProvider;
 /**
  * Created by hurricup on 26.11.2015.
  */
-public interface PerlMooseMethodModifier extends PsiElement, PerlReferencesProvider
-{
+public interface PerlMooseMethodModifier extends PsiElement, PerlReferencesProvider {
 }

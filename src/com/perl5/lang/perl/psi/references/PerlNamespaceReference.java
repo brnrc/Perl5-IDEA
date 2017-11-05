@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,35 +16,65 @@
 
 package com.perl5.lang.perl.psi.references;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.perl5.lang.perl.psi.references.resolvers.PerlNamespaceDefinitionResolver;
+import com.intellij.util.IncorrectOperationException;
+import com.perl5.lang.perl.psi.PerlNamespaceElement;
+import com.perl5.lang.perl.psi.impl.PerlBuiltInNamespaceDefinition;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by hurricup on 28.05.2015.
  */
-public class PerlNamespaceReference extends PerlPolyVariantReference<PsiElement>
-{
-	protected static final ResolveCache.PolyVariantResolver<PerlNamespaceReference> RESOLVER = new PerlNamespaceDefinitionResolver();
+public class PerlNamespaceReference extends PerlCachingReference<PsiElement> {
+  public PerlNamespaceReference(PsiElement psiElement) {
+    super(psiElement);
+  }
 
-	public PerlNamespaceReference(@NotNull PsiElement element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  public PerlNamespaceReference(@NotNull PsiElement element, TextRange textRange) {
+    super(element, textRange);
+  }
 
-	public String getCanonicalName()
-	{
-		return PerlPackageUtil.getCanonicalPackageName(myElement.getText());
-	}
+  @NotNull
+  private String getPackageName() {
+    if (myElement instanceof PerlNamespaceElement) {
+      return ((PerlNamespaceElement)myElement).getCanonicalName();
+    }
+    return getRangeInElement().substring(myElement.getText());
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, false);
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    String packageName = getPackageName();
+    if (packageName.isEmpty()) {
+      packageName = PerlPackageUtil.MAIN_PACKAGE;
+    }
+
+    Project project = myElement.getProject();
+    PerlBuiltInNamespaceDefinition builtInNamespaceDefinition =
+      PerlBuiltInNamespacesService.getInstance(project).getNamespaceDefinition(packageName);
+    if (builtInNamespaceDefinition != null) {
+      return PsiElementResolveResult.createResults(builtInNamespaceDefinition);
+    }
+
+    List<PsiElement> result = new ArrayList<>();
+    result.addAll(PerlPackageUtil.getNamespaceDefinitions(project, PerlPackageUtil.getCanonicalPackageName(packageName)));
+
+    return PsiElementResolveResult.createResults(result);
+  }
+
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    if (myElement instanceof PerlNamespaceElement && ((PerlNamespaceElement)myElement).isTag()) {
+      return myElement;
+    }
+    return super.handleElementRename(newElementName);
+  }
 }

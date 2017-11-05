@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,170 +28,128 @@ import javax.swing.*;
 /**
  * Created by hurricup on 02.06.2016.
  */
-public class PerlExportDescriptor
-{
-	public static final String ALL_SIGILS = "$@%*&";
+public class PerlExportDescriptor {
+  public static final String ALL_SIGILS = "$@%*&";
 
-	private final char mySigil;
-	private final String myExporter;
-	private final String myExportedName;
-	private final String myTargetName;
-	private final String myTargetPackage;
+  private final char mySigil;
+  @NotNull
+  private final String myImportedName;
+  @NotNull
+  private final String myRealName;
+  @NotNull
+  private final String myRealPackage;
 
-	public PerlExportDescriptor(@NotNull String exportedName, @NotNull String exportedBy)
-	{
-		this(exportedBy, exportedName, exportedBy, exportedName);
-	}
+  private PerlExportDescriptor(@NotNull String realPackage, @NotNull String realName, @NotNull String importedName) {
+    myRealPackage = realPackage;
+    if (realName.length() > 0 && StringUtil.containsChar(ALL_SIGILS, realName.charAt(0)))  // canonical export
+    {
+      mySigil = realName.charAt(0);
+      myRealName = realName.substring(1);
+      myImportedName = importedName.substring(1);
+    }
+    else // suppose it's sigilles code
+    {
+      mySigil = '&';
+      myImportedName = importedName;
+      myRealName = realName;
+    }
+  }
+  @NotNull
+  public String getImportedName() {
+    return myImportedName;
+  }
 
-	public PerlExportDescriptor(@NotNull String exportedBy, @NotNull String exportedName, @NotNull String targetPackage)
-	{
-		this(exportedBy, exportedName, targetPackage, exportedName);
-	}
+  @NotNull
+  public String getTargetCanonicalName() {
+    return getRealPackage() + PerlPackageUtil.PACKAGE_SEPARATOR + getRealName();
+  }
 
-	public PerlExportDescriptor(@NotNull String exportedBy, @NotNull String exportedName, @NotNull String targetPackage, @NotNull String targetName)
-	{
-		myExporter = exportedBy;
-		myTargetPackage = targetPackage;
-		if (targetName.length() > 0 && StringUtil.containsChar(ALL_SIGILS, targetName.charAt(0)))  // canonical export
-		{
-			mySigil = targetName.charAt(0);
-			myTargetName = targetName.substring(1);
-			myExportedName = exportedName.substring(1); // fixme dangerous, but depends only on PackageProcessor author
-		}
-		else // suppose it's sigilles code
-		{
-			mySigil = '&';
-			myExportedName = exportedName;
-			myTargetName = targetName;
-		}
-	}
+  @NotNull
+  public String getRealName() {
+    return myRealName;
+  }
 
-	@NotNull
-	public String getExporterName()
-	{
-		return myExporter;
-	}
+  @NotNull
+  public String getRealPackage() {
+    return myRealPackage;
+  }
 
-	@NotNull
-	public String getExportedName()
-	{
-		return myExportedName;
-	}
+  public boolean isScalar() {
+    return mySigil == '$';
+  }
 
-	@NotNull
-	public String getTargetCanonicalName()
-	{
-		return getTargetPackage() + PerlPackageUtil.PACKAGE_SEPARATOR + getTargetName();
-	}
+  public boolean isArray() {
+    return mySigil == '@';
+  }
 
-	@NotNull
-	public String getTargetName()
-	{
-		return myTargetName;
-	}
+  public boolean isHash() {
+    return mySigil == '%';
+  }
 
-	@NotNull
-	public String getTargetPackage()
-	{
-		return myTargetPackage;
-	}
+  public boolean isGlob() {
+    return mySigil == '*';
+  }
 
-	public boolean isScalar()
-	{
-		return mySigil == '$';
-	}
+  public boolean isSub() {
+    return mySigil == '&';
+  }
 
-	public boolean isArray()
-	{
-		return mySigil == '@';
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof PerlExportDescriptor)) return false;
 
-	public boolean isHash()
-	{
-		return mySigil == '%';
-	}
+    PerlExportDescriptor that = (PerlExportDescriptor)o;
 
-	public boolean isGlob()
-	{
-		return mySigil == '*';
-	}
+    if (mySigil != that.mySigil) return false;
+    if (!getImportedName().equals(that.getImportedName())) return false;
+    if (!getRealName().equals(that.getRealName())) return false;
+    return getRealPackage().equals(that.getRealPackage());
+  }
 
-	public boolean isSub()
-	{
-		return mySigil == '&';
-	}
+  @Override
+  public int hashCode() {
+    int result = (int)mySigil;
+    result = 31 * result + getImportedName().hashCode();
+    result = 31 * result + getRealName().hashCode();
+    result = 31 * result + getRealPackage().hashCode();
+    return result;
+  }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof PerlExportDescriptor))
-		{
-			return false;
-		}
+  @NotNull
+  public LookupElementBuilder getLookupElement() {
+    return LookupElementBuilder.create(getImportedName())
+      .withIcon(getIcon())
+      .withTypeText(getRealPackage(), true);
+  }
 
-		PerlExportDescriptor that = (PerlExportDescriptor) o;
+  @Nullable
+  public Icon getIcon() {
+    if (isHash()) {
+      return PerlIcons.HASH_GUTTER_ICON;
+    }
+    else if (isScalar()) {
+      return PerlIcons.SCALAR_GUTTER_ICON;
+    }
+    else if (isArray()) {
+      return PerlIcons.ARRAY_GUTTER_ICON;
+    }
+    else if (isGlob()) {
+      return PerlIcons.GLOB_GUTTER_ICON;
+    }
+    else if (isSub()) {
+      return PerlIcons.SUB_GUTTER_ICON;
+    }
+    return null;
+  }
 
-		if (mySigil != that.mySigil)
-		{
-			return false;
-		}
-		if (!getExportedName().equals(that.getExportedName()))
-		{
-			return false;
-		}
-		if (!getTargetName().equals(that.getTargetName()))
-		{
-			return false;
-		}
-		return getTargetPackage().equals(that.getTargetPackage());
+  public static PerlExportDescriptor create(@NotNull String sourcePackageName, @NotNull String sourceSubName) {
+    return new PerlExportDescriptor(sourcePackageName, sourceSubName, sourceSubName);
+  }
 
-	}
-
-	@Override
-	public int hashCode()
-	{
-		int result = (int) mySigil;
-		result = 31 * result + getExportedName().hashCode();
-		result = 31 * result + getTargetName().hashCode();
-		result = 31 * result + getTargetPackage().hashCode();
-		return result;
-	}
-
-	@NotNull
-	public LookupElementBuilder getLookupElement()
-	{
-		return LookupElementBuilder.create(getExportedName())
-				.withIcon(getIcon())
-				.withTypeText(getTargetPackage(), true);
-	}
-
-	@Nullable
-	public Icon getIcon()
-	{
-		if (isHash())
-		{
-			return PerlIcons.HASH_GUTTER_ICON;
-		}
-		else if (isScalar())
-		{
-			return PerlIcons.SCALAR_GUTTER_ICON;
-		}
-		else if (isArray())
-		{
-			return PerlIcons.ARRAY_GUTTER_ICON;
-		}
-		else if (isGlob())
-		{
-			return PerlIcons.GLOB_GUTTER_ICON;
-		}
-		else if (isSub())
-		{
-			return PerlIcons.SUB_GUTTER_ICON;
-		}
-		return null;
-	}
+  public static PerlExportDescriptor create(@NotNull String sourcePackageName,
+                                            @NotNull String sourceSubName,
+                                            @NotNull String importedSubName) {
+    return new PerlExportDescriptor(sourcePackageName, importedSubName, sourceSubName);
+  }
 }

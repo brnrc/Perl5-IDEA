@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,34 +26,28 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodSectionParagraphMixin extends PodSectionMixin implements PodSectionParagraph
-{
-	public PodSectionParagraphMixin(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class PodSectionParagraphMixin extends PodSectionMixin implements PodSectionParagraph {
+  public PodSectionParagraphMixin(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public void renderElementContentAsHTML(StringBuilder builder, PodRenderingContext context)
-	{
-		PsiElement firstChild = getFirstChild();
+  @Override
+  public void renderElementContentAsHTML(StringBuilder builder, PodRenderingContext context) {
+    PsiElement firstChild = getFirstChild();
 
-		if (firstChild != null)
-		{
-			builder.append("<p style=\"padding-bottom: 10px;\">");
-			PodRenderUtil.renderPsiRangeAsHTML(firstChild, null, builder, context);
-			builder.append("</p>");
-		}
-	}
+    if (firstChild != null) {
+      builder.append("<p style=\"padding-bottom: 10px;\">");
+      PodRenderUtil.renderPsiRangeAsHTML(firstChild, null, builder, context);
+      builder.append("</p>");
+    }
+  }
 
-	@Override
-	public void renderElementContentAsText(StringBuilder builder, PodRenderingContext context)
-	{
-		PsiElement firstChild = getFirstChild();
+  @Override
+  public void renderElementContentAsText(StringBuilder builder, PodRenderingContext context) {
+    PsiElement firstChild = getFirstChild();
 
-		if (firstChild != null)
-		{
-			PodRenderUtil.renderPsiRangeAsText(firstChild, null, builder, context);
-		}
-	}
+    if (firstChild != null) {
+      PodRenderUtil.renderPsiRangeAsText(firstChild, null, builder, context);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,40 +23,33 @@ import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.stubs.StubElement;
-import com.perl5.lang.perl.psi.utils.PerlScopeUtil;
+import com.perl5.lang.perl.psi.utils.PerlResolveUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 31.01.2016.
  */
-public class PerlStubBasedPsiElementBase<T extends StubElement> extends StubBasedPsiElementBase<T>
-{
-	public PerlStubBasedPsiElementBase(@NotNull T stub, @NotNull IStubElementType nodeType)
-	{
-		super(stub, nodeType);
-	}
+public class PerlStubBasedPsiElementBase<T extends StubElement> extends StubBasedPsiElementBase<T> {
+  public PerlStubBasedPsiElementBase(@NotNull T stub, @NotNull IStubElementType nodeType) {
+    super(stub, nodeType);
+  }
 
-	public PerlStubBasedPsiElementBase(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+  public PerlStubBasedPsiElementBase(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public String toString()
-	{
-		return getClass().getSimpleName() + "(" + getElementType().toString() + ")";
-	}
+  @Override
+  public String toString() {
+    return getClass().getSimpleName() + "(" + getElementType().toString() + ")";
+  }
 
-	@Override
-	public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, PsiElement lastParent, @NotNull PsiElement place)
-	{
-//		System.err.println(this);
-		return PerlScopeUtil.processChildren(
-				this,
-				processor,
-				state,
-				lastParent,
-				place
-		);
-	}
+  @Override
+  public boolean processDeclarations(@NotNull PsiScopeProcessor processor,
+                                     @NotNull ResolveState state,
+                                     PsiElement lastParent,
+                                     @NotNull PsiElement place) {
+
+    return PerlResolveUtil.processChildren(this, processor, state, lastParent, place) &&
+           processor.execute(this, state);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,16 +22,14 @@ import com.perl5.lang.perl.idea.run.debugger.PerlDebugThread;
 /**
  * Created by hurricup on 05.05.2016.
  */
-public interface PerlDebuggingEvent extends Runnable
-{
-	void run();
+public interface PerlDebuggingEvent extends Runnable {
+  void run();
 
-	XDebugSession getDebugSession();
+  XDebugSession getDebugSession();
 
-	void setDebugSession(XDebugSession debugSession);
+  void setDebugSession(XDebugSession debugSession);
 
-	PerlDebugThread getDebugThread();
+  PerlDebugThread getDebugThread();
 
-	void setDebugThread(PerlDebugThread debugThread);
-
+  void setDebugThread(PerlDebugThread debugThread);
 }

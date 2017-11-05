@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,12 +26,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class HTMLMasonFileViewProviderFactory implements FileViewProviderFactory
-{
-	@NotNull
-	@Override
-	public FileViewProvider createFileViewProvider(@NotNull VirtualFile file, Language language, @NotNull PsiManager manager, boolean eventSystemEnabled)
-	{
-		return new HTMLMasonFileViewProvider(manager, file, eventSystemEnabled);
-	}
+public class HTMLMasonFileViewProviderFactory implements FileViewProviderFactory {
+  @NotNull
+  @Override
+  public FileViewProvider createFileViewProvider(@NotNull VirtualFile file,
+                                                 Language language,
+                                                 @NotNull PsiManager manager,
+                                                 boolean eventSystemEnabled) {
+    return new HTMLMasonFileViewProvider(manager, file, eventSystemEnabled);
+  }
 }

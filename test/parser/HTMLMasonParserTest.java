@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,155 +17,163 @@
 package parser;
 
 import com.intellij.psi.LanguageFileViewProviders;
-import com.intellij.psi.PsiFile;
 import com.perl5.lang.htmlmason.HTMLMasonFileViewProviderFactory;
 import com.perl5.lang.htmlmason.HTMLMasonLanguage;
 import com.perl5.lang.htmlmason.HTMLMasonParserDefinition;
-
-import java.util.List;
+import com.perl5.lang.htmlmason.idea.configuration.HTMLMasonCustomTag;
+import com.perl5.lang.htmlmason.idea.configuration.HTMLMasonCustomTagRole;
+import com.perl5.lang.htmlmason.idea.configuration.HTMLMasonSettings;
 
 /**
  * Created by hurricup on 06.03.2016.
  */
-public class HTMLMasonParserTest extends PerlParserTestBase
-{
-	public HTMLMasonParserTest()
-	{
-		super("", "mas", new HTMLMasonParserDefinition());
-	}
+public class HTMLMasonParserTest extends PerlParserTestBase {
+  public HTMLMasonParserTest() {
+    super("", "mas", new HTMLMasonParserDefinition());
+  }
 
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/parser/htmlmason";
-	}
+  @Override
+  protected String getTestDataPath() {
+    return "testData/parser/htmlmason";
+  }
 
-	public void testIssue1077()
-	{
-		doTest("issue_1077");
-	}
+  private void addCustomTag(String text, HTMLMasonCustomTagRole role) {
+    HTMLMasonSettings settings = HTMLMasonSettings.getInstance(getProject());
+    settings.customTags.add(new HTMLMasonCustomTag(text, role));
+    settings.settingsUpdated();
+  }
 
-	public void testArgs()
-	{
-		doTest("parse_args");
-	}
+  public void testCustomArgs() {
+    addCustomTag("customargs", HTMLMasonCustomTagRole.ARGS);
+    doTest();
+  }
 
-	public void testAttr()
-	{
-		doTest("parse_attr");
-	}
+  public void testCustomPerl() {
+    addCustomTag("customperl", HTMLMasonCustomTagRole.PERL);
+    doTest();
+  }
 
-	public void testCalls()
-	{
-		doTest("parse_calls");
-	}
+  public void testCustomMethod() {
+    addCustomTag("custommethod", HTMLMasonCustomTagRole.METHOD);
+    doTest();
+  }
 
-	public void testCallsUnclosed()
-	{
-		doTest("parse_calls_unclosed", false);
-	}
+  public void testCustomDef() {
+    addCustomTag("customdef", HTMLMasonCustomTagRole.DEF);
+    doTest();
+  }
 
-	public void testCallsUnclosedTag()
-	{
-		doTest("parse_calls_unclosed_tag", false);
-	}
+  public void testIncompleteCloser() {
+    doTest();
+  }
 
-	public void testCallsFiltering()
-	{
-		doTest("parse_calls_filtering");
-	}
+  public void testIncompleteOpener() {
+    doTest(false);
+  }
 
-	public void testCode()
-	{
-		doTest("parse_code");
-	}
+  public void testIssue1077() {
+    doTest();
+  }
 
-	public void testDef()
-	{
-		doTest("parse_def");
-	}
+  public void testArgs() {
+    doTest();
+  }
 
-	public void testDoc()
-	{
-		doTest("parse_doc");
-	}
+  public void testAttr() {
+    doTest();
+  }
 
-	public void testFilter()
-	{
-		doTest("parse_filter");
-	}
+  public void testCalls() {
+    doTest();
+  }
 
-	public void testFlags()
-	{
-		doTest("parse_flags");
-	}
+  public void testCallsUnclosed() {
+    doTest(false);
+  }
 
-	public void testInit()
-	{
-		doTest("parse_init");
-	}
+  public void testCallsUnclosedTag() {
+    doTest(false);
+  }
 
-	public void testMethod()
-	{
-		doTest("parse_method");
-	}
+  public void testCallsFiltering() {
+    doTest();
+  }
 
-	public void testOnce()
-	{
-		doTest("parse_once");
-	}
+  public void testCode() {
+    doTest();
+  }
 
-	public void testPerl()
-	{
-		doTest("parse_perl");
-	}
+  public void testDef() {
+    doTest();
+  }
 
-	public void testShared()
-	{
-		doTest("parse_shared");
-	}
+  public void testDoc() {
+    doTest();
+  }
 
-	public void testText()
-	{
-		doTest("parse_text");
-	}
+  public void testFilter() {
+    doTest();
+  }
 
-	public void testSpaceless()
-	{
-		doTest("parse_spaceless");
-	}
+  public void testFlags() {
+    doTest();
+  }
 
-	public void testEscapedBlock()
-	{
-		doTest("parse_escaped_block");
-	}
+  public void testInit() {
+    doTest();
+  }
 
-	public void testMasonSample()
-	{
-		doTest("parse_mason_sample");
-	}
+  public void testMethod() {
+    doTest();
+  }
 
-	public void testErrorFilter() throws Exception
-	{
-		String name = "error_filter";
-		String text = loadFile(name + "." + myFileExt);
-		myFile = createPsiFile(name, text);
-		ensureParsed(myFile);
-		List<PsiFile> allFiles = myFile.getViewProvider().getAllFiles();
-		assertEquals(3, allFiles.size());
-		// fixme this is not actually works we need to check annotations, not eror elements, they are still there, see #917
-		// see https://github.com/JetBrains/intellij-plugins/blob/master/handlebars/src/com/dmarcotte/handlebars/inspections/HbErrorFilter.java
-//		assertFalse(
-//				"PsiFile contains error elements",
-//				toParseTreeText(allFiles.get(1), skipSpaces(), includeRanges()).contains("PsiErrorElement")
-//		);
-	}
+  public void testOnce() {
+    doTest();
+  }
 
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		LanguageFileViewProviders.INSTANCE.addExplicitExtension(HTMLMasonLanguage.INSTANCE, new HTMLMasonFileViewProviderFactory());
-	}
+  public void testPerl() {
+    doTest();
+  }
 
+  public void testShared() {
+    doTest();
+  }
+
+  public void testText() {
+    doTest();
+  }
+
+  public void testSpaceless() {
+    doTest();
+  }
+
+  public void testEscapedBlock() {
+    doTest();
+  }
+
+  public void testMasonSample() {
+    doTest();
+  }
+
+  public void testErrorFilter() throws Exception {
+    String name = "errorFilter";
+    String text = loadFile(name + "." + myFileExt);
+    myFile = createPsiFile(name, text);
+    ensureParsed(myFile);
+    //		List<PsiFile> allFiles = myFile.getViewProvider().getAllFiles();
+    //		assertEquals(3, allFiles.size());
+    // fixme this is not actually works we need to check annotations, not eror elements, they are still there, see #917
+    // see https://github.com/JetBrains/intellij-plugins/blob/master/handlebars/src/com/dmarcotte/handlebars/inspections/HbErrorFilter.java
+    //		assertFalse(
+    //				"PsiFile contains error elements",
+    //				toParseTreeText(allFiles.get(1), skipSpaces(), includeRanges()).contains("PsiErrorElement")
+    //		);
+  }
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    LanguageFileViewProviders.INSTANCE.addExplicitExtension(HTMLMasonLanguage.INSTANCE, new HTMLMasonFileViewProviderFactory());
+    getProject().registerService(HTMLMasonSettings.class, new HTMLMasonSettings(getProject()));
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,21 +23,20 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 30.04.2016.
  */
-public interface PerlAssignExpression extends PsiPerlExpr
-{
-	/**
-	 * Returns the leftmost side of assign expression
-	 *
-	 * @return left side
-	 */
-	@NotNull
-	PsiElement getLeftSide();
+public interface PerlAssignExpression extends PsiPerlExpr {
+  /**
+   * Returns the leftmost side of assign expression
+   *
+   * @return left side
+   */
+  @NotNull
+  PsiElement getLeftSide();
 
-	/**
-	 * Returns the rightmost side of assignment expression
-	 *
-	 * @return rightmost side or null if expression is incomplete
-	 */
-	@Nullable
-	PsiElement getRightSide();
+  /**
+   * Returns the rightmost side of assignment expression
+   *
+   * @return rightmost side or null if expression is incomplete
+   */
+  @Nullable
+  PsiElement getRightSide();
 }

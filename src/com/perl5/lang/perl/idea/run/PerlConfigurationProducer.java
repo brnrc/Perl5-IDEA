@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.util.Comparing;
 import com.intellij.openapi.util.Ref;
 import com.intellij.openapi.vfs.VirtualFile;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
+import com.perl5.lang.perl.fileTypes.PerlFileTypeScript;
 import com.perl5.lang.perl.fileTypes.PerlFileTypeTest;
 import com.perl5.lang.perl.idea.run.debugger.PerlRemoteFileSystem;
 import org.jetbrains.annotations.NotNull;
@@ -33,50 +33,42 @@ import org.jetbrains.annotations.Nullable;
  * @author VISTALL
  * @since 19-Sep-15
  */
-public class PerlConfigurationProducer extends RunConfigurationProducer<PerlConfiguration>
-{
-	public PerlConfigurationProducer()
-	{
-		super(PerlConfigurationType.getInstance().getConfigurationFactories()[0]);
-	}
+public class PerlConfigurationProducer extends RunConfigurationProducer<PerlConfiguration> {
+  public PerlConfigurationProducer() {
+    super(PerlConfigurationType.getInstance().getConfigurationFactories()[0]);
+  }
 
-	public static boolean isExecutableFile(@NotNull VirtualFile virtualFile)
-	{
-		if (virtualFile instanceof PerlRemoteFileSystem.PerlRemoteVirtualFile)
-		{
-			return false;
-		}
+  @Nullable
+  public VirtualFile findPerlFile(ConfigurationContext configurationContext) {
+    Location location = configurationContext.getLocation();
+    VirtualFile virtualFile = location == null ? null : location.getVirtualFile();
+    return virtualFile != null && isExecutableFile(virtualFile) ? virtualFile : null;
+  }
 
-		FileType fileType = virtualFile.getFileType();
-		return fileType == PerlFileType.INSTANCE || fileType == PerlFileTypeTest.INSTANCE;
-	}
+  @Override
+  public boolean isConfigurationFromContext(PerlConfiguration runConfiguration, ConfigurationContext configurationContext) {
+    VirtualFile perlFile = findPerlFile(configurationContext);
+    return perlFile != null && Comparing.equal(runConfiguration.getScriptFile(), perlFile);
+  }
 
-	@Nullable
-	public VirtualFile findPerlFile(ConfigurationContext configurationContext)
-	{
-		Location location = configurationContext.getLocation();
-		VirtualFile virtualFile = location == null ? null : location.getVirtualFile();
-		return virtualFile != null && isExecutableFile(virtualFile) ? virtualFile : null;
-	}
+  @Override
+  protected boolean setupConfigurationFromContext(PerlConfiguration runConfiguration, ConfigurationContext configurationContext, Ref ref) {
+    VirtualFile perlFile = findPerlFile(configurationContext);
+    if (perlFile != null) {
+      runConfiguration.setScriptPath(perlFile.getPath());
+      runConfiguration.setConsoleCharset(perlFile.getCharset().displayName());
+      runConfiguration.setGeneratedName();
+      return true;
+    }
+    return false;
+  }
 
-	@Override
-	public boolean isConfigurationFromContext(PerlConfiguration runConfiguration, ConfigurationContext configurationContext)
-	{
-		VirtualFile perlFile = findPerlFile(configurationContext);
-		return perlFile != null && Comparing.equal(runConfiguration.getScriptFile(), perlFile);
-	}
+  public static boolean isExecutableFile(@NotNull VirtualFile virtualFile) {
+    if (virtualFile instanceof PerlRemoteFileSystem.PerlRemoteVirtualFile) {
+      return false;
+    }
 
-	@Override
-	protected boolean setupConfigurationFromContext(PerlConfiguration runConfiguration, ConfigurationContext configurationContext, Ref ref)
-	{
-		VirtualFile perlFile = findPerlFile(configurationContext);
-		if (perlFile != null)
-		{
-			runConfiguration.setScriptPath(perlFile.getPath());
-			runConfiguration.setConsoleCharset(perlFile.getCharset().displayName());
-			runConfiguration.setGeneratedName();
-			return true;
-		}
-		return false;
-	}
+    FileType fileType = virtualFile.getFileType();
+    return fileType == PerlFileTypeScript.INSTANCE || fileType == PerlFileTypeTest.INSTANCE;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,30 +22,31 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.util.Processor;
 import com.perl5.lang.perl.psi.PerlHeredocOpener;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
 import org.jetbrains.annotations.NotNull;
+
+import static com.perl5.lang.perl.util.PerlPackageUtil.__PACKAGE__;
 
 /**
  * Created by hurricup on 02.03.2016.
  */
-public class PerlReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>
-{
-	public PerlReferencesSearcher()
-	{
-		super(true);
-	}
+public class PerlReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> {
+  public PerlReferencesSearcher() {
+    super(true);
+  }
 
-	@Override
-	public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer)
-	{
-		PsiElement element = queryParameters.getElementToSearch();
+  @Override
+  public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+    PsiElement element = queryParameters.getElementToSearch();
 
-		if (element instanceof PerlHeredocOpener)
-		{
-			String heredocName = ((PerlHeredocOpener) element).getName();
-			if ("".equals(heredocName))
-			{
-				queryParameters.getOptimizer().searchWord("\n", queryParameters.getEffectiveSearchScope(), true, element);
-			}
-		}
-	}
+    if (element instanceof PerlHeredocOpener) {
+      String heredocName = ((PerlHeredocOpener)element).getName();
+      if ("".equals(heredocName)) {
+        queryParameters.getOptimizer().searchWord("\n", queryParameters.getEffectiveSearchScope(), true, element);
+      }
+    }
+    else if (element instanceof PerlNamespaceDefinition) {
+      queryParameters.getOptimizer().searchWord(__PACKAGE__, queryParameters.getEffectiveSearchScope(), true, element);
+    }
+  }
 }

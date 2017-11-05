@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,40 +16,40 @@
 
 package editor;
 
-import base.PerlLightCodeInsightFixtureTestCase;
+import base.PerlLightTestCase;
+import com.intellij.openapi.fileTypes.LanguageFileType;
 import com.perl5.lang.htmlmason.filetypes.HTMLMasonFileType;
 import com.perl5.lang.mason2.filetypes.MasonTopLevelComponentFileType;
 import com.perl5.lang.mojolicious.filetypes.MojoliciousFileType;
-import com.perl5.lang.perl.fileTypes.PerlFileType;
+import com.perl5.lang.perl.fileTypes.PerlFileTypeScript;
+import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 23.02.2016.
  */
-public class PerlFoldingTestCase extends PerlLightCodeInsightFixtureTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/folding";
-	}
+public class PerlFoldingTestCase extends PerlLightTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/folding";
+  }
 
-	public void testPerlFolding()
-	{
-		testFoldingRegions("perl_folding_test", PerlFileType.INSTANCE);
-	}
+  public void testPerl() {
+    doTest(PerlFileTypeScript.INSTANCE);
+  }
 
-	public void testMason2Folding()
-	{
-		testFoldingRegions("mason2_folding_test", MasonTopLevelComponentFileType.INSTANCE);
-	}
+  public void testMason2() {
+    doTest(MasonTopLevelComponentFileType.INSTANCE);
+  }
 
-	public void testHtmlMasonFolding()
-	{
-		testFoldingRegions("html_mason_folding_test", HTMLMasonFileType.INSTANCE);
-	}
+  public void testHtmlMason() {
+    doTest(HTMLMasonFileType.INSTANCE);
+  }
 
-	public void testMojoliciousFolding()
-	{
-		testFoldingRegions("mojolicious_folding_test", MojoliciousFileType.INSTANCE);
-	}
+  public void testMojolicious() {
+    doTest(MojoliciousFileType.INSTANCE);
+  }
+
+  private void doTest(@NotNull LanguageFileType fileType) {
+    testFoldingRegions(getTestName(true), fileType);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,68 @@
 
 package com.perl5.lang.perl.psi;
 
-import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.properties.PerlLexicalScopeMember;
-import com.perl5.lang.perl.psi.properties.PerlNamespaceElementContainer;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.openapi.util.text.StringUtil;
+import com.perl5.lang.perl.psi.utils.PerlVariableAnnotations;
+import com.perl5.lang.perl.psi.utils.PerlVariableType;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.Collection;
+import static com.perl5.lang.perl.util.PerlPackageUtil.PACKAGE_SEPARATOR;
 
-/**
- * Created by hurricup on 27.05.2015.
- * Declarations marker
- */
-public interface PerlVariableDeclaration extends PsiElement, PerlNamespaceElementContainer, PerlLexicalScopeMember
-{
-	/**
-	 * Returns explicit declared type
-	 *
-	 * @return declaration type name or null
-	 */
-	@Nullable
-	String getDeclarationType();
+public interface PerlVariableDeclaration extends PerlDeprecatable {
+  /**
+   * Trying to get the package name from explicit specification or by traversing
+   *
+   * @return package name for current element
+   */
+  String getPackageName();
 
-	@NotNull
-	Collection<PsiPerlArrayVariable> getArrayVariableList();
+  String getVariableName();
 
-	@NotNull
-	Collection<PsiPerlHashVariable> getHashVariableList();
+  /**
+   * Returns declaration type in annotation or declaration
+   *
+   * @return type string or null
+   */
+  @Nullable
+  String getDeclaredType();
 
-	@NotNull
-	Collection<PsiPerlScalarVariable> getScalarVariableList();
+  /**
+   * Guessing actual variable type from context
+   *
+   * @return variable type
+   */
+  PerlVariableType getActualType();
+
+  /**
+   * Returns stubbed, local or external variable annotations
+   *
+   * @return annotations or null
+   */
+  @Nullable
+  PerlVariableAnnotations getVariableAnnotations();
+
+  @Override
+  default boolean isDeprecated() {
+    PerlVariableAnnotations variableAnnotations = getVariableAnnotations();
+    return variableAnnotations != null && variableAnnotations.isDeprecated();
+  }
+
+  /**
+   * returns proper fqn
+   *
+   * @return fqn or null if name is missing
+   */
+  @Nullable
+  default String getFullQualifiedName() {
+    String variableName = getVariableName();
+    if (StringUtil.isEmpty(variableName)) {
+      return null;
+    }
+
+    String packageName = getPackageName();
+    if (StringUtil.isEmpty(packageName)) {
+      return variableName;
+    }
+    return packageName + PACKAGE_SEPARATOR + variableName;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,17 +26,14 @@ import java.util.List;
 /**
  * Created by evstigneev on 21.08.2015.
  */
-public class MroProcessor extends PerlPragmaProcessorBase implements PerlMroProvider
-{
-	@Override
-	public PerlMroType getMroType(PerlUseStatement useStatement)
-	{
-		List<String> parameters = useStatement.getImportParameters();
+public class MroProcessor extends PerlPragmaProcessorBase implements PerlMroProvider {
+  @Override
+  public PerlMroType getMroType(PerlUseStatement useStatement) {
+    List<String> parameters = useStatement.getImportParameters();
 
-		if (parameters != null && !parameters.isEmpty() && "c3".equals(parameters.get(0)))
-		{
-			return PerlMroType.C3;
-		}
-		return PerlMroType.DFS;
-	}
+    if (parameters != null && !parameters.isEmpty() && "c3".equals(parameters.get(0))) {
+      return PerlMroType.C3;
+    }
+    return PerlMroType.DFS;
+  }
 }

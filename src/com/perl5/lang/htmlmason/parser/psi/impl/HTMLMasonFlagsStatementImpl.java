@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ package com.perl5.lang.htmlmason.parser.psi.impl;
 
 import com.intellij.lang.ASTNode;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.util.PsiTreeUtil;
@@ -32,41 +33,37 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 09.03.2016.
  */
-public class HTMLMasonFlagsStatementImpl extends PerlStubBasedPsiElementBase<HTMLMasonFlagsStatementStub> implements HTMLMasonFlagsStatement
-{
-	public HTMLMasonFlagsStatementImpl(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class HTMLMasonFlagsStatementImpl extends PerlStubBasedPsiElementBase<HTMLMasonFlagsStatementStub>
+  implements HTMLMasonFlagsStatement {
+  public HTMLMasonFlagsStatementImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	public HTMLMasonFlagsStatementImpl(@NotNull HTMLMasonFlagsStatementStub stub, @NotNull IStubElementType nodeType)
-	{
-		super(stub, nodeType);
-	}
+  public HTMLMasonFlagsStatementImpl(@NotNull HTMLMasonFlagsStatementStub stub, @NotNull IStubElementType nodeType) {
+    super(stub, nodeType);
+  }
 
-	@Nullable
-	@Override
-	public String getParentComponentPath()
-	{
-		HTMLMasonFlagsStatementStub stub = getStub();
+  @Nullable
+  @Override
+  public String getParentComponentPath() {
+    HTMLMasonFlagsStatementStub stub = getStub();
 
-		if (stub != null)
-		{
-			return stub.getParentComponentPath();
-		}
+    if (stub != null) {
+      return stub.getParentComponentPath();
+    }
 
-		PsiPerlCommaSequenceExpr expr = PsiTreeUtil.findChildOfType(this, PsiPerlCommaSequenceExpr.class);
-		if (expr != null)
-		{
-			PsiElement firstChild = expr.getFirstChild();
-			PsiElement lastChild = expr.getLastChild();
+    PsiPerlCommaSequenceExpr expr = PsiTreeUtil.findChildOfType(this, PsiPerlCommaSequenceExpr.class);
+    if (expr != null) {
+      PsiElement firstChild = expr.getFirstChild();
+      PsiElement lastChild = expr.getLastChild();
 
-			if (firstChild instanceof PerlString && StringUtil.equals("inherit", ((PerlString) firstChild).getStringContent()) && lastChild instanceof PerlString)
-			{
-				return ((PerlString) lastChild).getStringContent();
-			}
-		}
+      if (firstChild instanceof PerlString &&
+          StringUtil.equals("inherit", ElementManipulators.getValueText(firstChild)) &&
+          lastChild instanceof PerlString) {
+        return ElementManipulators.getValueText(lastChild);
+      }
+    }
 
-		return UNDEF_RESULT;
-	}
+    return UNDEF_RESULT;
+  }
 }

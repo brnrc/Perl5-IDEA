@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,24 +28,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 10.04.2016.
  */
-public class PodReferencesSearch extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>
-{
-	public PodReferencesSearch()
-	{
-		super(true);
-	}
+public class PodReferencesSearch extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> {
+  public PodReferencesSearch() {
+    super(true);
+  }
 
-	@Override
-	public void processQuery(@NotNull final ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer)
-	{
-		final PsiElement element = queryParameters.getElementToSearch();
-		if (element instanceof PodTitledSection)
-		{
-			final String textTitle = ((PodTitledSection) element).getTitleText();
-			if (StringUtil.isNotEmpty(textTitle))
-			{
-				queryParameters.getOptimizer().searchWord(textTitle, queryParameters.getEffectiveSearchScope(), true, element);
-			}
-		}
-	}
+  @Override
+  public void processQuery(@NotNull final ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+    final PsiElement element = queryParameters.getElementToSearch();
+    if (element instanceof PodTitledSection) {
+      final String textTitle = ((PodTitledSection)element).getTitleText();
+      if (StringUtil.isNotEmpty(textTitle)) {
+        queryParameters.getOptimizer().searchWord(textTitle, queryParameters.getEffectiveSearchScope(), true, element);
+      }
+    }
+  }
 }

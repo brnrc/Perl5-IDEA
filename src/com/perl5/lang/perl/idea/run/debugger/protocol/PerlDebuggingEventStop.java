@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,23 +22,19 @@ import com.perl5.lang.perl.idea.run.debugger.PerlSuspendContext;
 /**
  * Created by hurricup on 05.05.2016.
  */
-public class PerlDebuggingEventStop extends PerlDebuggingEventBase implements PerlDebuggingEvent
-{
-	private PerlStackFrameDescriptor[] frames;
+public class PerlDebuggingEventStop extends PerlDebuggingEventBase implements PerlDebuggingEvent {
+  private PerlStackFrameDescriptor[] frames;
 
-	public void setFrames(PerlStackFrameDescriptor[] frames)
-	{
-		this.frames = frames;
-	}
+  public void setFrames(PerlStackFrameDescriptor[] frames) {
+    this.frames = frames;
+  }
 
-	public XSuspendContext getSuspendContext()
-	{
-		return new PerlSuspendContext(frames, getDebugSession(), getDebugThread());
-	}
+  public XSuspendContext getSuspendContext() {
+    return new PerlSuspendContext(frames, getDebugSession(), getDebugThread());
+  }
 
-	@Override
-	public void run()
-	{
-		getDebugSession().positionReached(getSuspendContext());
-	}
+  @Override
+  public void run() {
+    getDebugSession().positionReached(getSuspendContext());
+  }
 }

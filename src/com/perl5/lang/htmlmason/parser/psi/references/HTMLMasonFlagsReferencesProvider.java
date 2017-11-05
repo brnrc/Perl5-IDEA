@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.perl5.lang.htmlmason.parser.psi.references;
 
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.PsiReferenceProvider;
@@ -26,20 +27,17 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.03.2016.
  */
-public class HTMLMasonFlagsReferencesProvider extends PsiReferenceProvider
-{
-	@NotNull
-	@Override
-	public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context)
-	{
-		if (element instanceof PerlString && element.getNextSibling() == null && element.getChildren().length == 0)
-		{
-			return new PsiReference[]{new HTMLMasonComponentReference(
-					(PerlString) element,
-					((PerlString) element).getContentTextRangeInParent()
-			)};
-		}
+public class HTMLMasonFlagsReferencesProvider extends PsiReferenceProvider {
+  @NotNull
+  @Override
+  public PsiReference[] getReferencesByElement(@NotNull PsiElement element, @NotNull ProcessingContext context) {
+    if (element instanceof PerlString && element.getNextSibling() == null && element.getChildren().length == 0) {
+      return new PsiReference[]{new HTMLMasonComponentReference(
+        (PerlString)element,
+        ElementManipulators.getValueTextRange(element)
+      )};
+    }
 
-		return PsiReference.EMPTY_ARRAY;
-	}
+    return PsiReference.EMPTY_ARRAY;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,25 +29,21 @@ import java.util.Collection;
 /**
  * Created by hurricup on 15.06.2016.
  */
-public class TemplateToolkitFileContextProvider extends FileContextProvider
-{
-	@Override
-	protected boolean isAvailable(PsiFile file)
-	{
-		return file instanceof TemplateToolkitFile;
-	}
+public class TemplateToolkitFileContextProvider extends FileContextProvider {
+  @Override
+  protected boolean isAvailable(PsiFile file) {
+    return file instanceof TemplateToolkitFile;
+  }
 
-	@NotNull
-	@Override
-	public Collection<PsiFileSystemItem> getContextFolders(PsiFile file)
-	{
-		return TemplateToolkitSettings.getInstance(file.getProject()).getTemplatePsiRoots();
-	}
+  @NotNull
+  @Override
+  public Collection<PsiFileSystemItem> getContextFolders(PsiFile file) {
+    return TemplateToolkitSettings.getInstance(file.getProject()).getTemplatePsiRoots();
+  }
 
-	@Nullable
-	@Override
-	public PsiFile getContextFile(PsiFile file)
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public PsiFile getContextFile(PsiFile file) {
+    return null;
+  }
 }

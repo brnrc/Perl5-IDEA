@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,36 +16,33 @@
 
 package packageProcessors;
 
-import base.PerlLightCodeInsightFixtureTestCase;
+import base.PerlLightTestCase;
 import com.perl5.lang.perl.extensions.packageprocessor.*;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 import com.perl5.lang.perl.psi.PerlUseStatement;
 import com.perl5.lang.perl.psi.mro.PerlMroType;
 
 /**
  * Created by hurricup on 01.06.2016.
  */
-public class packageProcessorsTest extends PerlLightCodeInsightFixtureTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/packageProcessors";
-	}
+public class packageProcessorsTest extends PerlLightTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/packageProcessors";
+  }
 
-	public void testModernPerl()
-	{
-		initWithFileAsScript("ModernPerl");
-		PerlNamespaceDefinition namespaceDefinition = getElementAtCaret(PerlNamespaceDefinition.class);
-		assertNotNull(namespaceDefinition);
-		assertEquals(PerlMroType.C3, namespaceDefinition.getMroType());
-		PerlUseStatement useStatement = getElementAtCaret(PerlUseStatement.class);
-		assertNotNull(useStatement);
-		PerlPackageProcessor packageProcessor = useStatement.getPackageProcessor();
-		assertNotNull(packageProcessor);
-		assertInstanceOf(packageProcessor, PerlStrictProvider.class);
-		assertInstanceOf(packageProcessor, PerlMroProvider.class);
-		assertInstanceOf(packageProcessor, PerlWarningsProvider.class);
-		assertInstanceOf(packageProcessor, PerlPackageLoader.class);
-	}
+  public void testModernPerl() {
+    initWithFileAsScript("ModernPerl");
+    PerlNamespaceDefinitionElement namespaceDefinition = getElementAtCaret(PerlNamespaceDefinitionElement.class);
+    assertNotNull(namespaceDefinition);
+    assertEquals(PerlMroType.C3, namespaceDefinition.getMroType());
+    PerlUseStatement useStatement = getElementAtCaret(PerlUseStatement.class);
+    assertNotNull(useStatement);
+    PerlPackageProcessor packageProcessor = useStatement.getPackageProcessor();
+    assertNotNull(packageProcessor);
+    assertInstanceOf(packageProcessor, PerlStrictProvider.class);
+    assertInstanceOf(packageProcessor, PerlMroProvider.class);
+    assertInstanceOf(packageProcessor, PerlWarningsProvider.class);
+    assertInstanceOf(packageProcessor, PerlPackageLoader.class);
+  }
 }

@@ -1,0 +1,4 @@
+<<~ "HTML";
+  some <caret> $variable here
+    too
+HTML

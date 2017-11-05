@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,27 +27,23 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 03.09.2015.
  */
-public class EmbeddedPerlBraceMatcher implements PairedBraceMatcher, EmbeddedPerlElementTypes
-{
-	private static final BracePair[] PAIRS = new BracePair[]{
-			new BracePair(EMBED_MARKER_OPEN, EMBED_MARKER_CLOSE, false),
-	};
+public class EmbeddedPerlBraceMatcher implements PairedBraceMatcher, EmbeddedPerlElementTypes {
+  private static final BracePair[] PAIRS = new BracePair[]{
+    new BracePair(EMBED_MARKER_OPEN, EMBED_MARKER_CLOSE, false),
+  };
 
-	@Override
-	public BracePair[] getPairs()
-	{
-		return PAIRS;
-	}
+  @Override
+  public BracePair[] getPairs() {
+    return PAIRS;
+  }
 
-	@Override
-	public boolean isPairedBracesAllowedBeforeType(@NotNull IElementType lbraceType, @Nullable IElementType contextType)
-	{
-		return true;
-	}
+  @Override
+  public boolean isPairedBracesAllowedBeforeType(@NotNull IElementType lbraceType, @Nullable IElementType contextType) {
+    return true;
+  }
 
-	@Override
-	public int getCodeConstructStart(PsiFile file, int openingBraceOffset)
-	{
-		return openingBraceOffset;
-	}
+  @Override
+  public int getCodeConstructStart(PsiFile file, int openingBraceOffset) {
+    return openingBraceOffset;
+  }
 }

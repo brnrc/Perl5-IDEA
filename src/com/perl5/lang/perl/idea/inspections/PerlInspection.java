@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,53 +19,37 @@ package com.perl5.lang.perl.idea.inspections;
 import com.intellij.codeInspection.LocalInspectionTool;
 import com.intellij.codeInspection.ProblemHighlightType;
 import com.intellij.codeInspection.ProblemsHolder;
+import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
+import org.jetbrains.annotations.NotNull;
+
+import static com.intellij.codeInspection.ProblemHighlightType.*;
 
 /**
  * Created by hurricup on 14.06.2015.
  */
-public abstract class PerlInspection extends LocalInspectionTool
-{
-//	long startTime;
+public abstract class PerlInspection extends LocalInspectionTool {
 
-	protected void registerProblem(ProblemsHolder holder, PsiElement element, String message)
-	{
-		if (!element.getNode().getText().isEmpty())
-		{
-			holder.registerProblem(element, message, ProblemHighlightType.GENERIC_ERROR_OR_WARNING);
-		}
-	}
+  protected void registerProblem(ProblemsHolder holder, PsiElement element, String message) {
+    doRegisterProblem(holder, element, message, GENERIC_ERROR_OR_WARNING);
+  }
 
-	protected void registerError(ProblemsHolder holder, PsiElement element, String message)
-	{
-		if (!element.getNode().getText().isEmpty())
-		{
-			holder.registerProblem(element, message, ProblemHighlightType.GENERIC_ERROR);
-		}
-	}
+  protected void registerError(ProblemsHolder holder, PsiElement element, String message) {
+    doRegisterProblem(holder, element, message, GENERIC_ERROR);
+  }
 
-	protected void markDeprecated(ProblemsHolder holder, PsiElement element, String message)
-	{
-		if (!element.getNode().getText().isEmpty())
-		{
-			holder.registerProblem(element, message, ProblemHighlightType.LIKE_DEPRECATED);
-		}
-	}
+  protected void markDeprecated(ProblemsHolder holder, PsiElement element, String message) {
+    doRegisterProblem(holder, element, message, LIKE_DEPRECATED);
+  }
 
-/*
-	@Override
-	public void inspectionStarted(LocalInspectionToolSession session, boolean isOnTheFly)
-	{
-		startTime = System.currentTimeMillis() / 1000;
-		super.inspectionStarted(session, isOnTheFly);
-	}
-
-	@Override
-	public void inspectionFinished(LocalInspectionToolSession session, ProblemsHolder problemsHolder)
-	{
-		super.inspectionFinished(session, problemsHolder);
-		long duration = System.currentTimeMillis() / 1000 - startTime;
-		System.err.println("Finished inspection: " + getClass() + " in " + duration);
-	}
-*/
+  private void doRegisterProblem(@NotNull ProblemsHolder holder,
+                                 @NotNull PsiElement element,
+                                 @NotNull String message,
+                                 @NotNull ProblemHighlightType highlightType) {
+    TextRange range = ElementManipulators.getValueTextRange(element);
+    if (!range.isEmpty()) {
+      holder.registerProblem(element, message, highlightType, range);
+    }
+  }
 }

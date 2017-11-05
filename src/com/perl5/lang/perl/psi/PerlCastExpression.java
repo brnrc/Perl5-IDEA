@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,5 @@ package com.perl5.lang.perl.psi;
  * Created by evstigneev on 17.11.2015.
  * This is interface for deref expressions. named cast to make all names consistent. todo rename all related entities
  */
-public interface PerlCastExpression extends PsiPerlExpr
-{
+public interface PerlCastExpression extends PsiPerlExpr {
 }

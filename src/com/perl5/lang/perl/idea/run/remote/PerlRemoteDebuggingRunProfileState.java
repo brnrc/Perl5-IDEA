@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,52 +31,46 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 09.05.2016.
  */
-public class PerlRemoteDebuggingRunProfileState extends PerlDebugProfileState
-{
-	private final PerlRemoteDebuggingConfiguration myDebuggingConfiguration;
-	private final Project myProject;
-	private final String myLocalProjectRoot;
-	private final String myRemoteProjectRoot;
+public class PerlRemoteDebuggingRunProfileState extends PerlDebugProfileState {
+  private final PerlRemoteDebuggingConfiguration myDebuggingConfiguration;
+  private final Project myProject;
+  private final String myLocalProjectRoot;
+  private final String myRemoteProjectRoot;
 
-	public PerlRemoteDebuggingRunProfileState(ExecutionEnvironment environment)
-	{
-		super(environment);
-		myDebuggingConfiguration = (PerlRemoteDebuggingConfiguration) environment.getRunProfile();
-		myProject = environment.getProject();
-		myLocalProjectRoot = myProject.getBaseDir().getCanonicalPath();
-		myRemoteProjectRoot = myDebuggingConfiguration.getRemoteProjectRoot();
-//		System.err.println("Local project root: " + myLocalProjectRoot);
-//		System.err.println("Remote project root: " + myRemoteProjectRoot);
-	}
+  public PerlRemoteDebuggingRunProfileState(ExecutionEnvironment environment) {
+    super(environment);
+    myDebuggingConfiguration = (PerlRemoteDebuggingConfiguration)environment.getRunProfile();
+    myProject = environment.getProject();
+    myLocalProjectRoot = myProject.getBaseDir().getCanonicalPath();
+    myRemoteProjectRoot = myDebuggingConfiguration.getRemoteProjectRoot();
+    //		System.err.println("Local project root: " + myLocalProjectRoot);
+    //		System.err.println("Remote project root: " + myRemoteProjectRoot);
+  }
 
-	@NotNull
-	@Override
-	public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException
-	{
-		return new DefaultExecutionResult(TextConsoleBuilderFactory.getInstance().createBuilder(myProject).getConsole(), new DefaultDebugProcessHandler());
-	}
+  @NotNull
+  @Override
+  public ExecutionResult execute(@NotNull Executor executor, @NotNull ProgramRunner runner) throws ExecutionException {
+    return new DefaultExecutionResult(TextConsoleBuilderFactory.getInstance().createBuilder(myProject).getConsole(),
+                                      new DefaultDebugProcessHandler());
+  }
 
-	@Override
-	public String mapPathToRemote(String localPath)
-	{
-		if (localPath.startsWith(myLocalProjectRoot))
-		{
-			return localPath.replace(myLocalProjectRoot, myRemoteProjectRoot);
-//			System.err.println("Mapped to remote: " + localPath + " => " + remotePath);
-//			return remotePath;
-		}
-		return super.mapPathToRemote(localPath);
-	}
+  @Override
+  public String mapPathToRemote(String localPath) {
+    if (localPath.startsWith(myLocalProjectRoot)) {
+      return localPath.replace(myLocalProjectRoot, myRemoteProjectRoot);
+      //			System.err.println("Mapped to remote: " + localPath + " => " + remotePath);
+      //			return remotePath;
+    }
+    return super.mapPathToRemote(localPath);
+  }
 
-	@Override
-	public String mapPathToLocal(String remotePath)
-	{
-		if (remotePath.startsWith(myRemoteProjectRoot))
-		{
-			return remotePath.replace(myRemoteProjectRoot, myLocalProjectRoot);
-//			System.err.println("Mapped to local: " + remotePath + " => " + localPath);
-//			return localPath;
-		}
-		return super.mapPathToLocal(remotePath);
-	}
+  @Override
+  public String mapPathToLocal(String remotePath) {
+    if (remotePath.startsWith(myRemoteProjectRoot)) {
+      return remotePath.replace(myRemoteProjectRoot, myLocalProjectRoot);
+      //			System.err.println("Mapped to local: " + remotePath + " => " + localPath);
+      //			return localPath;
+    }
+    return super.mapPathToLocal(remotePath);
+  }
 }

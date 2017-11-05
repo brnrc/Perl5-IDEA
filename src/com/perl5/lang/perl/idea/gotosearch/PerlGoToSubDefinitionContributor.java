@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,8 +20,7 @@ import com.intellij.navigation.ChooseByNameContributor;
 import com.intellij.navigation.NavigationItem;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.search.GlobalSearchScope;
-import com.perl5.lang.perl.PerlScopes;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
 import com.perl5.lang.perl.util.PerlSubUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -30,25 +29,22 @@ import java.util.Collection;
 /**
  * Created by hurricup on 12.08.2015.
  */
-public class PerlGoToSubDefinitionContributor implements ChooseByNameContributor
-{
-	@NotNull
-	@Override
-	public String[] getNames(Project project, boolean includeNonProjectItems)
-	{
-		return PerlSubUtil.getDefinedSubsNames(project).toArray(new String[]{});
-	}
+public class PerlGoToSubDefinitionContributor implements ChooseByNameContributor {
+  @NotNull
+  @Override
+  public String[] getNames(Project project, boolean includeNonProjectItems) {
+    return PerlSubUtil.getDefinedSubsNames(project).toArray(new String[]{});
+  }
 
-	@NotNull
-	@Override
-	public NavigationItem[] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems)
-	{
-		Collection<PerlSubDefinitionBase> result = PerlSubUtil.getSubDefinitions(
-				project,
-				name,
-				(includeNonProjectItems ? PerlScopes.getProjectAndLibrariesScope(project) : GlobalSearchScope.projectScope(project))
-		);
-		//noinspection SuspiciousToArrayCall
-		return result.toArray(new NavigationItem[result.size()]);
-	}
+  @NotNull
+  @Override
+  public NavigationItem[] getItemsByName(String name, String pattern, Project project, boolean includeNonProjectItems) {
+    Collection<PerlSubDefinitionElement> result = PerlSubUtil.getSubDefinitions(
+      project,
+      name,
+      (includeNonProjectItems ? GlobalSearchScope.allScope(project) : GlobalSearchScope.projectScope(project))
+    );
+    //noinspection SuspiciousToArrayCall
+    return result.toArray(new NavigationItem[result.size()]);
+  }
 }

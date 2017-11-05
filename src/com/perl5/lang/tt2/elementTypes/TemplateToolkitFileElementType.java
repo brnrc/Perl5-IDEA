@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import com.perl5.lang.tt2.TemplateToolkitLanguage;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public class TemplateToolkitFileElementType extends IFileElementType
-{
-	public TemplateToolkitFileElementType()
-	{
-		super("Template Toolkit File", TemplateToolkitLanguage.INSTANCE);
-	}
+public class TemplateToolkitFileElementType extends IFileElementType {
+  public TemplateToolkitFileElementType() {
+    super("Template Toolkit File", TemplateToolkitLanguage.INSTANCE);
+  }
 }

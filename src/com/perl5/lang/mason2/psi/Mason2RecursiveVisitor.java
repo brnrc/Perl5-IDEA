@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,11 +21,9 @@ import com.intellij.psi.PsiElement;
 /**
  * Created by hurricup on 23.02.2016.
  */
-public class Mason2RecursiveVisitor extends Mason2Visitor
-{
-	@Override
-	public void visitElement(PsiElement element)
-	{
-		element.acceptChildren(this);
-	}
+public class Mason2RecursiveVisitor extends Mason2Visitor {
+  @Override
+  public void visitElement(PsiElement element) {
+    element.acceptChildren(this);
+  }
 }

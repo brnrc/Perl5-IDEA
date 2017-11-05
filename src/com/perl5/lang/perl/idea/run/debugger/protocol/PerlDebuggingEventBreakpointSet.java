@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,15 +25,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 07.05.2016.
  */
-public class PerlDebuggingEventBreakpointSet extends PerlDebuggingEventBreakpointBase
-{
-	@Override
-	protected void processBreakPoint(@NotNull XLineBreakpoint breakpoint, XDebugSession session)
-	{
-		XDebuggerManager.getInstance(session.getProject()).getBreakpointManager().updateBreakpointPresentation(
-				breakpoint,
-				AllIcons.Debugger.Db_verified_breakpoint,
-				"Breakpoint set"
-		);
-	}
+public class PerlDebuggingEventBreakpointSet extends PerlDebuggingEventBreakpointBase {
+  @Override
+  protected void processBreakPoint(@NotNull XLineBreakpoint breakpoint, XDebugSession session) {
+    XDebuggerManager.getInstance(session.getProject()).getBreakpointManager().updateBreakpointPresentation(
+      breakpoint,
+      AllIcons.Debugger.Db_verified_breakpoint,
+      "Breakpoint set"
+    );
+  }
 }

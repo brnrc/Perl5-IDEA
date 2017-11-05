@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,13 @@
 package com.perl5.lang.htmlmason.elementType;
 
 import com.intellij.lang.Language;
-import com.perl5.lang.perl.idea.stubs.PerlFileElementType;
+import com.perl5.lang.perl.psi.stubs.PerlFileElementType;
 
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class HTMLMasonFileElementType extends PerlFileElementType
-{
-	public HTMLMasonFileElementType(String debugName, Language language)
-	{
-		super(debugName, language);
-	}
+public class HTMLMasonFileElementType extends PerlFileElementType {
+  public HTMLMasonFileElementType(String debugName, Language language) {
+    super(debugName, language);
+  }
 }

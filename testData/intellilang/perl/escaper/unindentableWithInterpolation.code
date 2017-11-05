@@ -1,0 +1,3 @@
+<<"HTML";
+  one <caret> $var liner
+HTML

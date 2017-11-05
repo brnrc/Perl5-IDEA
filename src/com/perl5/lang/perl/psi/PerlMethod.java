@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,28 +25,26 @@ import org.jetbrains.annotations.Nullable;
  * Created by hurricup on 31.05.2015.
  * Invocable method class
  */
-public interface PerlMethod extends PerlNamespaceElementContainer, PerlSubNameElementContainer, PerlPackageMember
-{
-	/**
-	 * Checks if explicit namespace defined - got object or namespace element
-	 *
-	 * @return checking result
-	 */
-	boolean hasExplicitNamespace();
+public interface PerlMethod extends PerlNamespaceElementContainer, PerlSubNameElementContainer, PerlPackageMember {
+  /**
+   * Checks if explicit namespace defined - got object or namespace element
+   *
+   * @return checking result
+   */
+  boolean hasExplicitNamespace();
 
-	/**
-	 * Check if this is an object method invocation
-	 *
-	 * @return result
-	 */
-	boolean isObjectMethod();
+  /**
+   * Check if this is an object method invocation
+   *
+   * @return result
+   */
+  boolean isObjectMethod();
 
-	/**
-	 * Checking for package name with traversing
-	 *
-	 * @return boolean
-	 */
-	@Nullable
-	String getContextPackageNameHeavy();
-
+  /**
+   * Checking for package name with traversing
+   *
+   * @return boolean
+   */
+  @Nullable
+  String getContextPackageNameHeavy();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,169 +18,182 @@ package com.perl5.lang.perl.idea.formatter;
 
 import com.intellij.formatting.Indent;
 import com.intellij.lang.ASTNode;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.perl5.lang.perl.PerlParserDefinition;
 import com.perl5.lang.perl.idea.formatter.blocks.PerlFormattingBlock;
-import com.perl5.lang.perl.idea.formatter.settings.PerlCodeStyleSettings;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
 import com.perl5.lang.perl.parser.perlswitch.PerlSwitchElementTypes;
+import com.perl5.lang.perl.psi.impl.PerlHeredocElementImpl;
+import com.perl5.lang.perl.psi.impl.PerlPolyNamedNestedCallElementBase;
+import com.perl5.lang.perl.psi.stubs.PerlPolyNamedElementType;
 import org.jetbrains.annotations.NotNull;
+
+import static com.perl5.lang.perl.lexer.PerlTokenSets.HEREDOC_BODIES_TOKENSET;
 
 /**
  * Created by hurricup on 03.09.2015.
  */
-public class PerlIndentProcessor implements PerlElementTypes, PerlSwitchElementTypes
-{
-	public static final PerlIndentProcessor INSTANCE = new PerlIndentProcessor();
+public class PerlIndentProcessor implements PerlElementTypes, PerlSwitchElementTypes {
+  public static final PerlIndentProcessor INSTANCE = new PerlIndentProcessor();
 
-	// containers which has none indentation
-	public static final TokenSet UNINDENTABLE_CONTAINERS = TokenSet.create(
-			NAMESPACE_DEFINITION,
-			NAMESPACE_CONTENT,
-			SUB_DEFINITION,
-			METHOD_DEFINITION,
-			FUNC_DEFINITION,
-			IF_COMPOUND,
-			UNLESS_COMPOUND,
-			FOR_COMPOUND,
-			FOREACH_COMPOUND,
-			CONDITIONAL_BLOCK,
-			CONDITIONAL_BLOCK_WHILE,
-			CONTINUE_BLOCK,
-			UNCONDITIONAL_BLOCK,
+  // containers which has none indentation
+  public static final TokenSet UNINDENTABLE_CONTAINERS = TokenSet.create(
+    NAMESPACE_DEFINITION,
+    NAMESPACE_CONTENT,
+    SUB_DEFINITION,
+    METHOD_DEFINITION,
+    FUNC_DEFINITION,
+    IF_COMPOUND,
+    UNLESS_COMPOUND,
+    UNTIL_COMPOUND,
+    WHILE_COMPOUND,
+    GIVEN_COMPOUND,
+    WHEN_COMPOUND,
+    DEFAULT_COMPOUND,
+    FOR_COMPOUND,
+    CONDITIONAL_BLOCK,
+    CONTINUE_BLOCK,
 
-			// fixme see #745
-			SWITCH_COMPOUND,
-			CASE_COMPOUND,
+    // fixme see #745
+    SWITCH_COMPOUND,
+    CASE_COMPOUND,
 
-			DO_EXPR,
-			EVAL_EXPR,
-			PerlParserDefinition.FILE
-	);
+    DO_EXPR,
+    EVAL_EXPR,
+    PerlParserDefinition.FILE,
 
-	public static final TokenSet BLOCK_LIKE_CONTAINERS = TokenSet.create(
-			BLOCK
-	);
+    LP_REGEX,
+    LP_REGEX_REPLACEMENT,
+    LP_REGEX_X,
+    LP_REGEX_XX,
+    LP_STRING_Q,
+    LP_STRING_QQ,
+    LP_STRING_QW,
+    LP_STRING_XQ
+  );
 
-	public static final TokenSet UNINDENTABLE_TOKENS = TokenSet.create(
-			COMMA_SEQUENCE_EXPR,
-			CALL_ARGUMENTS
-	);
+  public static final TokenSet BLOCK_LIKE_CONTAINERS = TokenSet.create(
+    BLOCK
+  );
 
-	public static final TokenSet COMMA_LIKE_SEQUENCES = TokenSet.create(
-			COMMA_SEQUENCE_EXPR,
-			SUB_SIGNATURE_CONTENT,
-			METHOD_SIGNATURE_CONTENT,
-			FUNC_SIGNATURE_CONTENT,
-			TRENAR_EXPR
-	);
+  public static final TokenSet UNINDENTABLE_TOKENS = TokenSet.create(
+    COMMA_SEQUENCE_EXPR,
+    CALL_ARGUMENTS
+  );
 
-	/**
-	 * Tokens that must be suppressed for indentation
-	 */
-	public static final TokenSet ABSOLUTE_UNINDENTABLE_TOKENS = TokenSet.create(
-			HEREDOC,
-			HEREDOC_QQ,
-			HEREDOC_QX,
-			HEREDOC_END,
-			POD,
-			FORMAT,
-			FORMAT_TERMINATOR,
-			TAG_DATA,
-			TAG_END
-	);
+  public static final TokenSet COMMA_LIKE_SEQUENCES = TokenSet.create(
+    COMMA_SEQUENCE_EXPR,
+    SUB_SIGNATURE,
+    METHOD_SIGNATURE_CONTENT,
+    FUNC_SIGNATURE_CONTENT,
+    TRENAR_EXPR
+  );
 
-	public TokenSet getAbsoluteUnindentableTokens()
-	{
-		return ABSOLUTE_UNINDENTABLE_TOKENS;
-	}
+  /**
+   * Tokens that must be suppressed for indentation
+   */
+  public static final TokenSet ABSOLUTE_UNINDENTABLE_TOKENS = TokenSet.create(
+    HEREDOC_END,
+    POD,
+    FORMAT,
+    FORMAT_TERMINATOR,
+    TAG_DATA,
+    TAG_END
+  );
 
-	public TokenSet getBlockLikeContainers()
-	{
-		return BLOCK_LIKE_CONTAINERS;
-	}
+  public TokenSet getAbsoluteUnindentableTokens() {
+    return ABSOLUTE_UNINDENTABLE_TOKENS;
+  }
 
-	public TokenSet getUnindentableContainers()
-	{
-		return UNINDENTABLE_CONTAINERS;
-	}
+  public TokenSet getBlockLikeContainers() {
+    return BLOCK_LIKE_CONTAINERS;
+  }
 
-	public TokenSet getUnindentableTokens()
-	{
-		return UNINDENTABLE_TOKENS;
-	}
+  public TokenSet getUnindentableContainers() {
+    return UNINDENTABLE_CONTAINERS;
+  }
 
-	public Indent getNodeIndent(@NotNull ASTNode node, PerlCodeStyleSettings codeStyleSettings)
-	{
-		IElementType nodeType = node.getElementType();
-		ASTNode parent = node.getTreeParent();
-		ASTNode grandParent = parent != null ? parent.getTreeParent() : null;
+  public TokenSet getUnindentableTokens() {
+    return UNINDENTABLE_TOKENS;
+  }
 
-		IElementType parentType = parent != null ? parent.getElementType() : null;
-		IElementType grandParentType = grandParent != null ? grandParent.getElementType() : null;
+  public Indent getNodeIndent(@NotNull ASTNode node) {
+    IElementType nodeType = node.getElementType();
+    ASTNode parent = node.getTreeParent();
+    ASTNode grandParent = parent != null ? parent.getTreeParent() : null;
 
-		ASTNode prevSibling = FormatterUtil.getPreviousNonWhitespaceSibling(node);
-		IElementType prevSiblingElementType = prevSibling != null ? prevSibling.getElementType() : null;
+    IElementType parentType = parent != null ? parent.getElementType() : null;
+    IElementType grandParentType = grandParent != null ? grandParent.getElementType() : null;
 
-		ASTNode nextSibling = FormatterUtil.getNextNonWhitespaceSibling(node);
-		IElementType nextSiblingElementType = nextSibling != null ? nextSibling.getElementType() : null;
+    ASTNode prevSibling = FormatterUtil.getPreviousNonWhitespaceSibling(node);
+    IElementType prevSiblingElementType = prevSibling != null ? prevSibling.getElementType() : null;
 
-		boolean isFirst = prevSibling == null;
-		boolean isLast = nextSibling == null;
+    ASTNode nextSibling = FormatterUtil.getNextNonWhitespaceSibling(node);
+    IElementType nextSiblingElementType = nextSibling != null ? nextSibling.getElementType() : null;
 
-		if (isFirst && PerlFormattingBlock.BLOCK_OPENERS.contains(nodeType)
-				|| isLast && PerlFormattingBlock.BLOCK_CLOSERS.contains(nodeType)
-				)
-		{
-			return Indent.getNoneIndent();
-		}
+    boolean isFirst = prevSibling == null;
+    boolean isLast = nextSibling == null;
 
-		// defined by node
-		if (getAbsoluteUnindentableTokens().contains(nodeType) || parent == null || grandParent == null)
-		{
-			return Indent.getAbsoluteNoneIndent();
-		}
+    if (isFirst && PerlFormattingBlock.BLOCK_OPENERS.contains(nodeType)
+        || isLast && PerlFormattingBlock.BLOCK_CLOSERS.contains(nodeType)
+      ) {
+      return Indent.getNoneIndent();
+    }
 
-		if (getUnindentableTokens().contains(nodeType))
-		{
-			return Indent.getNoneIndent();
-		}
+    boolean forceFirstIndent = false;
+    if (HEREDOC_BODIES_TOKENSET.contains(nodeType)) {
+      PsiElement psi = node.getPsi();
+      assert psi instanceof PerlHeredocElementImpl;
+      if (!((PerlHeredocElementImpl)psi).isIndentable()) {
+        return Indent.getAbsoluteNoneIndent();
+      }
+      forceFirstIndent = true;
+    }
 
-		// defined by parent
-		if (getUnindentableContainers().contains(parentType))
-		{
-			// a little magic for sub attributes
-			if (parentType == SUB_DEFINITION)
-			{
-				if (nodeType == COLON && nextSiblingElementType == ATTRIBUTE ||
-						nodeType == ATTRIBUTE && prevSiblingElementType != COLON
-						)
-				{
-					return Indent.getContinuationIndent();
-				}
-			}
+    if (getAbsoluteUnindentableTokens().contains(nodeType)) {
+      return Indent.getAbsoluteNoneIndent();
+    }
 
-			return Indent.getNoneIndent();
-		}
+    if (parent == null || grandParent == null && nodeType != HEREDOC_END_INDENTABLE && !HEREDOC_BODIES_TOKENSET.contains(nodeType)) {
+      return Indent.getNoneIndent();
+    }
 
-		if (COMMA_LIKE_SEQUENCES.contains(parentType) && grandParentType != STATEMENT)
-		{
-			return Indent.getIndent(Indent.Type.CONTINUATION, false, true);
-		}
 
-		if (parentType == CALL_ARGUMENTS)
-		{
-			return Indent.getIndent(Indent.Type.CONTINUATION, false, true);
-		}
+    if (getUnindentableTokens().contains(nodeType) ||
+        (nodeType instanceof PerlPolyNamedElementType && !(node.getPsi() instanceof PerlPolyNamedNestedCallElementBase))) {
+      return Indent.getNoneIndent();
+    }
 
-		if (getBlockLikeContainers().contains(parentType))
-		{
-			return Indent.getNormalIndent();
-		}
+    // defined by parent
+    if (getUnindentableContainers().contains(parentType)) {
+      // a little magic for sub attributes
+      if (parentType == SUB_DEFINITION) {
+        if (nodeType == COLON && nextSiblingElementType == ATTRIBUTE ||
+            nodeType == ATTRIBUTE && prevSiblingElementType != COLON
+          ) {
+          return Indent.getContinuationIndent();
+        }
+      }
 
-		return Indent.getContinuationWithoutFirstIndent();
-	}
+      return Indent.getNoneIndent();
+    }
+
+    if (COMMA_LIKE_SEQUENCES.contains(parentType) && grandParentType != STATEMENT) {
+      return Indent.getIndent(Indent.Type.CONTINUATION, false, true);
+    }
+
+    if (parentType == CALL_ARGUMENTS) {
+      return Indent.getIndent(Indent.Type.CONTINUATION, false, true);
+    }
+
+    if (getBlockLikeContainers().contains(parentType)) {
+      return Indent.getNormalIndent();
+    }
+
+    return forceFirstIndent ? Indent.getContinuationIndent() : Indent.getContinuationWithoutFirstIndent();
+  }
 }
 

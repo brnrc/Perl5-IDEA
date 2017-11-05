@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by evstigneev on 10.07.2015.
  */
-public class PerlFileTypeDetector implements FileTypeRegistry.FileTypeDetector
-{
-	@Override
-	public FileType detect(@NotNull VirtualFile file, @NotNull ByteSequence firstBytes, @Nullable CharSequence firstCharsIfText)
-	{
-		// todo add some detections for xs/pod/pm
-		return FileUtil.isHashBangLine(firstCharsIfText, "perl") ? PerlFileType.INSTANCE : null;
-	}
+public class PerlFileTypeDetector implements FileTypeRegistry.FileTypeDetector {
+  @Override
+  public FileType detect(@NotNull VirtualFile file, @NotNull ByteSequence firstBytes, @Nullable CharSequence firstCharsIfText) {
+    // todo add some detections for xs/pod/pm
+    return FileUtil.isHashBangLine(firstCharsIfText, "perl") ? PerlFileTypeScript.INSTANCE : null;
+  }
 
-	@Override
-	public int getVersion()
-	{
-		return 1;
-	}
+  @Override
+  public int getVersion() {
+    return 1;
+  }
 }
 

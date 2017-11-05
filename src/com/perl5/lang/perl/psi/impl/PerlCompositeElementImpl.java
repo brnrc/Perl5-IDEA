@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,29 +22,23 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.ResolveState;
 import com.intellij.psi.scope.PsiScopeProcessor;
 import com.perl5.lang.perl.psi.PerlCompositeElement;
-import com.perl5.lang.perl.psi.utils.PerlScopeUtil;
+import com.perl5.lang.perl.psi.utils.PerlResolveUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 17.02.2016.
  */
-public class PerlCompositeElementImpl extends ASTWrapperPsiElement implements PerlCompositeElement
-{
-	public PerlCompositeElementImpl(@NotNull ASTNode node)
-	{
-		super(node);
-	}
+public class PerlCompositeElementImpl extends ASTWrapperPsiElement implements PerlCompositeElement {
+  public PerlCompositeElementImpl(@NotNull ASTNode node) {
+    super(node);
+  }
 
-	@Override
-	public boolean processDeclarations(@NotNull PsiScopeProcessor processor, @NotNull ResolveState state, PsiElement lastParent, @NotNull PsiElement place)
-	{
-//		System.err.println(this);
-		return PerlScopeUtil.processChildren(
-				this,
-				processor,
-				state,
-				lastParent,
-				place
-		);
-	}
+  @Override
+  public boolean processDeclarations(@NotNull PsiScopeProcessor processor,
+                                     @NotNull ResolveState state,
+                                     PsiElement lastParent,
+                                     @NotNull PsiElement place) {
+    return PerlResolveUtil.processChildren(this, processor, state, lastParent, place) &&
+           processor.execute(this, state);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,28 +22,24 @@ import com.intellij.psi.impl.source.tree.LeafPsiElement;
 /**
  * Created by hurricup on 22.11.2015.
  */
-public class PerlFormattingReplaceWithText implements PerlFormattingOperation
-{
-	private final PsiElement myElementToChange;
-	private final String myNewElementContent;
+public class PerlFormattingReplaceWithText implements PerlFormattingOperation {
+  private final PsiElement myElementToChange;
+  private final String myNewElementContent;
 
-	public PerlFormattingReplaceWithText(PsiElement elementToChange, String newElementContent)
-	{
-		this.myElementToChange = elementToChange;
-		this.myNewElementContent = newElementContent;
-	}
+  public PerlFormattingReplaceWithText(PsiElement elementToChange, String newElementContent) {
+    this.myElementToChange = elementToChange;
+    this.myNewElementContent = newElementContent;
+  }
 
-	@Override
-	public int apply()
-	{
-		int delta = 0;
+  @Override
+  public int apply() {
+    int delta = 0;
 
-		if (myElementToChange.isValid() && myElementToChange instanceof LeafPsiElement)
-		{
-			delta = myNewElementContent.length() - myElementToChange.getNode().getTextLength();
-			((LeafPsiElement) myElementToChange).replaceWithText(myNewElementContent);
-		}
+    if (myElementToChange.isValid() && myElementToChange instanceof LeafPsiElement) {
+      delta = myNewElementContent.length() - myElementToChange.getNode().getTextLength();
+      ((LeafPsiElement)myElementToChange).replaceWithText(myNewElementContent);
+    }
 
-		return delta;
-	}
+    return delta;
+  }
 }

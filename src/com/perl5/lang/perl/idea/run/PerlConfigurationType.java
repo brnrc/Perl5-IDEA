@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,25 +27,20 @@ import org.jetbrains.annotations.NotNull;
  * @author VISTALL
  * @since 16-Sep-15
  */
-public class PerlConfigurationType extends ConfigurationTypeBase
-{
-	public PerlConfigurationType()
-	{
-		super("#PerlConfigurationType", "Perl", "", PerlIcons.PERL_LANGUAGE_ICON);
+public class PerlConfigurationType extends ConfigurationTypeBase {
+  public PerlConfigurationType() {
+    super("#PerlConfigurationType", "Perl", "", PerlIcons.PERL_LANGUAGE_ICON);
 
-		addFactory(new ConfigurationFactory(this)
-		{
-			@Override
-			public RunConfiguration createTemplateConfiguration(Project project)
-			{
-				return new PerlConfiguration(project, this, "Unnamed");
-			}
-		});
-	}
+    addFactory(new ConfigurationFactory(this) {
+      @Override
+      public RunConfiguration createTemplateConfiguration(Project project) {
+        return new PerlConfiguration(project, this, "Unnamed");
+      }
+    });
+  }
 
-	@NotNull
-	public static PerlConfigurationType getInstance()
-	{
-		return CONFIGURATION_TYPE_EP.findExtension(PerlConfigurationType.class);
-	}
+  @NotNull
+  public static PerlConfigurationType getInstance() {
+    return CONFIGURATION_TYPE_EP.findExtension(PerlConfigurationType.class);
+  }
 }

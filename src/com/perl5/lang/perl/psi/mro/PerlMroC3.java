@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.perl5.lang.perl.psi.mro;
 
 import com.intellij.openapi.project.Project;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -27,37 +27,35 @@ import java.util.List;
 /**
  * Created by hurricup on 08.08.2015.
  */
-public class PerlMroC3 extends PerlMro
-{
-	public static final PerlMro INSTANCE = new PerlMroC3();
+public class PerlMroC3 extends PerlMro {
+  public static final PerlMro INSTANCE = new PerlMroC3();
 
-	/**
-	 * Builds list of inheritance path for C3 mro (Dylan, Python, Perl6): http://perldoc.perl.org/mro.html#The-C3-MRO
-	 *
-	 * @param project              project
-	 * @param namespaceDefinitions list of package names to add
-	 * @param recursionMap         recursion protection map
-	 * @param result               list to populate
-	 */
-	@Override
-	public void getLinearISA(Project project, List<PerlNamespaceDefinition> namespaceDefinitions, HashSet<String> recursionMap, ArrayList<String> result)
-	{
-//		System.err.println("Resolving C3 for " + packageNames);
-		Collection<PerlNamespaceDefinition> nextIterationDefinitions = new ArrayList<PerlNamespaceDefinition>();
-		for (PerlNamespaceDefinition namespaceDefinition : namespaceDefinitions)
-		{
-			String packageName = namespaceDefinition.getPackageName();
-			if (!recursionMap.contains(packageName))
-			{
-				recursionMap.add(packageName);
-				result.add(packageName);
-				nextIterationDefinitions.add(namespaceDefinition);
-			}
-		}
+  /**
+   * Builds list of inheritance path for C3 mro (Dylan, Python, Perl6): http://perldoc.perl.org/mro.html#The-C3-MRO
+   *
+   * @param project              project
+   * @param namespaceDefinitions list of package names to add
+   * @param recursionMap         recursion protection map
+   * @param result               list to populate
+   */
+  @Override
+  public void getLinearISA(Project project,
+                           List<PerlNamespaceDefinitionElement> namespaceDefinitions,
+                           HashSet<String> recursionMap,
+                           ArrayList<String> result) {
+    //		System.err.println("Resolving C3 for " + packageNames);
+    Collection<PerlNamespaceDefinitionElement> nextIterationDefinitions = new ArrayList<>();
+    for (PerlNamespaceDefinitionElement namespaceDefinition : namespaceDefinitions) {
+      String packageName = namespaceDefinition.getPackageName();
+      if (!recursionMap.contains(packageName)) {
+        recursionMap.add(packageName);
+        result.add(packageName);
+        nextIterationDefinitions.add(namespaceDefinition);
+      }
+    }
 
-		for (PerlNamespaceDefinition namespaceDefinition : nextIterationDefinitions)
-		{
-			namespaceDefinition.getLinearISA(recursionMap, result);
-		}
-	}
+    for (PerlNamespaceDefinitionElement namespaceDefinition : nextIterationDefinitions) {
+      namespaceDefinition.getLinearISA(recursionMap, result);
+    }
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,50 +18,51 @@ package com.perl5.lang.perl.idea.run.debugger.protocol;
 
 import com.perl5.lang.perl.idea.run.debugger.ui.PerlScriptsPanel;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * Created by hurricup on 14.05.2016.
  */
-public class PerlDebuggingEventLoadedFiles extends PerlDebuggingEventBase
-{
-	PerlLoadedFileDescriptor[] add;     // list of filenames
-	PerlLoadedFileDescriptor[] remove; // list of filenames
+public class PerlDebuggingEventLoadedFiles extends PerlDebuggingEventBase {
+  PerlLoadedFileDescriptor[] add;     // list of filenames
+  PerlLoadedFileDescriptor[] remove; // list of filenames
 
-	@Override
-	public void run()
-	{
-		PerlScriptsPanel evalsListPanel = getDebugThread().getEvalsListPanel();
-		PerlScriptsPanel scriptListPanel = getDebugThread().getScriptListPanel();
+  @Override
+  public void run() {
+    PerlScriptsPanel evalsListPanel = getDebugThread().getEvalsListPanel();
+    PerlScriptsPanel scriptListPanel = getDebugThread().getScriptListPanel();
+    List<PerlLoadedFileDescriptor> evalRemove = new ArrayList<>();
+    List<PerlLoadedFileDescriptor> evalAdd = new ArrayList<>();
+    List<PerlLoadedFileDescriptor> scriptRemove = new ArrayList<>();
+    List<PerlLoadedFileDescriptor> scriptAdd = new ArrayList<>();
 
-		for (PerlLoadedFileDescriptor fileDescriptor : add)
-		{
-			if (fileDescriptor != null)
-			{
-				if (fileDescriptor.isEval())
-				{
-					evalsListPanel.replace(fileDescriptor);
-				}
-				else
-				{
-					scriptListPanel.replace(fileDescriptor);
-				}
-			}
-		}
+    for (PerlLoadedFileDescriptor fileDescriptor : add) {
+      if (fileDescriptor != null) {
+        if (fileDescriptor.isEval()) {
+          evalRemove.add(fileDescriptor);
+          evalAdd.add(fileDescriptor);
+        }
+        else {
+          scriptRemove.add(fileDescriptor);
+          scriptAdd.add(fileDescriptor);
+        }
+      }
+    }
 
-		for (PerlLoadedFileDescriptor fileDescriptor : remove)
-		{
-			if (fileDescriptor != null)
-			{
-				if (fileDescriptor.isEval())
-				{
-					// fixme we should check if file source is loaded and mark it as unloaded or smth
-					evalsListPanel.remove(fileDescriptor);
-				}
-				else
-				{
-					scriptListPanel.remove(fileDescriptor);
-				}
-			}
-		}
+    for (PerlLoadedFileDescriptor fileDescriptor : remove) {
+      if (fileDescriptor != null) {
+        if (fileDescriptor.isEval()) {
+          // fixme we should check if file source is loaded and mark it as unloaded or smth
+          evalRemove.add(fileDescriptor);
+        }
+        else {
+          scriptRemove.add(fileDescriptor);
+        }
+      }
+    }
 
-	}
+    evalsListPanel.bulkChange(evalAdd, evalRemove);
+    scriptListPanel.bulkChange(scriptAdd, scriptRemove);
+  }
 }

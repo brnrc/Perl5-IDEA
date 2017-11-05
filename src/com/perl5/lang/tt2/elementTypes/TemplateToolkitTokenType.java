@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public class TemplateToolkitTokenType extends IElementType
-{
-	public TemplateToolkitTokenType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, TemplateToolkitLanguage.INSTANCE);
-	}
+public class TemplateToolkitTokenType extends IElementType {
+  public TemplateToolkitTokenType(@NotNull @NonNls String debugName) {
+    super(debugName, TemplateToolkitLanguage.INSTANCE);
+  }
 
-	@Override
-	public String toString()
-	{
-		return "TemplateToolkit2Token." + super.toString();
-	}
+  @Override
+  public String toString() {
+    return "TT2: " + super.toString();
+  }
 }

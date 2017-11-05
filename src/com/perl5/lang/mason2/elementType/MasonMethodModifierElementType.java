@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,17 +25,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.01.2016.
  */
-public class MasonMethodModifierElementType extends MasonTemplatingElementType
-{
-	public MasonMethodModifierElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName);
-	}
+public class MasonMethodModifierElementType extends MasonTemplatingElementType {
+  public MasonMethodModifierElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 
-	@NotNull
-	@Override
-	public PsiElement getPsiElement(@NotNull ASTNode node)
-	{
-		return new MasonMethodModifierImpl(node);
-	}
+  @NotNull
+  @Override
+  public PsiElement getPsiElement(@NotNull ASTNode node) {
+    return new MasonMethodModifierImpl(node);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,30 +16,26 @@
 
 package com.perl5.lang.perl.parser.Class.Accessor;
 
-import com.intellij.lang.ASTNode;
+import com.intellij.psi.stubs.IStubElementType;
 import com.intellij.psi.tree.IElementType;
-import com.perl5.lang.perl.parser.Class.Accessor.elementTypes.ClassAccessorDeclarationStubElementType;
-import com.perl5.lang.perl.parser.Class.Accessor.elementTypes.ClassAccessorSubElementType;
-import com.perl5.lang.perl.parser.Class.Accessor.psi.impl.PerlClassAccessorFollowBestPracticeImpl;
-import org.jetbrains.annotations.NotNull;
+import com.perl5.lang.perl.parser.Class.Accessor.elementTypes.ClassAccessorWrapperElementType;
+import com.perl5.lang.perl.parser.elementTypes.PerlNestedCallElementType;
+import com.perl5.lang.perl.parser.elementTypes.PerlTokenType;
+import com.perl5.lang.perl.psi.stubs.subsdefinitions.PerlLightSubDefinitionElementType;
 
 /**
  * Created by hurricup on 21.01.2016.
  */
-public interface ClassAccessorElementTypes
-{
-	IElementType RESERVED_MK_RO_ACCESSORS = new ClassAccessorSubElementType("MK_RO_ACCESSORS");
-	IElementType RESERVED_MK_WO_ACCESSORS = new ClassAccessorSubElementType("MK_WO_ACCESSORS");
-	IElementType RESERVED_MK_ACCESSORS = new ClassAccessorSubElementType("MK_ACCESSORS");
-	IElementType RESERVED_FOLLOW_BEST_PRACTICE = new ClassAccessorSubElementType("FOLLOW_BEST_PRACTICE")
-	{
-		@NotNull
-		@Override
-		public ASTNode createLeafNode(CharSequence leafText)
-		{
-			return new PerlClassAccessorFollowBestPracticeImpl(this, leafText);
-		}
-	};
+public interface ClassAccessorElementTypes {
+  IElementType CLASS_ACCESSOR_FBP = new PerlNestedCallElementType("CLASS_ACCESSOR_FBP");
+  IStubElementType CLASS_ACCESSOR_METHOD = new PerlLightSubDefinitionElementType("CLASS_ACCESSOR_METHOD");
+  // fixme must be AFTER METHOD
+  IElementType CLASS_ACCESSOR_WRAPPER = new ClassAccessorWrapperElementType("CLASS_ACCESSOR_WRAPPER");
+  IElementType CLASS_ACCESSOR_WRAPPER_RO = new ClassAccessorWrapperElementType("CLASS_ACCESSOR_WRAPPER_RO");
+  IElementType CLASS_ACCESSOR_WRAPPER_WO = new ClassAccessorWrapperElementType("CLASS_ACCESSOR_WRAPPER_WO");
 
-	IElementType CLASS_ACCESSOR_DECLARATION = new ClassAccessorDeclarationStubElementType("CLASS_ACCESSOR_DECLARATION");
+  IElementType RESERVED_MK_RO_ACCESSORS = new PerlTokenType("MK_RO_ACCESSORS");
+  IElementType RESERVED_MK_WO_ACCESSORS = new PerlTokenType("MK_WO_ACCESSORS");
+  IElementType RESERVED_MK_ACCESSORS = new PerlTokenType("MK_ACCESSORS");
+  IElementType RESERVED_FOLLOW_BEST_PRACTICE = new PerlTokenType("FOLLOW_BEST_PRACTICE");
 }

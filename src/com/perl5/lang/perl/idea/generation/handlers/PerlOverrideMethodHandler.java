@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,6 @@
 package com.perl5.lang.perl.idea.generation.handlers;
 
 import com.intellij.lang.LanguageCodeInsightActionHandler;
-import com.intellij.openapi.application.ApplicationManager;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
@@ -29,30 +28,19 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 29.01.2016.
  */
-public class PerlOverrideMethodHandler extends GeneratePerlClassMemberHandlerBase implements LanguageCodeInsightActionHandler
-{
-	@Override
-	protected void generateAfterElement(PsiElement anchor, Editor editor, PsiFile file)
-	{
-		((PerlFile) file).getCodeGenerator().generateOverrideMethod(anchor, editor);
-	}
+public class PerlOverrideMethodHandler extends GeneratePerlClassMemberHandlerBase implements LanguageCodeInsightActionHandler {
+  @Override
+  protected void generateAfterElement(PsiElement anchor, Editor editor, PsiFile file) {
+    ((PerlFile)file).getCodeGenerator().generateOverrideMethod(anchor, editor);
+  }
 
-	@Override
-	public boolean isValidFor(Editor editor, PsiFile file)
-	{
-		return file instanceof PerlFileImpl;
-	}
+  @Override
+  public boolean isValidFor(Editor editor, PsiFile file) {
+    return file instanceof PerlFileImpl;
+  }
 
-	@Override
-	public void invoke(@NotNull final Project project, @NotNull final Editor editor, @NotNull final PsiFile file)
-	{
-		ApplicationManager.getApplication().runWriteAction(new Runnable()
-		{
-			@Override
-			public void run()
-			{
-				PerlOverrideMethodHandler.super.invoke(project, editor, file);
-			}
-		});
-	}
+  @Override
+  public void invoke(@NotNull final Project project, @NotNull final Editor editor, @NotNull final PsiFile file) {
+    PerlOverrideMethodHandler.super.invoke(project, editor, file);
+  }
 }

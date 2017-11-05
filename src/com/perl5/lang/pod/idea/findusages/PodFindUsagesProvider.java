@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,54 +28,45 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 03.04.2016.
  */
-public class PodFindUsagesProvider implements FindUsagesProvider
-{
-	@Nullable
-	@Override
-	public WordsScanner getWordsScanner()
-	{
-		return new PodWordsScanner();
-	}
+public class PodFindUsagesProvider implements FindUsagesProvider {
+  @Nullable
+  @Override
+  public WordsScanner getWordsScanner() {
+    return new PodWordsScanner();
+  }
 
-	@Override
-	public boolean canFindUsagesFor(@NotNull PsiElement psiElement)
-	{
-		return psiElement instanceof PodTitledSection;
-	}
+  @Override
+  public boolean canFindUsagesFor(@NotNull PsiElement psiElement) {
+    return psiElement instanceof PodTitledSection;
+  }
 
-	@Nullable
-	@Override
-	public String getHelpId(@NotNull PsiElement psiElement)
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getHelpId(@NotNull PsiElement psiElement) {
+    return null;
+  }
 
-	@NotNull
-	@Override
-	public String getType(@NotNull PsiElement element)
-	{
-		return "Unknown POD type: " + element;
-	}
+  @NotNull
+  @Override
+  public String getType(@NotNull PsiElement element) {
+    return "Unknown POD type: " + element;
+  }
 
-	@NotNull
-	@Override
-	public String getDescriptiveName(@NotNull PsiElement element)
-	{
-		if (element instanceof ItemPresentation)
-		{
-			String name = ((ItemPresentation) element).getPresentableText();
-			if (StringUtil.isNotEmpty(name))
-			{
-				return name;
-			}
-		}
-		return "Unknown Pod descriptive name" + element;
-	}
+  @NotNull
+  @Override
+  public String getDescriptiveName(@NotNull PsiElement element) {
+    if (element instanceof ItemPresentation) {
+      String name = ((ItemPresentation)element).getPresentableText();
+      if (StringUtil.isNotEmpty(name)) {
+        return name;
+      }
+    }
+    return "Unknown Pod descriptive name" + element;
+  }
 
-	@NotNull
-	@Override
-	public String getNodeText(@NotNull PsiElement element, boolean useFullName)
-	{
-		return "Unknown Pod node text" + element;
-	}
+  @NotNull
+  @Override
+  public String getNodeText(@NotNull PsiElement element, boolean useFullName) {
+    return "Unknown Pod node text" + element;
+  }
 }

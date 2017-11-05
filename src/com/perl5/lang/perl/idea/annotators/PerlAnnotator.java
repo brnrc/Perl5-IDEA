@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,56 +16,136 @@
 
 package com.perl5.lang.perl.idea.annotators;
 
-import com.intellij.lang.annotation.Annotation;
+/**
+ * Created by hurricup on 25.04.2015.
+ */
+
 import com.intellij.lang.annotation.AnnotationHolder;
-import com.intellij.lang.annotation.Annotator;
 import com.intellij.openapi.editor.colors.CodeInsightColors;
-import com.intellij.openapi.editor.colors.EditorColorsManager;
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
 import com.intellij.openapi.editor.colors.TextAttributesKey;
-import com.intellij.openapi.editor.markup.TextAttributes;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.lexer.PerlElementTypes;
+import com.intellij.psi.PsiReference;
+import com.intellij.psi.tree.IElementType;
+import com.intellij.psi.util.PsiUtilCore;
+import com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter;
+import com.perl5.lang.perl.parser.constant.psi.elementTypes.PerlConstantsWrapperElementType;
+import com.perl5.lang.perl.psi.*;
+import com.perl5.lang.perl.psi.impl.PsiPerlArrayIndexVariableImpl;
+import com.perl5.lang.perl.psi.impl.PsiPerlArrayVariableImpl;
+import com.perl5.lang.perl.psi.impl.PsiPerlHashVariableImpl;
+import com.perl5.lang.perl.psi.impl.PsiPerlScalarVariableImpl;
+import com.perl5.lang.perl.psi.light.PerlDelegatingLightNamedElement;
+import com.perl5.lang.perl.psi.references.PerlSubReference;
+import gnu.trove.THashMap;
 import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by hurricup on 10.08.2015.
- */
-public abstract class PerlAnnotator implements Annotator, PerlElementTypes
-{
-	EditorColorsScheme currentScheme = EditorColorsManager.getInstance().getGlobalScheme();
+import java.util.Map;
 
-	public TextAttributes adjustTextAttributes(TextAttributes textAttributes, boolean isDeprecated)
-	{
-		if (isDeprecated)
-		{
-			textAttributes = TextAttributes.merge(textAttributes, currentScheme.getAttributes(CodeInsightColors.DEPRECATED_ATTRIBUTES));
-		}
-		return textAttributes;
-	}
+import static com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter.*;
 
+public class PerlAnnotator extends PerlBaseAnnotator {
+  private static final Map<Class<? extends PerlVariable>, TextAttributesKey> VARIABLE_KEYS_MAP = new THashMap<>();
 
-	public void decorateElement(Annotation annotation, TextAttributesKey key, boolean deprecated)
-	{
-		annotation.setEnforcedTextAttributes(adjustTextAttributes(currentScheme.getAttributes(key), deprecated));
-	}
+  static {
+    VARIABLE_KEYS_MAP.put(PsiPerlScalarVariableImpl.class, PERL_SCALAR_BUILTIN);
+    VARIABLE_KEYS_MAP.put(PsiPerlArrayIndexVariableImpl.class, PERL_SCALAR_BUILTIN);
+    VARIABLE_KEYS_MAP.put(PsiPerlHashVariableImpl.class, PERL_HASH_BUILTIN);
+    VARIABLE_KEYS_MAP.put(PsiPerlArrayVariableImpl.class, PERL_ARRAY_BUILTIN);
+  }
 
-	public void decorateElement(PsiElement element, @NotNull AnnotationHolder holder, TextAttributesKey key, boolean deprecated)
-	{
-		if (element == null)
-		{
-			return;
-		}
-		holder.createInfoAnnotation(element, null).setEnforcedTextAttributes(adjustTextAttributes(currentScheme.getAttributes(key), deprecated));
-	}
+  @Override
+  public void annotate(@NotNull final PsiElement element, @NotNull AnnotationHolder holder) {
+    IElementType elementType = PsiUtilCore.getElementType(element);
+    if (elementType == NYI_STATEMENT) {
+      holder.createInfoAnnotation(element, "Unimplemented statement").setTextAttributes(CodeInsightColors.TODO_DEFAULT_ATTRIBUTES);
+    }
+    else if (element instanceof PerlGlobVariable && ((PerlGlobVariable)element).isBuiltIn()) {
+      holder.createInfoAnnotation(element, null).setTextAttributes(PERL_GLOB_BUILTIN);
+    }
+    else if (element instanceof PerlVariable && ((PerlVariable)element).isBuiltIn()) {
+      holder.createInfoAnnotation(element, null).setTextAttributes(VARIABLE_KEYS_MAP.get(element.getClass()));
+    }
+    else if (elementType == LABEL_DECLARATION || elementType == LABEL_EXPR) {
+      holder.createInfoAnnotation(element.getFirstChild(), null).setTextAttributes(PerlSyntaxHighlighter.PERL_LABEL);
+    }
+    else if (elementType == PACKAGE) {
+      assert element instanceof PerlNamespaceElement;
+      PerlNamespaceElement namespaceElement = (PerlNamespaceElement)element;
 
-	public void decorateElement(PsiElement element, @NotNull AnnotationHolder holder, TextAttributesKey key)
-	{
-		if (element == null)
-		{
-			return;
-		}
-		holder.createInfoAnnotation(element, null).setTextAttributes(key);
-	}
+      PsiElement parent = namespaceElement.getParent();
 
+      if (parent instanceof PerlNamespaceDefinitionWithIdentifier) {
+        decorateElement(namespaceElement, holder, PerlSyntaxHighlighter.PERL_PACKAGE_DEFINITION, false);
+      }
+      else {
+        if (namespaceElement.isPragma()) {
+          decorateElement(namespaceElement, holder, PerlSyntaxHighlighter.PERL_PACKAGE_PRAGMA, false);
+        }
+        else if (namespaceElement.isBuiltin()) {
+          decorateElement(namespaceElement, holder, PerlSyntaxHighlighter.PERL_PACKAGE_CORE, false);
+        }
+      }
+    }
+    else if (element instanceof PerlPolyNamedElement) {
+      TextAttributesKey subAttribute = PerlSyntaxHighlighter.PERL_SUB_DEFINITION;
+      if (elementType == PerlConstantsWrapperElementType.CONSTANT_WRAPPER) { // fixme some interface?
+        subAttribute = PerlSyntaxHighlighter.PERL_CONSTANT;
+      }
+      for (PerlDelegatingLightNamedElement lightNamedElement : ((PerlPolyNamedElement)element).getLightElements()) {
+        TextAttributesKey currentKey =
+          lightNamedElement instanceof PerlSubDefinition ? subAttribute : PerlSyntaxHighlighter.PERL_PACKAGE_DEFINITION;
+        PsiElement navigationElement = lightNamedElement.getNavigationElement();
+        holder.createInfoAnnotation(ElementManipulators.getValueTextRange(navigationElement).shiftRight(lightNamedElement.getTextOffset()),
+                                    null)
+          .setEnforcedTextAttributes(adjustTextAttributes(currentScheme.getAttributes(currentKey), false));
+      }
+    }
+    else if (elementType == SUB_NAME) //  instanceof PerlSubNameElement
+    {
+      PsiElement parent = element.getParent();
+      if (parent instanceof PsiPerlSubDeclaration) {
+        holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DECLARATION);
+      }
+      else if (parent instanceof PerlSubDefinitionElement) {
+        if ("AUTOLOAD".equals(((PerlSubNameElement)element).getName())) {
+          holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_AUTOLOAD);
+        }
+        else {
+          holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DEFINITION);
+        }
+      }
+      else if (parent instanceof PerlMethod) {
+        // fixme don't we need to take multiple references here?
+        PsiElement grandParent = parent.getParent();
+        PerlNamespaceElement methodNamespace = ((PerlMethod)parent).getNamespaceElement();
+
+        if (
+          !(grandParent instanceof PsiPerlNestedCall)    /// not ...->method fixme shouldn't we use isObjectMethod here?
+          && (methodNamespace == null || methodNamespace.isCORE())    // no explicit NS or it's core
+          && ((PerlSubNameElement)element).isBuiltIn()
+          ) {
+          decorateElement(element, holder, PerlSyntaxHighlighter.PERL_SUB_BUILTIN);
+        }
+        else {
+
+          PsiReference reference = element.getReference();
+
+          if (reference instanceof PerlSubReference) {
+            ((PerlSubReference)reference).multiResolve(false);
+
+            if (((PerlSubReference)reference).isConstant()) {
+              holder.createInfoAnnotation(element, "Constant").setTextAttributes(PerlSyntaxHighlighter.PERL_CONSTANT);
+            }
+            else if (((PerlSubReference)reference).isAutoloaded()) {
+              holder.createInfoAnnotation(element, "Auto-loaded sub").setTextAttributes(PerlSyntaxHighlighter.PERL_AUTOLOAD);
+            }
+            else if (((PerlSubReference)reference).isXSub()) {
+              holder.createInfoAnnotation(element, "XSub").setTextAttributes(PerlSyntaxHighlighter.PERL_XSUB);
+            }
+          }
+        }
+      }
+    }
+  }
 }

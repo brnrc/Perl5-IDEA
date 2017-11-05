@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,43 +21,39 @@ import com.intellij.psi.AbstractElementManipulator;
 import com.intellij.util.IncorrectOperationException;
 import com.perl5.lang.perl.psi.PerlNamespaceElement;
 import com.perl5.lang.perl.psi.impl.PerlNamespaceElementImpl;
-import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 27.09.2015.
  */
-public class PerlNamespaceElementManipulator extends AbstractElementManipulator<PerlNamespaceElement>
-{
-	@Override
-	public PerlNamespaceElement handleContentChange(@NotNull PerlNamespaceElement element, @NotNull TextRange range, String newContent) throws IncorrectOperationException
-	{
-		if (newContent.isEmpty())
-		{
-			throw new IncorrectOperationException("You can't set empty package name");
-		}
+public class PerlNamespaceElementManipulator extends AbstractElementManipulator<PerlNamespaceElement> {
+  @Override
+  public PerlNamespaceElement handleContentChange(@NotNull PerlNamespaceElement element, @NotNull TextRange range, String newContent)
+    throws IncorrectOperationException {
+    if (newContent.isEmpty()) {
+      throw new IncorrectOperationException("You can't set empty package name");
+    }
 
-		String currentName = element.getText();
+    return (PerlNamespaceElement)((PerlNamespaceElementImpl)element).replaceWithText(range.replace(element.getText(), newContent));
+  }
 
-		boolean currentTail = currentName.endsWith(PerlPackageUtil.PACKAGE_SEPARATOR) || currentName.endsWith("'");
-		boolean newTail = newContent.endsWith(PerlPackageUtil.PACKAGE_SEPARATOR) || newContent.endsWith("'");
+  @NotNull
+  @Override
+  public TextRange getRangeInElement(@NotNull PerlNamespaceElement element) {
+    return getRangeInString(element.getText());
+  }
 
-		if (newTail && !currentTail)
-		{
-			newContent = PerlPackageUtil.PACKAGE_SEPARATOR_TAIL_RE.matcher(newContent).replaceFirst("");
-		}
-		else if (!newTail && currentTail)
-		{
-			newContent = newContent + PerlPackageUtil.PACKAGE_SEPARATOR;
-		}
+  @NotNull
+  public static TextRange getRangeInString(CharSequence elementText) {
+    int endOffset = elementText.length();
+    while (endOffset > 0) {
+      char currentChar = elementText.charAt(endOffset - 1);
+      if (currentChar != '\'' && currentChar != ':') {
+        break;
+      }
+      endOffset--;
+    }
 
-		return (PerlNamespaceElement) ((PerlNamespaceElementImpl) element).replaceWithText(newContent);
-	}
-
-	@NotNull
-	@Override
-	public TextRange getRangeInElement(@NotNull PerlNamespaceElement element)
-	{
-		return PerlPackageUtil.getPackageRangeFromOffset(0, element.getText());
-	}
+    return endOffset == 0 ? TextRange.EMPTY_RANGE : TextRange.create(0, endOffset);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,23 +18,21 @@ package com.perl5.lang.perl.idea.refactoring.rename;
 
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.perl.psi.PerlGlobVariable;
-import com.perl5.lang.perl.psi.PerlSubDeclaration;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
-import com.perl5.lang.perl.psi.PerlVariableDeclarationWrapper;
+import com.perl5.lang.perl.psi.PerlSubDeclarationElement;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
+import com.perl5.lang.perl.psi.PerlVariableDeclarationElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 04.10.2015.
  */
-public class PerlDefaultRenameProcessor extends PerlRenamePolyReferencedElementProcessor
-{
-	@Override
-	public boolean canProcessElement(@NotNull PsiElement element)
-	{
-		return element instanceof PerlSubDefinitionBase
-				|| element instanceof PerlSubDeclaration
-				|| element instanceof PerlGlobVariable
-				|| element instanceof PerlVariableDeclarationWrapper && ((PerlVariableDeclarationWrapper) element).isGlobalDeclaration()
-				;
-	}
+public class PerlDefaultRenameProcessor extends PerlRenamePolyReferencedElementProcessor {
+  @Override
+  public boolean canProcessElement(@NotNull PsiElement element) {
+    return element instanceof PerlSubDefinitionElement
+           || element instanceof PerlSubDeclarationElement
+           || element instanceof PerlGlobVariable
+           || element instanceof PerlVariableDeclarationElement && ((PerlVariableDeclarationElement)element).isGlobalDeclaration()
+      ;
+  }
 }

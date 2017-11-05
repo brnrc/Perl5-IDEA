@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,17 +17,18 @@
 package com.perl5.lang.perl.util;
 
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.roots.ProjectRootManager;
 import com.intellij.openapi.vfs.VfsUtil;
 import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
+import com.intellij.psi.stubs.StubIndex;
 import com.intellij.psi.stubs.StubIndexKey;
 import com.intellij.psi.tree.TokenSet;
 import com.intellij.psi.util.PsiUtilCore;
-import com.perl5.compat.PerlStubIndex;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlExportDescriptor;
+import com.perl5.lang.perl.idea.project.PerlProjectManager;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 import com.perl5.lang.perl.psi.PerlUseStatement;
 import com.perl5.lang.perl.psi.utils.PerlContextType;
 import com.perl5.lang.perl.psi.utils.PerlPsiUtil;
@@ -45,132 +46,115 @@ import java.util.Set;
  * Created by hurricup on 27.05.2015.
  * Misc helper methods
  */
-public class PerlUtil implements PerlElementTypes
-{
-	private static final TokenSet LIST_CONTEXT_ELEMENTS = TokenSet.create(
-			ARRAY_ARRAY_SLICE,
-			ARRAY_CAST_EXPR,
-			ARRAY_HASH_SLICE,
-			ARRAY_VARIABLE,
-			HASH_VARIABLE,
-			HASH_CAST_EXPR,
-			GREP_EXPR,
-			MAP_EXPR,
-			SORT_EXPR
-	);
+public class PerlUtil implements PerlElementTypes {
+  private static final TokenSet LIST_CONTEXT_ELEMENTS = TokenSet.create(
+    ARRAY_SLICE,
+    ARRAY_CAST_EXPR,
+    HASH_SLICE,
+    ARRAY_VARIABLE,
+    HASH_VARIABLE,
+    HASH_CAST_EXPR,
+    GREP_EXPR,
+    MAP_EXPR,
+    SORT_EXPR
+  );
 
-	@Nullable
-	public static VirtualFile getFileClassRoot(PsiFile psiFile)
-	{
-		return getFileClassRoot(psiFile.getProject(), psiFile.getVirtualFile());
-	}
+  @Nullable
+  public static VirtualFile getFileClassRoot(PsiFile psiFile) {
+    return getFileClassRoot(psiFile.getProject(), psiFile.getVirtualFile());
+  }
 
-	/**
-	 * Searches for innermost source root for a file
-	 *
-	 * @param project project to search in
-	 * @param file    containing file
-	 * @return innermost root
-	 */
-	@Nullable
-	public static VirtualFile getFileClassRoot(Project project, VirtualFile file)
-	{
-		VirtualFile result = null;
-		for (VirtualFile classRoot : ProjectRootManager.getInstance(project).orderEntries().getClassesRoots())
-		{
-			if (VfsUtil.isAncestor(classRoot, file, false) && (result == null || VfsUtil.isAncestor(result, classRoot, true)))
-			{
-				result = classRoot;
-			}
-		}
+  /**
+   * Searches for innermost source root for a file
+   *
+   * @param project project to search in
+   * @param file    containing file
+   * @return innermost root
+   */
+  @Nullable
+  public static VirtualFile getFileClassRoot(Project project, VirtualFile file) {
+    VirtualFile result = null;
+    for (VirtualFile classRoot : PerlProjectManager.getInstance(project).getAllLibraryRoots()) {
+      if (VfsUtil.isAncestor(classRoot, file, false) && (result == null || VfsUtil.isAncestor(result, classRoot, true))) {
+        result = classRoot;
+      }
+    }
 
-		return result;
-	}
+    return result;
+  }
 
-	/**
-	 * Searches for innermost source root for a file by it's absolute path
-	 *
-	 * @param project  module to search in
-	 * @param filePath containing filename
-	 * @return innermost root
-	 */
-	@Nullable
-	public static VirtualFile getFileClassRoot(Project project, String filePath)
-	{
-		File file = new File(filePath);
-		VirtualFile result = null;
+  /**
+   * Searches for innermost source root for a file by it's absolute path
+   *
+   * @param project  module to search in
+   * @param filePath containing filename
+   * @return innermost root
+   */
+  @Nullable
+  public static VirtualFile getFileClassRoot(Project project, String filePath) {
+    File file = new File(filePath);
+    VirtualFile result = null;
 
-		for (VirtualFile classRoot : ProjectRootManager.getInstance(project).orderEntries().getClassesRoots())
-		{
-			File sourceRootFile = new File(classRoot.getPath());
-			if (VfsUtil.isAncestor(sourceRootFile, file, false) && (result == null || VfsUtil.isAncestor(result, classRoot, true)))
-			{
-				result = classRoot;
-			}
-		}
+    for (VirtualFile classRoot : PerlProjectManager.getInstance(project).getAllLibraryRoots()) {
+      File sourceRootFile = new File(classRoot.getPath());
+      if (VfsUtil.isAncestor(sourceRootFile, file, false) && (result == null || VfsUtil.isAncestor(result, classRoot, true))) {
+        result = classRoot;
+      }
+    }
 
-		return result;
-	}
+    return result;
+  }
 
-	public static Collection<String> getIndexKeysWithoutInternals(StubIndexKey<String, ?> key, Project project)
-	{
-		final Set<String> result = new THashSet<String>();
+  @Deprecated // make reverse index and use it
+  public static Collection<String> getIndexKeysWithoutInternals(StubIndexKey<String, ?> key, Project project) {
+    final Set<String> result = new THashSet<>();
 
-		// safe for getElements
-		PerlStubIndex.getInstance().processAllKeys(key, project, new
-				PerlInternalIndexKeysProcessor()
-				{
-					@Override
-					public boolean process(String name)
-					{
-						if (super.process(name))
-						{
-							result.add(name);
-						}
-						return true;
-					}
-				});
+    // safe for getElements
+    StubIndex.getInstance().processAllKeys(key, project, new
+      PerlInternalIndexKeysProcessor() {
+        @Override
+        public boolean process(String name) {
+          if (super.process(name)) {
+            result.add(name);
+          }
+          return true;
+        }
+      });
 
-		return result;
-	}
+    return result;
+  }
 
-	/**
-	 * Processing use statements in the namespace or file and processing all imports found
-	 *
-	 * @param rootElement Root element to start searching from
-	 */
-	public static void processImportedEntities(
-			@NotNull PsiElement rootElement,
-			@NotNull PerlNamespaceEntityProcessor<PerlExportDescriptor> processor
-	)
-	{
-		for (PsiElement element : PerlPsiUtil.collectUseStatements(rootElement))
-		{
-			PerlUseStatement useStatement = (PerlUseStatement) element;
-			String packageName = useStatement.getPackageName();
+  /**
+   * Processing use statements in the namespace or file and processing all imports found
+   *
+   * @param namespace Root element to start searching from
+   */
+  public static void processImportedEntities(
+    @NotNull PerlNamespaceDefinitionElement namespace,
+    @NotNull PerlNamespaceEntityProcessor<PerlExportDescriptor> processor
+  ) {
+    for (PsiElement element : PerlPsiUtil.collectUseStatements(namespace)) {
+      PerlUseStatement useStatement = (PerlUseStatement)element;
+      String packageName = useStatement.getPackageName();
 
-			if (packageName != null)
-			{
-				for (PerlExportDescriptor entry : useStatement.getPackageProcessor().getImports(useStatement))
-				{
-					processor.process(packageName, entry);
-				}
-			}
-		}
-	}
+      if (packageName != null) {
+        for (PerlExportDescriptor entry : useStatement.getPackageProcessor().getImports(useStatement)) {
+          processor.process(packageName, entry);
+        }
+      }
+    }
+  }
 
-	/**
-	 * Returns context type for psi element
-	 *
-	 * @return like scalar for scalars, strings and so on, lists for arrays, hashes, can be null if we not sure
-	 */
-	@Nullable
-	public static PerlContextType getElementContextType(PsiElement element)
-	{
-		if (LIST_CONTEXT_ELEMENTS.contains(PsiUtilCore.getElementType(element)))
-		{
-			return PerlContextType.LIST;
-		}
-		return PerlContextType.SCALAR;
-	}
+  /**
+   * Returns context type for psi element
+   *
+   * @return like scalar for scalars, strings and so on, lists for arrays, hashes, can be null if we not sure
+   */
+  @Nullable
+  public static PerlContextType getElementContextType(PsiElement element) {
+    if (LIST_CONTEXT_ELEMENTS.contains(PsiUtilCore.getElementType(element))) {
+      return PerlContextType.LIST;
+    }
+    return PerlContextType.SCALAR;
+  }
 }

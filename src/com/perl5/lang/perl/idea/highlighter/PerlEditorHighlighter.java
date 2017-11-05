@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -30,16 +30,14 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 02.04.2016.
  */
-public class PerlEditorHighlighter extends LayeredLexerEditorHighlighter implements PerlElementTypes
-{
-	public PerlEditorHighlighter(@Nullable final Project project,
-								 @Nullable final VirtualFile virtualFile,
-								 @NotNull final EditorColorsScheme colors)
-	{
-		super(new PerlSyntaxHighlighter(project), colors);
-		registerLayer(POD, new LayerDescriptor(
-				SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
-				""
-		));
-	}
+public class PerlEditorHighlighter extends LayeredLexerEditorHighlighter implements PerlElementTypes {
+  public PerlEditorHighlighter(@Nullable final Project project,
+                               @Nullable final VirtualFile virtualFile,
+                               @NotNull final EditorColorsScheme colors) {
+    super(new PerlSyntaxHighlighter(project), colors);
+    registerLayer(POD, new LayerDescriptor(
+      SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
+      ""
+    ));
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,10 +18,12 @@ package com.perl5.lang.perl.psi;
 
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.perl.psi.properties.PerlLabelScope;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 04.03.2016.
  */
-public interface PerlSubExpr extends PsiElement, PerlLabelScope
-{
+public interface PerlSubExpr extends PsiElement, PerlLabelScope {
+  @Nullable
+  PsiPerlBlock getBlock();
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,5 @@ import com.intellij.psi.PsiElement;
 /**
  * Created by evstigneev on 28.09.2015.
  */
-public interface PerlHeredocTerminatorElement extends PsiElement
-{
+public interface PerlHeredocTerminatorElement extends PsiElement, PerlReferenceOwner {
 }

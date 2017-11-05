@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,18 +26,15 @@ import com.perl5.lang.pod.lexer.PodElementTypes;
 /**
  * Created by hurricup on 30.03.2016.
  */
-public class PodTreePatcher extends SimpleTreePatcher implements PodElementTypes
-{
-	@Override
-	public void insert(CompositeElement parent, TreeElement anchorBefore, OuterLanguageElement toInsert)
-	{
-		while (anchorBefore.getTreePrev() == null && !(parent instanceof FileElement))
-		{
-			anchorBefore = anchorBefore.getTreeParent();
-			parent = anchorBefore.getTreeParent();
-			assert parent != null;
-		}
+public class PodTreePatcher extends SimpleTreePatcher implements PodElementTypes {
+  @Override
+  public void insert(CompositeElement parent, TreeElement anchorBefore, OuterLanguageElement toInsert) {
+    while (anchorBefore.getTreePrev() == null && !(parent instanceof FileElement)) {
+      anchorBefore = anchorBefore.getTreeParent();
+      parent = anchorBefore.getTreeParent();
+      assert parent != null;
+    }
 
-		super.insert(parent, anchorBefore, toInsert);
-	}
+    super.insert(parent, anchorBefore, toInsert);
+  }
 }

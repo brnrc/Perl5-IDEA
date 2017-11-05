@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,6 @@ import com.intellij.codeInsight.completion.CompletionProvider;
 import com.intellij.codeInsight.completion.CompletionResultSet;
 import com.intellij.psi.PsiElement;
 import com.intellij.util.ProcessingContext;
-import com.perl5.lang.perl.extensions.PerlCompletionElementsProvider;
 import com.perl5.lang.perl.idea.completion.util.PerlSubCompletionUtil;
 import com.perl5.lang.perl.psi.*;
 import com.perl5.lang.perl.psi.mro.PerlMro;
@@ -31,48 +30,37 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 25.07.2015.
  */
-public class PerlSubMethodCompletionProvider extends CompletionProvider<CompletionParameters>
-{
-	public void addCompletions(@NotNull CompletionParameters parameters,
-							   ProcessingContext context,
-							   @NotNull CompletionResultSet resultSet)
-	{
+public class PerlSubMethodCompletionProvider extends CompletionProvider<CompletionParameters> {
+  public void addCompletions(@NotNull CompletionParameters parameters,
+                             ProcessingContext context,
+                             @NotNull CompletionResultSet resultSet) {
 
-		PsiElement method = parameters.getPosition().getParent();
-		assert method instanceof PsiPerlMethod;
+    PsiElement method = parameters.getPosition().getParent();
+    assert method instanceof PsiPerlMethod;
 
-		String packageName = ((PsiPerlMethod) method).getPackageName();
-		PerlNamespaceElement namespaceElement = ((PsiPerlMethod) method).getNamespaceElement();
-		boolean isSuper = namespaceElement != null && namespaceElement.isSUPER();
-		if (isSuper)
-		{
-			packageName = PerlPackageUtil.getContextPackageName(method);
-		}
+    String packageName = ((PsiPerlMethod)method).getPackageName();
+    PerlNamespaceElement namespaceElement = ((PsiPerlMethod)method).getNamespaceElement();
+    boolean isSuper = namespaceElement != null && namespaceElement.isSUPER();
+    if (isSuper) {
+      packageName = PerlPackageUtil.getContextPackageName(method);
+    }
 
-//				System.out.println("Autocomplete for " + packageName);
+    //				System.out.println("Autocomplete for " + packageName);
+    if (packageName == null) {
+      return;
+    }
 
-		// fixme
-		for (PsiElement element : PerlMro.getVariants(method.getProject(), packageName, isSuper))
-		{
-			if (element instanceof PerlSubDefinitionBase && ((PerlSubDefinitionBase) element).isMethod())
-			{
-				if (element instanceof PerlCompletionElementsProvider)
-				{
-					((PerlCompletionElementsProvider) element).fillCompletions(resultSet);
-				}
-				else
-				{
-					resultSet.addElement(PerlSubCompletionUtil.getSubDefinitionLookupElement((PerlSubDefinitionBase) element));
-				}
-			}
-			else if (element instanceof PerlSubDeclaration && ((PerlSubDeclaration) element).isMethod())
-			{
-				resultSet.addElement(PerlSubCompletionUtil.getSubDeclarationLookupElement((PerlSubDeclaration) element));
-			}
-			else if (element instanceof PerlGlobVariable && ((PerlGlobVariable) element).getName() != null)
-			{
-				resultSet.addElement(PerlSubCompletionUtil.getGlobLookupElement((PerlGlobVariable) element));
-			}
-		}
-	}
+    // fixme
+    for (PsiElement element : PerlMro.getVariants(method, packageName, isSuper)) {
+      if (element instanceof PerlSubDefinitionElement && ((PerlSubDefinitionElement)element).isMethod()) {
+        resultSet.addElement(PerlSubCompletionUtil.getSubDefinitionLookupElement((PerlSubDefinitionElement)element));
+      }
+      else if (element instanceof PerlSubDeclarationElement && ((PerlSubDeclarationElement)element).isMethod()) {
+        resultSet.addElement(PerlSubCompletionUtil.getSubDeclarationLookupElement((PerlSubDeclarationElement)element));
+      }
+      else if (element instanceof PerlGlobVariable && ((PerlGlobVariable)element).getName() != null) {
+        resultSet.addElement(PerlSubCompletionUtil.getGlobLookupElement((PerlGlobVariable)element));
+      }
+    }
+  }
 }

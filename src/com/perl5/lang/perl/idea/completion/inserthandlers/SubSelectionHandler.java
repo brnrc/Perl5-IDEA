@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,31 +23,28 @@ import com.intellij.openapi.editor.Editor;
 import com.intellij.openapi.editor.EditorModificationUtil;
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
 
 /**
  * Created by hurricup on 25.07.2015.
  */
-public class SubSelectionHandler implements InsertHandler<LookupElement>, PerlElementTypes
-{
-	@Override
-	public void handleInsert(final InsertionContext context, LookupElement item)
-	{
-		final Editor editor = context.getEditor();
-		int caretOffset = editor.getCaretModel().getOffset();
-		PsiElement targetElement = context.getFile().findElementAt(caretOffset);
-		if (targetElement != null && targetElement.getNode().getElementType() == LEFT_PAREN)
-		{
-			return;
-		}
+public class SubSelectionHandler implements InsertHandler<LookupElement>, PerlElementTypes {
+  @Override
+  public void handleInsert(final InsertionContext context, LookupElement item) {
+    final Editor editor = context.getEditor();
+    int caretOffset = editor.getCaretModel().getOffset();
+    PsiElement targetElement = context.getFile().findElementAt(caretOffset);
+    if (targetElement != null && targetElement.getNode().getElementType() == LEFT_PAREN) {
+      return;
+    }
 
-		PsiElement subDefitnition = item.getPsiElement();
-		EditorModificationUtil.insertStringAtCaret(editor, "()");
+    PsiElement subDefitnition = item.getPsiElement();
+    EditorModificationUtil.insertStringAtCaret(editor, "()");
 
-		// todo we need hint with prototype here, but prototypes handling NYI
-		if (!(subDefitnition instanceof PerlSubDefinitionBase && ((PerlSubDefinitionBase) subDefitnition).getSubArgumentsList().isEmpty()))
-		{
-			editor.getCaretModel().moveCaretRelatively(-1, 0, false, false, true);
-		}
-	}
+    // todo we need hint with prototype here, but prototypes handling NYI
+    if (!(subDefitnition instanceof PerlSubDefinitionElement &&
+          ((PerlSubDefinitionElement)subDefitnition).getSubArgumentsList().isEmpty())) {
+      editor.getCaretModel().moveCaretRelatively(-1, 0, false, false, true);
+    }
+  }
 }

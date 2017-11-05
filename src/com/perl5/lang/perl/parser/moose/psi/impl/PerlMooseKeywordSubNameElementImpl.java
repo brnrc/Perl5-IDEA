@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,34 +21,24 @@ import com.perl5.lang.perl.psi.PerlSubNameElement;
 import com.perl5.lang.perl.psi.impl.PerlSubNameElementImpl;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 25.01.2016.
  */
-public abstract class PerlMooseKeywordSubNameElementImpl extends PerlSubNameElementImpl implements PerlSubNameElement
-{
-	public PerlMooseKeywordSubNameElementImpl(@NotNull IElementType type, CharSequence text)
-	{
-		super(type, text);
-	}
+public class PerlMooseKeywordSubNameElementImpl extends PerlSubNameElementImpl implements PerlSubNameElement {
+  public PerlMooseKeywordSubNameElementImpl(@NotNull IElementType type, CharSequence text) {
+    super(type, text);
+  }
 
-	@Override
-	public boolean isBuiltIn()
-	{
-		return false;
-	}
+  @Override
+  public boolean isBuiltIn() {
+    return false;
+  }
 
-	@Override
-	protected boolean isPerlBuiltIn()
-	{
-		return false;
-	}
-
-	@Override
-	public String getPackageName()
-	{
-		return PerlPackageUtil.getContextPackageName(this);
-	}
-
-
+  @Nullable
+  @Override
+  public String getPackageName() {
+    return PerlPackageUtil.getContextPackageName(this);
+  }
 }

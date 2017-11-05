@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,37 +23,36 @@ import java.util.List;
 /**
  * Created by hurricup on 13.06.2016.
  */
-public interface TemplateToolkitFilterNames
-{
-	List<String> FILTER_NAMES = new ArrayList<String>(Arrays.asList(
-			"format(format)",
-			"upper",
-			"lower",
-			"ucfirst",
-			"lcfirst",
-			"trim",
-			"collapse",
-			"html",
-			"html_entity",
-			"xml",
-			"html_para",
-			"html_break",
-			"html_para_break",
-			"html_line_break",
-			"uri",
-			"url",
-			"indent(pad)",
-			"truncate(length,dots)",
-			"repeat(iterations)",
-			"remove(string)",
-			"replace(search, replace)",
-			"redirect(file, options)",
-			"eval",
-			"evaltt",
-			"perl",
-			"evalperl",
-			"stdout(options)",
-			"stderr",
-			"null"
-	));
+public interface TemplateToolkitFilterNames {
+  List<String> FILTER_NAMES = new ArrayList<>(Arrays.asList(
+    "format(format)",
+    "upper",
+    "lower",
+    "ucfirst",
+    "lcfirst",
+    "trim",
+    "collapse",
+    "html",
+    "html_entity",
+    "xml",
+    "html_para",
+    "html_break",
+    "html_para_break",
+    "html_line_break",
+    "uri",
+    "url",
+    "indent(pad)",
+    "truncate(length,dots)",
+    "repeat(iterations)",
+    "remove(string)",
+    "replace(search, replace)",
+    "redirect(file, options)",
+    "eval",
+    "evaltt",
+    "perl",
+    "evalperl",
+    "stdout(options)",
+    "stderr",
+    "null"
+  ));
 }

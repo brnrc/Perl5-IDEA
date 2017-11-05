@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,26 +29,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 14.08.2015.
  */
-public class PerlUnusedTypeGlobInspection extends PerlInspection
-{
-	@NotNull
-	@Override
-	public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly)
-	{
-		return new PerlVisitor()
-		{
-			@Override
-			public void visitGlobVariable(@NotNull PsiPerlGlobVariable o)
-			{
-				if (o.getNamespaceElement() == null && PerlGlobUtil.BUILT_IN.contains(o.getName()))
-				{
-				}
-				else if (ReferencesSearch.search(o, GlobalSearchScope.projectScope(o.getProject())).findFirst() == null)
-				{
-					holder.registerProblem(o, "Unused typeglob alias", ProblemHighlightType.LIKE_UNUSED_SYMBOL);
-				}
-
-			}
-		};
-	}
+public class PerlUnusedTypeGlobInspection extends PerlInspection {
+  @NotNull
+  @Override
+  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
+    return new PerlVisitor() {
+      @Override
+      public void visitGlobVariable(@NotNull PsiPerlGlobVariable o) {
+        if ((o.getExplicitPackageName() != null || !PerlGlobUtil.BUILT_IN.contains(o.getName())) &&
+            ReferencesSearch.search(o, GlobalSearchScope.projectScope(o.getProject())).findFirst() == null) {
+          holder.registerProblem(o, "Unused typeglob alias", ProblemHighlightType.LIKE_UNUSED_SYMBOL);
+        }
+      }
+    };
+  }
 }

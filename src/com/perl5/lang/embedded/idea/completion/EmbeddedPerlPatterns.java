@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,15 +26,14 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 /**
  * Created by hurricup on 14.01.2016.
  */
-public interface EmbeddedPerlPatterns extends PerlElementTypes
-{
-	PsiElementPattern.Capture<PsiElement> BROKEN_OPEN_MARKER_PATTERN =
-			psiElement(QUESTION).withParent(
-					psiElement(PsiErrorElement.class).afterSibling(
-							psiElement(PsiErrorElement.class).andOr(
-									psiElement().withChild(psiElement(LEFT_ANGLE)),
-									psiElement().withChild(psiElement(OPERATOR_LT_NUMERIC))
-							)
-					)
-			);
+public interface EmbeddedPerlPatterns extends PerlElementTypes {
+  PsiElementPattern.Capture<PsiElement> BROKEN_OPEN_MARKER_PATTERN =
+    psiElement(QUESTION).withParent(
+      psiElement(PsiErrorElement.class).afterSibling(
+        psiElement(PsiErrorElement.class).andOr(
+          psiElement().withChild(psiElement(LEFT_ANGLE)),
+          psiElement().withChild(psiElement(OPERATOR_LT_NUMERIC))
+        )
+      )
+    );
 }

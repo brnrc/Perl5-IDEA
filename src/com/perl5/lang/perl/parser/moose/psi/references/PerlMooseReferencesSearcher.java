@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,30 +22,26 @@ import com.intellij.psi.PsiReference;
 import com.intellij.psi.search.searches.ReferencesSearch;
 import com.intellij.util.Processor;
 import com.perl5.lang.perl.parser.moose.psi.PerlMooseAugmentStatement;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 25.01.2016.
  */
-public class PerlMooseReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters>
-{
-	public PerlMooseReferencesSearcher()
-	{
-		super(true);
-	}
+public class PerlMooseReferencesSearcher extends QueryExecutorBase<PsiReference, ReferencesSearch.SearchParameters> {
+  public PerlMooseReferencesSearcher() {
+    super(true);
+  }
 
-	@Override
-	public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer)
-	{
-		PsiElement element = queryParameters.getElementToSearch();
-		if (element instanceof PerlSubDefinitionBase) //
-		{
-			queryParameters.getOptimizer().searchWord("super", queryParameters.getEffectiveSearchScope(), true, element);
-		}
-		if (element instanceof PerlMooseAugmentStatement)
-		{
-			queryParameters.getOptimizer().searchWord("augment", queryParameters.getEffectiveSearchScope(), true, element);
-		}
-	}
+  @Override
+  public void processQuery(@NotNull ReferencesSearch.SearchParameters queryParameters, @NotNull Processor<PsiReference> consumer) {
+    PsiElement element = queryParameters.getElementToSearch();
+    if (element instanceof PerlSubDefinitionElement) //
+    {
+      queryParameters.getOptimizer().searchWord("super", queryParameters.getEffectiveSearchScope(), true, element);
+    }
+    if (element instanceof PerlMooseAugmentStatement) {
+      queryParameters.getOptimizer().searchWord("augment", queryParameters.getEffectiveSearchScope(), true, element);
+    }
+  }
 }

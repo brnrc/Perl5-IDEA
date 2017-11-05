@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package com.perl5.lang.mason2;
 
+import com.intellij.ui.LayeredIcon;
 import com.perl5.PerlIcons;
 
 import javax.swing.*;
@@ -23,11 +24,11 @@ import javax.swing.*;
 /**
  * Created by hurricup on 10.01.2016.
  */
-public class Mason2Icons
-{
-	public static final Icon MASON_LANGUAGE_ICON = PerlIcons.PERL_LANGUAGE_ICON;
+public class Mason2Icons {
+  public static final Icon MASON_LANGUAGE_ICON = PerlIcons.PERL_LANGUAGE_ICON;
 
-	public static final Icon MASON_PURE_PERL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
-	public static final Icon MASON_TOP_LEVEL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
-	public static final Icon MASON_INTERNAL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
+  public static final Icon MASON_PURE_PERL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
+  public static final Icon MASON_TOP_LEVEL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
+  public static final Icon MASON_INTERNAL_COMPONENT_ICON = PerlIcons.PERL_SCRIPT_FILE_ICON;
+  public static final Icon ROOT_ICON = new LayeredIcon(PerlIcons.TEMPLATE_ROOT, PerlIcons.CAMEL_MODIFIER);
 }

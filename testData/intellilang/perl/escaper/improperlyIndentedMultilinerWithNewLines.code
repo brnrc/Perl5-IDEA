@@ -1,0 +1,10 @@
+{
+<<~ "HTML";
+
+
+  some <caret> multi
+
+          line
+
+    HTML
+}

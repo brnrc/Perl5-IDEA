@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,10 +22,8 @@ import com.perl5.lang.htmlmason.parser.psi.impl.HTMLMasonFileImpl;
 /**
  * Created by hurricup on 08.03.2016.
  */
-public class HTMLMasonTemplatePreprocessor extends AbstractMasonTemplatePreprocessor
-{
-	protected boolean isMyFile(PsiFile file)
-	{
-		return file instanceof HTMLMasonFileImpl;
-	}
+public class HTMLMasonTemplatePreprocessor extends AbstractMasonTemplatePreprocessor {
+  protected boolean isMyFile(PsiFile file) {
+    return file instanceof HTMLMasonFileImpl;
+  }
 }

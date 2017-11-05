@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,15 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 28.05.2015.
  */
-public class PerlNamesValidator implements NamesValidator
-{
-	@Override
-	public boolean isKeyword(@NotNull String name, Project project)
-	{
-		// todo what is this for?
-		return false;
-	}
+public class PerlNamesValidator implements NamesValidator {
+  @Override
+  public boolean isKeyword(@NotNull String name, Project project) {
+    // todo what is this for?
+    return false;
+  }
 
-	@Override
-	public boolean isIdentifier(@NotNull String name, Project project)
-	{
-		return PerlLexer.IDENTIFIER_PATTERN.matcher(name).matches() || PerlBaseLexer.AMBIGUOUS_PACKAGE_PATTERN.matcher(name).matches();
-	}
+  @Override
+  public boolean isIdentifier(@NotNull String name, Project project) {
+    return PerlLexer.IDENTIFIER_PATTERN.matcher(name).matches() || PerlBaseLexer.AMBIGUOUS_PACKAGE_PATTERN.matcher(name).matches();
+  }
 }

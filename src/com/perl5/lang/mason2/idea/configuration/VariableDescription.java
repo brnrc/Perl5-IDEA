@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,54 +19,44 @@ package com.perl5.lang.mason2.idea.configuration;
 /**
  * Created by hurricup on 16.01.2016.
  */
-public class VariableDescription
-{
-	public String variableName;
-	public String variableType;
+public class VariableDescription {
+  public String variableName;
+  public String variableType;
 
-	public VariableDescription()
-	{
-	}
+  public VariableDescription() {
+  }
 
-	public VariableDescription(String variableName, String variableType)
-	{
-		this.variableName = variableName;
-		this.variableType = variableType;
-	}
+  public VariableDescription(String variableName, String variableType) {
+    this.variableName = variableName;
+    this.variableType = variableType;
+  }
 
-	@Override
-	public VariableDescription clone()
-	{
-		return new VariableDescription(variableName, variableType);
-	}
+  @Override
+  public VariableDescription clone() {
+    return new VariableDescription(variableName, variableType);
+  }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (o == null || getClass() != o.getClass())
-		{
-			return false;
-		}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (o == null || getClass() != o.getClass()) {
+      return false;
+    }
 
-		VariableDescription that = (VariableDescription) o;
+    VariableDescription that = (VariableDescription)o;
 
-		if (variableName != null ? !variableName.equals(that.variableName) : that.variableName != null)
-		{
-			return false;
-		}
-		return variableType != null ? variableType.equals(that.variableType) : that.variableType == null;
+    if (variableName != null ? !variableName.equals(that.variableName) : that.variableName != null) {
+      return false;
+    }
+    return variableType != null ? variableType.equals(that.variableType) : that.variableType == null;
+  }
 
-	}
-
-	@Override
-	public int hashCode()
-	{
-		int result = variableName != null ? variableName.hashCode() : 0;
-		result = 31 * result + (variableType != null ? variableType.hashCode() : 0);
-		return result;
-	}
+  @Override
+  public int hashCode() {
+    int result = variableName != null ? variableName.hashCode() : 0;
+    result = 31 * result + (variableType != null ? variableType.hashCode() : 0);
+    return result;
+  }
 }

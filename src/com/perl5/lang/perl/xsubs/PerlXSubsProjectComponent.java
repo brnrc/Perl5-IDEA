@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,60 +18,45 @@ package com.perl5.lang.perl.xsubs;
 
 import com.intellij.openapi.components.ProjectComponent;
 import com.intellij.openapi.project.Project;
+import com.intellij.openapi.startup.StartupManager;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 01.05.2016.
  */
-public class PerlXSubsProjectComponent implements ProjectComponent
-{
+public class PerlXSubsProjectComponent implements ProjectComponent {
 
-	private final Project myProject;
-	//	private final VirtualFileListener myFileListener;
-	private final PerlXSubsState xSubsState;
+  private final Project myProject;
 
-	public PerlXSubsProjectComponent(Project myProject)
-	{
-		this.myProject = myProject;
-//		myFileListener = new PerlXSubsFileListener();
-		xSubsState = PerlXSubsState.getInstance(myProject);
-	}
+  public PerlXSubsProjectComponent(Project project) {
+    myProject = project;
+  }
 
-	@Override
-	public void projectOpened()
-	{
-		xSubsState.rescanFiles();
+  @Override
+  public void projectOpened() {
+    StartupManager.getInstance(myProject).runWhenProjectIsInitialized(() ->
+                                                                      {
+                                                                        PerlXSubsState.getInstance(myProject).rescanFiles();
+                                                                      });
+  }
 
-		if (!xSubsState.isActual)
-		{
-			xSubsState.notifyUser();
-		}
+  @Override
+  public void projectClosed() {
+  }
 
-//		VirtualFileManager.getInstance().addVirtualFileListener(myFileListener);
-	}
+  @Override
+  public void initComponent() {
 
-	@Override
-	public void projectClosed()
-	{
-//		VirtualFileManager.getInstance().removeVirtualFileListener(myFileListener);
-	}
+  }
 
-	@Override
-	public void initComponent()
-	{
+  @Override
+  public void disposeComponent() {
 
-	}
+  }
 
-	@Override
-	public void disposeComponent()
-	{
-
-	}
-
-	@NotNull
-	@Override
-	public String getComponentName()
-	{
-		return "PerlXSubsProjectComponent";
-	}
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return "PerlXSubsProjectComponent";
+  }
 }

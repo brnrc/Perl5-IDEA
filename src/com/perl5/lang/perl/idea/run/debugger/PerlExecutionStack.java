@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,36 +28,30 @@ import java.util.List;
 /**
  * Created by hurricup on 04.05.2016.
  */
-public class PerlExecutionStack extends XExecutionStack
-{
-	private final PerlSuspendContext mySuspendContext;
-	List<PerlStackFrame> myPerlStackFrames = new ArrayList<PerlStackFrame>();
+public class PerlExecutionStack extends XExecutionStack {
+  private final PerlSuspendContext mySuspendContext;
+  List<PerlStackFrame> myPerlStackFrames = new ArrayList<>();
 
-	public PerlExecutionStack(PerlStackFrameDescriptor[] frames, PerlSuspendContext suspendContext)
-	{
-		super("");
-		mySuspendContext = suspendContext;
-		for (PerlStackFrameDescriptor stackFrameDescriptor : frames)
-		{
-			myPerlStackFrames.add(new PerlStackFrame(stackFrameDescriptor, this));
-		}
-	}
+  public PerlExecutionStack(PerlStackFrameDescriptor[] frames, PerlSuspendContext suspendContext) {
+    super("");
+    mySuspendContext = suspendContext;
+    for (PerlStackFrameDescriptor stackFrameDescriptor : frames) {
+      myPerlStackFrames.add(new PerlStackFrame(stackFrameDescriptor, this));
+    }
+  }
 
-	@Nullable
-	@Override
-	public XStackFrame getTopFrame()
-	{
-		return ContainerUtil.getFirstItem(myPerlStackFrames);
-	}
+  @Nullable
+  @Override
+  public XStackFrame getTopFrame() {
+    return ContainerUtil.getFirstItem(myPerlStackFrames);
+  }
 
-	@Override
-	public void computeStackFrames(int firstFrameIndex, XStackFrameContainer container)
-	{
-		container.addStackFrames(myPerlStackFrames, true);
-	}
+  @Override
+  public void computeStackFrames(int firstFrameIndex, XStackFrameContainer container) {
+    container.addStackFrames(myPerlStackFrames, true);
+  }
 
-	public PerlSuspendContext getSuspendContext()
-	{
-		return mySuspendContext;
-	}
+  public PerlSuspendContext getSuspendContext() {
+    return mySuspendContext;
+  }
 }

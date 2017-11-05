@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,11 +28,12 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 02.04.2016.
  */
-public class PerlEditorHighlighterProvider implements EditorHighlighterProvider
-{
-	@Override
-	public EditorHighlighter getEditorHighlighter(@Nullable Project project, @NotNull FileType fileType, @Nullable VirtualFile virtualFile, @NotNull EditorColorsScheme colors)
-	{
-		return new PerlEditorHighlighter(project, virtualFile, colors);
-	}
+public class PerlEditorHighlighterProvider implements EditorHighlighterProvider {
+  @Override
+  public EditorHighlighter getEditorHighlighter(@Nullable Project project,
+                                                @NotNull FileType fileType,
+                                                @Nullable VirtualFile virtualFile,
+                                                @NotNull EditorColorsScheme colors) {
+    return new PerlEditorHighlighter(project, virtualFile, colors);
+  }
 }

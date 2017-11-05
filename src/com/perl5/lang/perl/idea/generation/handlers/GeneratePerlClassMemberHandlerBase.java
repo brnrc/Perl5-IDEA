@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,7 @@ import com.intellij.psi.PsiComment;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionWithIdentifier;
 import com.perl5.lang.perl.psi.PsiPerlBlock;
 import com.perl5.lang.perl.psi.PsiPerlNamespaceContent;
 import com.perl5.lang.perl.psi.impl.PerlHeredocElementImpl;
@@ -33,68 +33,55 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 11.10.2015.
  */
-public abstract class GeneratePerlClassMemberHandlerBase implements CodeInsightActionHandler, PerlElementTypes
-{
-	@Override
-	public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file)
-	{
-		PsiElement currentElement = getCurrentElement(editor, file);
-		if (currentElement == null)
-		{
-			return;
-		}
+public abstract class GeneratePerlClassMemberHandlerBase implements CodeInsightActionHandler, PerlElementTypes {
+  @Override
+  public void invoke(@NotNull Project project, @NotNull Editor editor, @NotNull PsiFile file) {
+    PsiElement currentElement = getCurrentElement(editor, file);
+    if (currentElement == null) {
+      return;
+    }
 
-		while (true)
-		{
-			if (currentElement instanceof PsiFile || currentElement == null || currentElement.getParent() instanceof PsiFile)
-			{
-				return;
-			}
+    while (true) {
+      if (currentElement instanceof PsiFile || currentElement == null || currentElement.getParent() instanceof PsiFile) {
+        return;
+      }
 
-			PsiElement parent = currentElement.getParent();
-			if (parent instanceof PsiPerlNamespaceContent || parent instanceof PsiPerlBlock && parent.getParent() instanceof PerlNamespaceDefinition)
-			{
-				while (currentElement != null && (currentElement instanceof PsiComment || currentElement instanceof PerlHeredocElementImpl))
-				{
-					currentElement = currentElement.getNextSibling();
-				}
+      PsiElement parent = currentElement.getParent();
+      if (parent instanceof PsiPerlNamespaceContent ||
+          parent instanceof PsiPerlBlock && parent.getParent() instanceof PerlNamespaceDefinitionWithIdentifier) {
+        while (currentElement != null && (currentElement instanceof PsiComment || currentElement instanceof PerlHeredocElementImpl)) {
+          currentElement = currentElement.getNextSibling();
+        }
 
-				if (currentElement != null)
-				{
-					generateAfterElement(currentElement, editor, file);
-				}
-				return;
-			}
-			else
-			{
-				currentElement = currentElement.getParent();
-			}
-		}
+        if (currentElement != null) {
+          generateAfterElement(currentElement, editor, file);
+        }
+        return;
+      }
+      else {
+        currentElement = currentElement.getParent();
+      }
+    }
+  }
 
-	}
+  protected abstract void generateAfterElement(PsiElement anchor, Editor editor, PsiFile file);
 
-	protected abstract void generateAfterElement(PsiElement anchor, Editor editor, PsiFile file);
+  protected PsiElement getCurrentElement(Editor editor, PsiFile file) {
+    Caret currentCaret = editor.getCaretModel().getCurrentCaret();
+    // look for current element
+    int currentOffset = currentCaret.getOffset();
+    PsiElement currentElement = file.findElementAt(currentOffset);
 
-	protected PsiElement getCurrentElement(Editor editor, PsiFile file)
-	{
-		Caret currentCaret = editor.getCaretModel().getCurrentCaret();
-		// look for current element
-		int currentOffset = currentCaret.getOffset();
-		PsiElement currentElement = file.findElementAt(currentOffset);
+    if (currentElement == null) {
+      currentOffset--;
+      currentElement = file.findElementAt(currentOffset);
+    }
 
-		if (currentElement == null)
-		{
-			currentOffset--;
-			currentElement = file.findElementAt(currentOffset);
-		}
+    return currentElement;
+  }
 
-		return currentElement;
-	}
-
-	@Override
-	public boolean startInWriteAction()
-	{
-		return true;
-	}
-
+  @Override
+  public boolean startInWriteAction() {
+    return false;
+  }
 }

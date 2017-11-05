@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,96 +32,100 @@ import com.intellij.psi.TokenType;
 import com.intellij.psi.tree.IFileElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.perl5.lang.perl.extensions.parser.PerlParserExtension;
-import com.perl5.lang.perl.idea.stubs.PerlFileElementType;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
-import com.perl5.lang.perl.lexer.PerlLexerAdapter;
+import com.perl5.lang.perl.lexer.adapters.PerlMergingLexerAdapter;
 import com.perl5.lang.perl.parser.PerlParserImpl;
 import com.perl5.lang.perl.parser.elementTypes.PsiElementProvider;
 import com.perl5.lang.perl.psi.impl.PerlFileImpl;
+import com.perl5.lang.perl.psi.stubs.PerlFileElementType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class PerlParserDefinition implements ParserDefinition, PerlElementTypes
-{
-	public static final List<PerlParserExtension> PARSER_EXTENSIONS = new ArrayList<PerlParserExtension>();
+import static com.perl5.lang.perl.lexer.PerlTokenSets.HEREDOC_BODIES_TOKENSET;
 
-	public static final TokenSet WHITE_SPACES = TokenSet.create(
-			TokenType.WHITE_SPACE,
-			TokenType.NEW_LINE_INDENT
-	);
-	public static final TokenSet COMMENTS = TokenSet.create(
-			COMMENT_LINE, COMMENT_BLOCK, COMMENT_ANNOTATION,
-			HEREDOC, HEREDOC_QQ, HEREDOC_QX, HEREDOC_END
-	);
+public class PerlParserDefinition implements ParserDefinition, PerlElementTypes {
+  public static final List<PerlParserExtension> PARSER_EXTENSIONS = new ArrayList<>();
 
-	public static final TokenSet WHITE_SPACE_AND_COMMENTS = TokenSet.orSet(WHITE_SPACES, COMMENTS);
+  public static final TokenSet WHITE_SPACES = TokenSet.create(
+    TokenType.WHITE_SPACE,
+    TokenType.NEW_LINE_INDENT
+  );
+  public static final TokenSet COMMENTS = TokenSet.orSet(
+    HEREDOC_BODIES_TOKENSET,
+    TokenSet.create(
+      COMMENT_LINE, COMMENT_BLOCK, COMMENT_ANNOTATION,
+      HEREDOC_END, HEREDOC_END_INDENTABLE
+    )
+  );
 
-	public static final TokenSet LITERALS = TokenSet.create(
-			STRING_CONTENT,
-			HEREDOC
-	);
-	public static final TokenSet IDENTIFIERS = TokenSet.create(
-			SUB,
-			PACKAGE,
-			VARIABLE_NAME,
-			IDENTIFIER,
-			PACKAGE_IDENTIFIER
-	);
+  public static final TokenSet WHITE_SPACE_AND_COMMENTS = TokenSet.orSet(WHITE_SPACES, COMMENTS);
 
-	public static final IFileElementType FILE = new PerlFileElementType("Perl5", PerlLanguage.INSTANCE);
+  public static final TokenSet LITERALS = TokenSet.create(
+    STRING_CONTENT,
+    STRING_CONTENT_XQ,
+    STRING_CONTENT_QQ
+  );
+  public static final TokenSet IDENTIFIERS = TokenSet.create(
+    SUB_NAME,
+    QUALIFYING_PACKAGE,
+    SCALAR_NAME,
+    ARRAY_NAME,
+    HASH_NAME,
+    GLOB_NAME,
+    PACKAGE,
+    IDENTIFIER
+  );
 
-	@NotNull
-	@Override
-	public Lexer createLexer(Project project)
-	{
-		return new PerlLexerAdapter(project);
-	}
+  public static final IFileElementType FILE = new PerlFileElementType("Perl5", PerlLanguage.INSTANCE);
 
-	@NotNull
-	public TokenSet getWhitespaceTokens()
-	{
-		return WHITE_SPACES;
-	}
+  @NotNull
+  @Override
+  public Lexer createLexer(Project project) {
+    return new PerlMergingLexerAdapter(project);
+  }
 
-	@NotNull
-	public TokenSet getCommentTokens()
-	{
-		return COMMENTS;
-	}
+  @NotNull
+  public TokenSet getWhitespaceTokens() {
+    return WHITE_SPACES;
+  }
 
-	@NotNull
-	public TokenSet getStringLiteralElements()
-	{
-		return LITERALS;
-	}
+  @NotNull
+  public TokenSet getCommentTokens() {
+    return COMMENTS;
+  }
 
-	@NotNull
-	public PsiParser createParser(final Project project)
-	{
-		return new PerlParserImpl();
-	}
+  @NotNull
+  public TokenSet getStringLiteralElements() {
+    return LITERALS;
+  }
 
-	@Override
-	public IFileElementType getFileNodeType()
-	{
-		return FILE;
-	}
+  @NotNull
+  public PsiParser createParser(final Project project) {
+    return PerlParserImpl.INSTANCE;
+  }
 
-	public PsiFile createFile(FileViewProvider viewProvider)
-	{
-		return new PerlFileImpl(viewProvider);
-	}
+  @Override
+  public IFileElementType getFileNodeType() {
+    return FILE;
+  }
 
-	public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right)
-	{
-		return SpaceRequirements.MAY;
-	}
+  public PsiFile createFile(FileViewProvider viewProvider) {
+    return new PerlFileImpl(viewProvider);
+  }
 
-	@NotNull
-	public PsiElement createElement(ASTNode node)
-	{
-		return ((PsiElementProvider) node.getElementType()).getPsiElement(node);
-	}
+  public SpaceRequirements spaceExistanceTypeBetweenTokens(ASTNode left, ASTNode right) {
+    return SpaceRequirements.MAY;
+  }
+
+  @NotNull
+  public PsiElement createElement(ASTNode node) {
+    try {
+      return ((PsiElementProvider)node.getElementType()).getPsiElement(node);
+    }
+    catch (Exception e) {
+      throw new RuntimeException("Problem with node " + node, e);
+    }
+  }
 }

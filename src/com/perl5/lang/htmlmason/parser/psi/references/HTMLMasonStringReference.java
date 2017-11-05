@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,38 +17,22 @@
 package com.perl5.lang.htmlmason.parser.psi.references;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.htmlmason.parser.psi.utils.HTMLMasonElementFactory;
 import com.perl5.lang.perl.psi.PerlString;
-import com.perl5.lang.perl.psi.PsiPerlStringBare;
-import com.perl5.lang.perl.psi.references.PerlPolyVariantReference;
+import com.perl5.lang.perl.psi.references.PerlCachingReference;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 20.03.2016.
  */
-public abstract class HTMLMasonStringReference extends PerlPolyVariantReference<PerlString>
-{
-	public HTMLMasonStringReference(@NotNull PerlString element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+public abstract class HTMLMasonStringReference extends PerlCachingReference<PerlString> {
+  public HTMLMasonStringReference(@NotNull PerlString element, TextRange textRange) {
+    super(element, textRange);
+  }
 
-	protected PsiElement setStringContent(String newContent)
-	{
-		if (myElement instanceof PsiPerlStringBare)
-		{
-			PsiElement newString = HTMLMasonElementFactory.getBareCallString(myElement.getProject(), newContent);
-			if (newString != null)
-			{
-				return myElement.replace(newString);
-			}
-		}
-		else
-		{
-			myElement.setStringContent(newContent);
-		}
-
-		return myElement;
-	}
+  @Deprecated // use manipulators instead
+  protected PsiElement setStringContent(String newContent) {
+    return ElementManipulators.handleContentChange(myElement, newContent);
+  }
 }

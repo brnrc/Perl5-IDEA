@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,17 +21,14 @@ import com.intellij.openapi.project.Project;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public class TemplateToolkitParser extends TemplateToolkitParserGenerated
-{
-	private final Project myProject;
+public class TemplateToolkitParser extends TemplateToolkitParserGenerated {
+  private final Project myProject;
 
-	public TemplateToolkitParser(Project project)
-	{
-		myProject = project;
-	}
+  public TemplateToolkitParser(Project project) {
+    myProject = project;
+  }
 
-	public Project getProject()
-	{
-		return myProject;
-	}
+  public Project getProject() {
+    return myProject;
+  }
 }

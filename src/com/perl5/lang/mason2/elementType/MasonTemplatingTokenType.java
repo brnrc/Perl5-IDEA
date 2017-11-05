@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 21.12.2015.
  */
-public class MasonTemplatingTokenType extends IElementType
-{
-	public MasonTemplatingTokenType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, Mason2TemplatingLanguage.INSTANCE);
-	}
+public class MasonTemplatingTokenType extends IElementType {
+  public MasonTemplatingTokenType(@NotNull @NonNls String debugName) {
+    super(debugName, Mason2TemplatingLanguage.INSTANCE);
+  }
 
-	public String toString()
-	{
-		return "MasonTemplatingTokenType." + super.toString();
-	}
+  public String toString() {
+    return "Mason2: " + super.toString();
+  }
 }

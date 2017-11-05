@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,30 @@
 
 package com.perl5.lang.perl.psi.utils;
 
+import com.intellij.psi.stubs.StubInputStream;
+import com.intellij.psi.stubs.StubOutputStream;
+import org.jetbrains.annotations.NotNull;
+
+import java.io.IOException;
+
 /**
  * Created by hurricup on 03.06.2015.
  */
-public enum PerlReturnType
-{
-	VALUE,        // default
-	REF,        // Package::Name	NYI
-	ARRAY,        // @Package::Name	NYI
-	HASH,        // %Package::Name	NYI
-	ARRAY_REF,    // [Package::Name]
-	HASH_REF,    // {Package::Name}
-	CODE_REF    // &				NYI
+public enum PerlReturnType {
+  VALUE,        // default
+  REF,        // Package::Name	NYI
+  ARRAY,        // @Package::Name	NYI
+  HASH,        // %Package::Name	NYI
+  ARRAY_REF,    // [Package::Name]
+  HASH_REF,    // {Package::Name}
+  CODE_REF;    // &				NYI
+
+  public void serialize(@NotNull StubOutputStream dataStream) throws IOException {
+    dataStream.writeName(toString());
+  }
+
+  public static PerlReturnType deserialize(@NotNull StubInputStream dataStream) throws IOException {
+    return PerlReturnType.valueOf(dataStream.readName().toString());
+  }
+
 }

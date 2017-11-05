@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -28,42 +28,35 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 21.07.2015.
  */
-public class MojoliciousFileViewProvider extends PerlMultiplePsiFilesPerDocumentFileViewProvider implements MojoliciousElementTypes
-{
-	public MojoliciousFileViewProvider(final PsiManager manager, final VirtualFile virtualFile, final boolean physical)
-	{
-		super(manager, virtualFile, physical);
-	}
+public class MojoliciousFileViewProvider extends PerlMultiplePsiFilesPerDocumentFileViewProvider implements MojoliciousElementTypes {
+  public MojoliciousFileViewProvider(final PsiManager manager, final VirtualFile virtualFile, final boolean physical) {
+    super(manager, virtualFile, physical);
+  }
 
-	public MojoliciousFileViewProvider(PsiManager manager, VirtualFile virtualFile, boolean eventSystemEnabled, Language templateLanguage)
-	{
-		super(manager, virtualFile, eventSystemEnabled, templateLanguage);
-	}
+  public MojoliciousFileViewProvider(PsiManager manager, VirtualFile virtualFile, boolean eventSystemEnabled, Language templateLanguage) {
+    super(manager, virtualFile, eventSystemEnabled, templateLanguage);
+  }
 
-	@Override
-	@NotNull
-	public Language getBaseLanguage()
-	{
-		return MojoliciousLanguage.INSTANCE;
-	}
+  @Override
+  @NotNull
+  public Language getBaseLanguage() {
+    return MojoliciousLanguage.INSTANCE;
+  }
 
-	@NotNull
-	@Override
-	protected IElementType getTemplateContentElementType()
-	{
-		return MOJO_HTML_TEMPLATE_DATA;
-	}
+  @NotNull
+  @Override
+  protected IElementType getTemplateContentElementType() {
+    return MOJO_HTML_TEMPLATE_DATA;
+  }
 
-	@NotNull
-	@Override
-	protected IElementType getPODContentElementType()
-	{
-		return MOJO_POD_TEMPLATE_DATA;
-	}
+  @NotNull
+  @Override
+  protected IElementType getPODContentElementType() {
+    return MOJO_POD_TEMPLATE_DATA;
+  }
 
-	@Override
-	protected MojoliciousFileViewProvider cloneInner(final VirtualFile copy)
-	{
-		return new MojoliciousFileViewProvider(getManager(), copy, false, getTemplateDataLanguage());
-	}
+  @Override
+  protected MojoliciousFileViewProvider cloneInner(final VirtualFile copy) {
+    return new MojoliciousFileViewProvider(getManager(), copy, false, getTemplateDataLanguage());
+  }
 }

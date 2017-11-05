@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,15 +17,22 @@
 package com.perl5.lang.htmlmason.lexer;
 
 import com.intellij.openapi.project.Project;
-import com.perl5.lang.perl.lexer.PerlLexerWithCustomStatesAdapter;
+import com.intellij.psi.tree.TokenSet;
+import com.perl5.lang.htmlmason.elementType.HTMLMasonElementTypes;
+import com.perl5.lang.perl.lexer.adapters.PerlMergingLexerAdapter;
+import com.perl5.lang.perl.lexer.adapters.PerlTemplatingMergingLexerAdapter;
 
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class HTMLMasonLexerAdapter extends PerlLexerWithCustomStatesAdapter
-{
-	public HTMLMasonLexerAdapter(Project project)
-	{
-		super(new HTMLMasonLexer(project));
-	}
+public class HTMLMasonLexerAdapter extends PerlTemplatingMergingLexerAdapter implements HTMLMasonElementTypes {
+  private final static TokenSet TOKENS_TO_MERGE = TokenSet.orSet(
+    PerlMergingLexerAdapter.TOKENS_TO_MERGE,
+    TokenSet.create(HTML_MASON_TEMPLATE_BLOCK_HTML)
+  );
+
+  public HTMLMasonLexerAdapter(Project project) {
+    super(project, new HTMLMasonLexer(null).withProject(project), TOKENS_TO_MERGE);
+  }
 }
+

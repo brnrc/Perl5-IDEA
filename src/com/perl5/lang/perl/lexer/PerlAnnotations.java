@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,19 +24,19 @@ import java.util.Map;
 /**
  * Created by hurricup on 03.06.2015.
  */
-public class PerlAnnotations implements PerlElementTypes
-{
-	public static final Map<String, IElementType> TOKENS_MAP = new THashMap<String, IElementType>();
+public class PerlAnnotations implements PerlElementTypes {
+  public static final Map<String, IElementType> TOKENS_MAP = new THashMap<>();
 
-	static
-	{
-		TOKENS_MAP.put("deprecated", ANNOTATION_DEPRECATED_KEY);
-		TOKENS_MAP.put("returns", ANNOTATION_RETURNS_KEY);
-		TOKENS_MAP.put("override", ANNOTATION_OVERRIDE_KEY);
-		TOKENS_MAP.put("method", ANNOTATION_METHOD_KEY);
-		TOKENS_MAP.put("abstract", ANNOTATION_ABSTRACT_KEY);
-		TOKENS_MAP.put("inject", ANNOTATION_INJECT_KEY);
-		TOKENS_MAP.put("noinspection", ANNOTATION_NOINSPECTION_KEY);
-	}
+  static {
+    TOKENS_MAP.put("deprecated", ANNOTATION_DEPRECATED_KEY);
+    TOKENS_MAP.put("returns", ANNOTATION_RETURNS_KEY);
+    TOKENS_MAP.put("type", ANNOTATION_TYPE_KEY);
+    TOKENS_MAP.put("method", ANNOTATION_METHOD_KEY);
+    TOKENS_MAP.put("inject", ANNOTATION_INJECT_KEY);
 
+    // these are parsed but not used
+    TOKENS_MAP.put("override", ANNOTATION_OVERRIDE_KEY);
+    TOKENS_MAP.put("abstract", ANNOTATION_ABSTRACT_KEY);
+    TOKENS_MAP.put("noinspection", ANNOTATION_NOINSPECTION_KEY);
+  }
 }

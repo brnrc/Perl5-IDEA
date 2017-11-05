@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,8 +18,6 @@ package com.perl5.lang.perl.idea.structureView.filters;
 
 import com.intellij.ide.util.treeView.smartTree.ActionPresentation;
 import com.intellij.ide.util.treeView.smartTree.ActionPresentationData;
-import com.intellij.ide.util.treeView.smartTree.Filter;
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.perl5.PerlIcons;
 import com.perl5.lang.perl.idea.structureView.elements.PerlSubStructureViewElement;
 import org.jetbrains.annotations.NotNull;
@@ -27,35 +25,24 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlDeclarationFilter implements Filter
-{
-	public static final PerlDeclarationFilter INSTANCE = new PerlDeclarationFilter();
-	private static final String ID = "SHOW_DECLARATIONS";
+public class PerlDeclarationFilter extends PerlFilter {
+  public static final PerlDeclarationFilter INSTANCE = new PerlDeclarationFilter();
+  private static final String ID = "SHOW_DECLARATIONS";
 
-	@Override
-	public boolean isVisible(TreeElement treeElement)
-	{
-		return !(treeElement instanceof PerlSubStructureViewElement && ((PerlSubStructureViewElement) treeElement).isDeclaration());
-	}
+  @Override
+  protected boolean isMyElement(@NotNull PerlSubStructureViewElement treeElement) {
+    return treeElement.isDeclaration();
+  }
 
-	@Override
-	public boolean isReverted()
-	{
-		return true;
-	}
+  @NotNull
+  @Override
+  public ActionPresentation getPresentation() {
+    return new ActionPresentationData("Show declarations", null, PerlIcons.SUB_DECLARATION_GUTTER_ICON);
+  }
 
-	@NotNull
-	@Override
-	public ActionPresentation getPresentation()
-	{
-		return new ActionPresentationData("Show declarations", null, PerlIcons.SUB_DECLARATION_GUTTER_ICON);
-	}
-
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return ID;
-	}
-
+  @NotNull
+  @Override
+  public String getName() {
+    return ID;
+  }
 }

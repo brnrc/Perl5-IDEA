@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,13 @@ import com.perl5.lang.perl.psi.PerlUseStatement;
  * Created by hurricup on 23.08.2015.
  * Marks a package processor that it can modify %^H (see use feature)
  */
-public interface PerlFeaturesProvider
-{
-	/**
-	 * Modifies outer block's features table
-	 *
-	 * @param useStatement         use statement reference
-	 * @param currentFeaturesTable features table of outer block
-	 * @return new features table
-	 */
-	public PerlFeaturesTable getFeaturesTable(PerlUseStatement useStatement, PerlFeaturesTable currentFeaturesTable);
+public interface PerlFeaturesProvider {
+  /**
+   * Modifies outer block's features table
+   *
+   * @param useStatement         use statement reference
+   * @param currentFeaturesTable features table of outer block
+   * @return new features table
+   */
+  public PerlFeaturesTable getFeaturesTable(PerlUseStatement useStatement, PerlFeaturesTable currentFeaturesTable);
 }

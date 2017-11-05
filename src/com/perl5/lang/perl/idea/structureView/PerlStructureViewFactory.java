@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,32 +22,34 @@ import com.intellij.ide.structureView.TreeBasedStructureViewBuilder;
 import com.intellij.lang.PsiStructureViewFactory;
 import com.intellij.openapi.editor.Editor;
 import com.intellij.psi.PsiFile;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionWithIdentifier;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlStructureViewFactory implements PsiStructureViewFactory
-{
-	@Nullable
-	@Override
-	public StructureViewBuilder getStructureViewBuilder(final PsiFile psiFile)
-	{
-		return new TreeBasedStructureViewBuilder()
-		{
-			@NotNull
-			@Override
-			public StructureViewModel createStructureViewModel(@Nullable Editor editor)
-			{
-				return new PerlStructureViewModel(psiFile, editor);
-			}
+public class PerlStructureViewFactory implements PsiStructureViewFactory {
 
-			@Override
-			public boolean isRootNodeShown()
-			{
-				return false;
-			}
-		};
-	}
+
+  @Nullable
+  @Override
+  public StructureViewBuilder getStructureViewBuilder(final PsiFile psiFile) {
+    return new TreeBasedStructureViewBuilder() {
+      @NotNull
+      @Override
+      public StructureViewModel createStructureViewModel(@Nullable Editor editor) {
+        return new PerlStructureViewModel(psiFile, editor).withSuitableClasses(
+          PerlSubDefinitionElement.class,
+          PerlNamespaceDefinitionWithIdentifier.class
+        );
+      }
+
+      @Override
+      public boolean isRootNodeShown() {
+        return false;
+      }
+    };
+  }
 }

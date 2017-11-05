@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,35 +18,21 @@ package com.perl5.lang.mojolicious.idea.formatter;
 
 import com.intellij.formatting.FormattingModel;
 import com.intellij.formatting.FormattingModelProvider;
-import com.intellij.formatting.SpacingBuilder;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.codeStyle.CodeStyleSettings;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
-import com.intellij.psi.formatter.common.DefaultInjectedLanguageBlockBuilder;
-import com.intellij.psi.formatter.common.InjectedLanguageBlockBuilder;
 import com.perl5.lang.mojolicious.idea.formatter.blocks.MojoliciousFormattingBlock;
-import com.perl5.lang.perl.PerlLanguage;
 import com.perl5.lang.perl.idea.formatter.PerlFormattingModelBuilder;
 import com.perl5.lang.perl.idea.formatter.blocks.PerlFormattingBlock;
-import com.perl5.lang.perl.idea.formatter.settings.PerlCodeStyleSettings;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 09.01.2016.
  */
-public class MojoliciousFormattingModelBuilder extends PerlFormattingModelBuilder
-{
-	@NotNull
-	@Override
-	public FormattingModel createModel(PsiElement element, CodeStyleSettings settings)
-	{
-		CommonCodeStyleSettings commonSettings = settings.getCommonSettings(PerlLanguage.INSTANCE);
-		PerlCodeStyleSettings perlSettings = settings.getCustomSettings(PerlCodeStyleSettings.class);
-		SpacingBuilder spacingBuilder = createSpacingBuilder(commonSettings, perlSettings);
-		InjectedLanguageBlockBuilder injectedLanguageBlockBuilder = new DefaultInjectedLanguageBlockBuilder(settings);
-		PerlFormattingBlock block = new MojoliciousFormattingBlock(element.getNode(), null, null, commonSettings, perlSettings, spacingBuilder, injectedLanguageBlockBuilder);
-		return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
-	}
-
-
+public class MojoliciousFormattingModelBuilder extends PerlFormattingModelBuilder {
+  @NotNull
+  @Override
+  public FormattingModel createModel(PsiElement element, CodeStyleSettings settings) {
+    PerlFormattingBlock block = new MojoliciousFormattingBlock(element.getNode(), null, null, new MojoliciousFormattingContext(settings));
+    return FormattingModelProvider.createFormattingModelForPsiFile(element.getContainingFile(), block, settings);
+  }
 }

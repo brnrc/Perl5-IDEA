@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,22 +27,20 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 27.02.2016.
  */
-public abstract class PerlTextContainerManipulator<T extends PsiElement> extends AbstractElementManipulator<T>
-{
-	@Override
-	public T handleContentChange(@NotNull T element, @NotNull TextRange range, String newContent) throws IncorrectOperationException
-	{
-		final PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
-		final Document document = manager.getDocument(element.getContainingFile());
+public abstract class PerlTextContainerManipulator<T extends PsiElement> extends AbstractElementManipulator<T> {
+  @SuppressWarnings("Duplicates")
+  @Override
+  public T handleContentChange(@NotNull T element, @NotNull TextRange range, String newContent) throws IncorrectOperationException {
+    final PsiDocumentManager manager = PsiDocumentManager.getInstance(element.getProject());
+    final Document document = manager.getDocument(element.getContainingFile());
 
-		if (document != null)
-		{
-			TextRange elementRange = element.getTextRange();
-			manager.doPostponedOperationsAndUnblockDocument(document);
-			document.replaceString(elementRange.getStartOffset() + range.getStartOffset(), elementRange.getStartOffset() + range.getEndOffset(), newContent);
-			manager.commitDocument(document);
-		}
-		return element;
-	}
-
+    if (document != null) {
+      TextRange elementRange = element.getTextRange();
+      manager.doPostponedOperationsAndUnblockDocument(document);
+      document.replaceString(elementRange.getStartOffset() + range.getStartOffset(), elementRange.getStartOffset() + range.getEndOffset(),
+                             newContent);
+      manager.commitDocument(document);
+    }
+    return element;
+  }
 }

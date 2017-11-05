@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,22 +19,21 @@ package com.perl5.lang.mojolicious;
 /**
  * Created by hurricup on 26.12.2015.
  */
-public interface MojoliciousSyntaxElements
-{
-	String KEYWORD_MOJO_BLOCK_OPENER = "<%";
-	String KEYWORD_MOJO_BLOCK_CLOSER = "%>";
-	String KEYWORD_MOJO_BLOCK_EXPR_OPENER = "<%=";
-	String KEYWORD_MOJO_BLOCK_EXPR_ESCAPED_OPENER = "<%==";
-	String KEYWORD_MOJO_BLOCK_EXPR_NOSPACE_CLOSER = "=%>";
+public interface MojoliciousSyntaxElements {
+  String KEYWORD_MOJO_BLOCK_OPENER = "<%";
+  String KEYWORD_MOJO_BLOCK_CLOSER = "%>";
+  String KEYWORD_MOJO_BLOCK_EXPR_OPENER = "<%=";
+  String KEYWORD_MOJO_BLOCK_EXPR_ESCAPED_OPENER = "<%==";
+  String KEYWORD_MOJO_BLOCK_EXPR_NOSPACE_CLOSER = "=%>";
 
-	String KEYWORD_MOJO_LINE_OPENER = "%";
-	String KEYWORD_MOJO_LINE_EXPR_OPENER = "%=";
-	String KEYWORD_MOJO_LINE_EXPR_ESCAPED_OPENER = "%==";
+  String KEYWORD_MOJO_LINE_OPENER = "%";
+  String KEYWORD_MOJO_LINE_EXPR_OPENER = "%=";
+  String KEYWORD_MOJO_LINE_EXPR_ESCAPED_OPENER = "%==";
 
-	String KEYWORD_MOJO_BLOCK_OPENER_TAG = "<%%";
-	String KEYWORD_MOJO_LINE_OPENER_TAG = "%%";
+  String KEYWORD_MOJO_BLOCK_OPENER_TAG = "<%%";
+  String KEYWORD_MOJO_LINE_OPENER_TAG = "%%";
 
-	String KEYWORD_MOJO_BEGIN = "begin";
-	String KEYWORD_MOJO_END = "end";
-	String KEYWORD_MOJO_HELPER_METHOD = "helper";
+  String KEYWORD_MOJO_BEGIN = "begin";
+  String KEYWORD_MOJO_END = "end";
+  String KEYWORD_MOJO_HELPER_METHOD = "helper";
 }

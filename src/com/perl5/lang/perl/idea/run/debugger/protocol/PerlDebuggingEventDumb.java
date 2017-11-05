@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,11 +20,9 @@ package com.perl5.lang.perl.idea.run.debugger.protocol;
  * Created by hurricup on 11.05.2016.
  * Empty handler to return from transactions
  */
-public class PerlDebuggingEventDumb extends PerlDebuggingEventBase
-{
-	@Override
-	public void run()
-	{
+public class PerlDebuggingEventDumb extends PerlDebuggingEventBase {
+  @Override
+  public void run() {
 
-	}
+  }
 }

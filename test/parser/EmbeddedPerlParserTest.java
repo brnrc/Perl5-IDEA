@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,28 +24,31 @@ import com.perl5.lang.embedded.psi.EmbeddedPerlFileViewProviderFactory;
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class EmbeddedPerlParserTest extends PerlParserTestBase
-{
-	public EmbeddedPerlParserTest()
-	{
-		super("", "thtml", new EmbeddedPerlParserDefinition());
-	}
+public class EmbeddedPerlParserTest extends PerlParserTestBase {
+  public EmbeddedPerlParserTest() {
+    super("", "thtml", new EmbeddedPerlParserDefinition());
+  }
 
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/parser/embedded";
-	}
+  @Override
+  protected String getTestDataPath() {
+    return "testData/parser/embedded";
+  }
 
-	public void testSyntax()
-	{
-		doTest("parser_test");
-	}
+  public void testWithPod() {
+    doTest();
+  }
 
-	@Override
-	public void setUp() throws Exception
-	{
-		super.setUp();
-		LanguageFileViewProviders.INSTANCE.addExplicitExtension(EmbeddedPerlLanguage.INSTANCE, new EmbeddedPerlFileViewProviderFactory());
-	}
+  public void testParserTest() {
+    doTest();
+  }
+
+  public void testIncompletePerlBlock() {
+    doTest();
+  }
+
+  @Override
+  public void setUp() throws Exception {
+    super.setUp();
+    LanguageFileViewProviders.INSTANCE.addExplicitExtension(EmbeddedPerlLanguage.INSTANCE, new EmbeddedPerlFileViewProviderFactory());
+  }
 }

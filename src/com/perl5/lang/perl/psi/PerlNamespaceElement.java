@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,74 +18,82 @@ package com.perl5.lang.perl.psi;
 
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.perl.psi.impl.PerlFileImpl;
+import com.perl5.lang.perl.util.PerlPackageUtil;
 
 import java.util.List;
 
 /**
  * Created by hurricup on 31.05.2015.
  */
-public interface PerlNamespaceElement extends PsiElement, PerlDeprecatable
-{
-	/**
-	 * Checks if package is from Core list
-	 *
-	 * @return result
-	 */
-	boolean isBuiltin();
+public interface PerlNamespaceElement extends PsiElement, PerlDeprecatable {
+  /**
+   * Checks if package is from Core list
+   *
+   * @return result
+   */
+  @Deprecated // use utility method instead
+  default boolean isBuiltin() {
+    return PerlPackageUtil.isBuiltIn(getCanonicalName());
+  }
 
-	/**
-	 * Checks if package is pragma
-	 *
-	 * @return result
-	 */
-	boolean isPragma();
+  /**
+   * Checks if package is pragma
+   *
+   * @return result
+   */
+  boolean isPragma();
 
-	/**
-	 * Returns list of definitions of current namespace
-	 *
-	 * @return list of PerlNameSpaceDefitions
-	 */
-	List<PerlNamespaceDefinition> getNamespaceDefinitions();
+  /**
+   * Returns list of definitions of current namespace
+   *
+   * @return list of PerlNameSpaceDefitions
+   */
+  List<PerlNamespaceDefinitionElement> getNamespaceDefinitions();
 
-	/**
-	 * Returns list of files suitable for this namespace, works only if namespace is in use or require statement
-	 *
-	 * @return list of PerlNameSpaceDefitions
-	 */
-	List<PerlFileImpl> getNamespaceFiles();
+  /**
+   * Returns list of files suitable for this namespace, works only if namespace is in use or require statement
+   *
+   * @return list of PerlNameSpaceDefitions
+   */
+  List<PerlFileImpl> getNamespaceFiles();
 
-	/**
-	 * Returns canonical namespace name
-	 *
-	 * @return canonical name
-	 */
-	String getCanonicalName();
+  /**
+   * Returns canonical namespace name
+   *
+   * @return canonical name
+   */
+  String getCanonicalName();
 
-	/**
-	 * Checks if namespace is SUPER::
-	 *
-	 * @return check result
-	 */
-	boolean isSUPER();
+  /**
+   * Checks if namespace is SUPER::
+   *
+   * @return check result
+   */
+  boolean isSUPER();
 
-	/**
-	 * Checks if namespace is SUPER::
-	 *
-	 * @return check result
-	 */
-	boolean isMain();
+  /**
+   * Checks if namespace is SUPER::
+   *
+   * @return check result
+   */
+  boolean isMain();
 
-	/**
-	 * Checks if namespace is SUPER::
-	 *
-	 * @return check result
-	 */
-	boolean isCORE();
+  /**
+   * Checks if namespace is SUPER::
+   *
+   * @return check result
+   */
+  boolean isCORE();
 
-	/**
-	 * Checks if namespace is UNIVERSAL::
-	 *
-	 * @return check result
-	 */
-	boolean isUNIVERSAL();
+  /**
+   * Checks if namespace is UNIVERSAL::
+   *
+   * @return check result
+   */
+  boolean isUNIVERSAL();
+
+  /**
+   * Checks if this is a __PACKAGE__
+   */
+  boolean isTag();
 }

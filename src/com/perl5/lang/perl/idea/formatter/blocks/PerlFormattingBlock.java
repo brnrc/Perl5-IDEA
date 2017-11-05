@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,439 +18,381 @@ package com.perl5.lang.perl.idea.formatter.blocks;
 
 import com.intellij.formatting.*;
 import com.intellij.lang.ASTNode;
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.util.AtomicNotNullLazyValue;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.psi.PsiElement;
-import com.intellij.psi.PsiFile;
 import com.intellij.psi.TokenType;
-import com.intellij.psi.codeStyle.CommonCodeStyleSettings;
 import com.intellij.psi.formatter.FormatterUtil;
 import com.intellij.psi.formatter.common.AbstractBlock;
-import com.intellij.psi.formatter.common.InjectedLanguageBlockBuilder;
 import com.intellij.psi.impl.source.tree.CompositeElement;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
+import com.intellij.psi.util.PsiTreeUtil;
+import com.intellij.psi.util.PsiUtilCore;
+import com.intellij.util.Function;
+import com.intellij.util.containers.FactoryMap;
+import com.perl5.lang.perl.idea.formatter.PerlFormattingContext;
 import com.perl5.lang.perl.idea.formatter.PerlIndentProcessor;
 import com.perl5.lang.perl.idea.formatter.settings.PerlCodeStyleSettings;
 import com.perl5.lang.perl.lexer.PerlElementTypes;
 import com.perl5.lang.perl.parser.PerlParserUtil;
-import com.perl5.lang.perl.psi.impl.PerlFileImpl;
-import com.perl5.lang.perl.psi.impl.PerlHeredocElementImpl;
+import com.perl5.lang.perl.psi.PsiPerlStatementModifier;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+
+import static com.perl5.lang.perl.lexer.PerlTokenSets.HEREDOC_BODIES_TOKENSET;
 
 /**
  * Created by hurricup on 03.09.2015.
  */
-public class PerlFormattingBlock extends AbstractBlock implements PerlElementTypes
-{
-	/**
-	 * Composit elements that should be treated as leaf elements, no children
-	 */
-	public final static TokenSet LEAF_ELEMENTS = TokenSet.create(
-			HEREDOC,
-			HEREDOC_QX,
-			HEREDOC_QQ,
-			STRING_SQ,
-			STRING_DQ,
-			STRING_XQ,
-			POD,
-			PerlParserUtil.DUMMY_BLOCK
-	);
+public class PerlFormattingBlock extends AbstractBlock implements PerlElementTypes {
+  /**
+   * Composite elements that should be treated as leaf elements, no children
+   */
+  public final static TokenSet LEAF_ELEMENTS =
+    TokenSet.create(
+      STRING_SQ,
+      STRING_DQ,
+      STRING_XQ,
+      POD,
+      PerlParserUtil.DUMMY_BLOCK
+    );
+  /**
+   * Elements that must have LF between them
+   */
+  public final static TokenSet LF_ELEMENTS = TokenSet.create(
+    LABEL_DECLARATION,
+    STATEMENT,
+    FOR_COMPOUND,
+    WHILE_COMPOUND,
+    WHEN_COMPOUND,
+    UNTIL_COMPOUND,
+    IF_COMPOUND,
+    USE_STATEMENT
+  );
+  public final static TokenSet BLOCK_OPENERS = TokenSet.create(
+    LEFT_BRACE,
+    LEFT_BRACKET,
+    LEFT_PAREN
+  );
+  public final static TokenSet BLOCK_CLOSERS = TokenSet.create(
+    RIGHT_BRACE,
+    RIGHT_BRACKET,
+    RIGHT_PAREN,
 
-	/**
-	 * Elements that must have LF between them
-	 */
-	public final static TokenSet LF_ELEMENTS = TokenSet.create(
-			LABEL_DECLARATION,
-			STATEMENT,
-			FOR_COMPOUND,
-			FOREACH_COMPOUND,
-			WHILE_COMPOUND,
-			WHEN_COMPOUND,
-			UNTIL_COMPOUND,
-			IF_COMPOUND,
-			USE_STATEMENT,
-			USE_STATEMENT_CONSTANT,
-			USE_VARS_STATEMENT
-	);
+    SEMICOLON
+  );
+  protected final PerlFormattingContext myContext;
+  private final Indent myIndent;
+  private final boolean myIsFirst;
+  private final boolean myIsLast;
+  private final IElementType myElementType;
+  private final AtomicNotNullLazyValue<Boolean> myIsIncomple;
+  private List<Block> mySubBlocks;
 
-	public final static TokenSet BLOCK_OPENERS = TokenSet.create(
-			LEFT_BRACE,
-			LEFT_BRACKET,
-			LEFT_PAREN
-	);
+  public PerlFormattingBlock(
+    @NotNull ASTNode node,
+    @Nullable Wrap wrap,
+    @Nullable Alignment alignment,
+    @NotNull PerlFormattingContext context
+  ) {
+    super(node, wrap, alignment);
+    myContext = context;
+    myIndent = context.getIndentProcessor().getNodeIndent(node);
+    myIsFirst = FormatterUtil.getPreviousNonWhitespaceSibling(node) == null;
+    myIsLast = FormatterUtil.getNextNonWhitespaceSibling(node) == null;
+    myElementType = node.getElementType();
+    myIsIncomple = AtomicNotNullLazyValue.createValue(() -> {
+      if (myElementType == COMMA_SEQUENCE_EXPR) {
+        IElementType lastNodeType = PsiUtilCore.getElementType(myNode.getLastChildNode());
+        if (lastNodeType == COMMA || lastNodeType == FAT_COMMA) {
+          return true;
+        }
+      }
 
-	public final static TokenSet BLOCK_CLOSERS = TokenSet.create(
-			RIGHT_BRACE,
-			RIGHT_BRACKET,
-			RIGHT_PAREN,
+      List<Block> blocks = getSubBlocks();
+      if (!blocks.isEmpty()) {
+        Block lastBlock = blocks.get(blocks.size() - 1);
+        if (lastBlock.isIncomplete()) {
+          return true;
+        }
+      }
 
-			SEMICOLON
-	);
+      return PerlFormattingBlock.super.isIncomplete();
+    });
+  }
 
-	private final Indent myIndent;
-	private final CommonCodeStyleSettings mySettings;
-	private final PerlCodeStyleSettings myPerl5Settings;
-	private final SpacingBuilder mySpacingBuilder;
-	private final Alignment myAlignment;
-	private final boolean myIsFirst;
-	private final boolean myIsLast;
-	private final IElementType myElementType;
-	private final InjectedLanguageBlockBuilder myInjectedLanguageBlockBuilder;
-	private List<Block> mySubBlocks;
+  @NotNull
+  @Override
+  protected List<Block> buildChildren() {
+    if (mySubBlocks == null) {
+      mySubBlocks = buildSubBlocks();
+    }
 
-	public PerlFormattingBlock(
-			@NotNull ASTNode node,
-			@Nullable Wrap wrap,
-			@Nullable Alignment alignment,
-			@NotNull CommonCodeStyleSettings codeStyleSettings,
-			@NotNull PerlCodeStyleSettings perlCodeStyleSettings,
-			@NotNull SpacingBuilder spacingBuilder,
-			@NotNull InjectedLanguageBlockBuilder injectedLanguageBlockBuilder
-	)
-	{
-		super(node, wrap, alignment);
-		mySettings = codeStyleSettings;
-		myPerl5Settings = perlCodeStyleSettings;
-		mySpacingBuilder = spacingBuilder;
-		myAlignment = alignment;
-		myIndent = getIndentProcessor().getNodeIndent(node, perlCodeStyleSettings);
-		myIsFirst = FormatterUtil.getPreviousNonWhitespaceSibling(node) == null;
-		myIsLast = FormatterUtil.getNextNonWhitespaceSibling(node) == null;
-		myElementType = node.getElementType();
-		myInjectedLanguageBlockBuilder = injectedLanguageBlockBuilder;
-	}
+    // fixme what is re-creation for?
+    return new ArrayList<>(mySubBlocks);
+  }
 
-	protected static boolean shouldCreateBlockFor(ASTNode node)
-	{
-		return node.getElementType() != TokenType.WHITE_SPACE && node.getText().length() != 0;
-	}
+  protected List<Block> buildSubBlocks() {
+    if (isLeaf()) {
+      return Collections.emptyList();
+    }
+    final List<Block> blocks = new ArrayList<>();
 
-	protected PerlIndentProcessor getIndentProcessor()
-	{
-		return PerlIndentProcessor.INSTANCE;
-	}
+    int[] relativeLineNumber = new int[]{0};
 
-	@NotNull
-	@Override
-	protected List<Block> buildChildren()
-	{
-		if (mySubBlocks == null)
-		{
-			mySubBlocks = buildSubBlocks();
-		}
+    IElementType elementType = getElementType();
+    Alignment alignment = Alignment.createAlignment(true);
+    Function<IElementType, Alignment> alignmentFunction;
+    PerlCodeStyleSettings perlCodeStyleSettings = myContext.getPerlSettings();
+    if (elementType == COMMA_SEQUENCE_EXPR && perlCodeStyleSettings.ALIGN_FAT_COMMA) {
+      alignmentFunction = childElementType -> childElementType == FAT_COMMA ? alignment : null;
+    }
+    else if (elementType == TRENAR_EXPR && perlCodeStyleSettings.ALIGN_TERNARY) {
+      alignmentFunction = childElementType -> childElementType == QUESTION || childElementType == COLON ? alignment : null;
+    }
+    else if (elementType == DEREF_EXPR && perlCodeStyleSettings.ALIGN_DEREFERENCE_IN_CHAIN) {
+      alignmentFunction = childElementType -> childElementType == OPERATOR_DEREFERENCE ? alignment : null;
+    }
+    else if ((elementType == STRING_LIST || elementType == LP_STRING_QW) && perlCodeStyleSettings.ALIGN_QW_ELEMENTS) {
+      @SuppressWarnings("MismatchedQueryAndUpdateOfCollection")
+      FactoryMap<Integer, Alignment> alignmentMap = FactoryMap.createMap(key -> Alignment.createAlignment(true));
+      int[] elementIndex = new int[]{0};
+      int[] lastRelativeLineNumber = new int[]{0};
 
-		// fixme what is re-creation for?
-		return new ArrayList<Block>(mySubBlocks);
-	}
+      alignmentFunction = childElementType -> {
+        if (childElementType != STRING_CONTENT) {
+          return null;
+        }
 
-	protected List<Block> buildSubBlocks()
-	{
-		final List<Block> blocks = new ArrayList<Block>();
+        if (lastRelativeLineNumber[0] != relativeLineNumber[0]) {
+          lastRelativeLineNumber[0] = relativeLineNumber[0];
+          elementIndex[0] = 0;
+        }
 
-		if (!isLeaf())
-		{
-			IElementType elementType = getElementType();
-
-			Alignment alignment = null; //Alignment.createAlignment();
-
-			if (elementType == COMMA_SEQUENCE_EXPR || elementType == CONSTANTS_BLOCK || elementType == TRENAR_EXPR)
-			{
-				alignment = Alignment.createAlignment(true);
-			}
-
-			Wrap wrap = null;
-
-			if (elementType == COMMA_SEQUENCE_EXPR && !isNewLineForbidden(this))
-			{
-				wrap = Wrap.createWrap(WrapType.NORMAL, true);
-			}
-
-			for (ASTNode child = myNode.getFirstChildNode(); child != null; child = child.getTreeNext())
-			{
-				if (!shouldCreateBlockFor(child))
-				{
-					continue;
-				}
-				blocks.add(createChildBlock(child, wrap, alignment));
-			}
-		}
-		else
-		{
-			PsiElement element = getNode().getPsi();
-			if (element instanceof PerlHeredocElementImpl && ((PerlHeredocElementImpl) element).isValidHost())
-			{
-				getInjectedLanguageBlockBuilder().addInjectedBlocks(blocks, getNode(), null, null, getIndent());
-			}
-
-		}
-		return blocks;
-	}
-
-	protected PerlFormattingBlock createChildBlock(
-			ASTNode child,
-			Wrap wrap,
-			Alignment alignment
-	)
-	{
-		IElementType childElementType = child.getElementType();
-		if (alignment != null && (childElementType == QUESTION || childElementType == COLON || childElementType == OPERATOR_COMMA_ARROW))
-		{
-			return createBlock(child, wrap, alignment);
-		}
-		else if (childElementType == CONSTANT_DEFINITION)    // fixme we should use delegate here, constant wraps regular block
-		{
-			return new PerlConstantDefinitionFormattingBlock(child, wrap, alignment, getSettings(), getPerl5Settings(), getSpacingBuilder(), myInjectedLanguageBlockBuilder);
-		}
-		else
-		{
-			return createBlock(child, wrap, null);
-		}
-	}
-
-	protected PerlFormattingBlock createBlock(
-			@NotNull ASTNode node,
-			@Nullable Wrap wrap,
-			@Nullable Alignment alignment
-	)
-	{
-		return new PerlFormattingBlock(node, wrap, alignment, getSettings(), getPerl5Settings(), getSpacingBuilder(), myInjectedLanguageBlockBuilder);
-	}
-
-	protected CommonCodeStyleSettings getSettings()
-	{
-		return mySettings;
-	}
-
-	protected PerlCodeStyleSettings getPerl5Settings()
-	{
-		return myPerl5Settings;
-	}
-
-	protected SpacingBuilder getSpacingBuilder()
-	{
-		return mySpacingBuilder;
-	}
-
-	@Nullable
-	@Override
-	public Spacing getSpacing(Block child1, @NotNull Block child2)
-	{
-		if (child1 instanceof PerlFormattingBlock && child2 instanceof PerlFormattingBlock)
-		{
-			ASTNode child1Node = ((PerlFormattingBlock) child1).getNode();
-			IElementType child1Type = child1Node.getElementType();
-			ASTNode child2Node = ((PerlFormattingBlock) child2).getNode();
-			IElementType child2Type = child2Node.getElementType();
-
-			// fix for number/concat
-			if (child2Type == OPERATOR_CONCAT)
-			{
-				ASTNode run = child1Node;
-				while (run instanceof CompositeElement)
-				{
-					run = run.getLastChildNode();
-				}
-
-				if (run != null)
-				{
-					IElementType runType = run.getElementType();
-					if (runType == NUMBER_SIMPLE || runType == NUMBER && StringUtil.endsWith(run.getText(), "."))
-					{
-						return Spacing.createSpacing(1, 1, 0, true, 1);
-					}
-				}
-			}
-
-			// LF after opening brace and before closing need to check if here-doc opener is in the line
-			if (LF_ELEMENTS.contains(child1Type) && LF_ELEMENTS.contains(child2Type))
-			{
-				if (!isNewLineForbidden((PerlFormattingBlock) child1))
-				{
-					return Spacing.createSpacing(0, 0, 1, true, 1);
-				}
-				else
-				{
-					return Spacing.createSpacing(1, Integer.MAX_VALUE, 0, true, 1);
-				}
-			}
-			if (isCodeBlock() && !inGrepMapSort() && !blockHasLessChildrenThan(2) &&
-					(BLOCK_OPENERS.contains(child1Type) && ((PerlFormattingBlock) child1).isFirst()
-							|| BLOCK_CLOSERS.contains(child2Type) && ((PerlFormattingBlock) child2).isLast()
-					)
-					&& !isNewLineForbidden((PerlFormattingBlock) child1)
-					)
-			{
-				return Spacing.createSpacing(0, 0, 1, true, 1);
-			}
-		}
-		return mySpacingBuilder.getSpacing(this, child1, child2);
-	}
-
-	/**
-	 * Checks if Heredoc is ahead of current block and it's not possible to insert newline
-	 * fixme we should cache result here by line number
-	 *
-	 * @param block block in question
-	 * @return check result
-	 */
-	protected boolean isNewLineForbidden(PerlFormattingBlock block)
-	{
-		PsiElement element = block.getNode().getPsi();
-		PsiFile file = element.getContainingFile();
-		assert file instanceof PerlFileImpl;
-		return ((PerlFileImpl) file).isNewLineForbiddenAt(element);
-	}
-
-	@Override
-	public boolean isLeaf()
-	{
-		return myNode.getFirstChildNode() == null || LEAF_ELEMENTS.contains(myNode.getElementType());
-	}
-
-	@Override
-	public Indent getIndent()
-	{
-		return myIndent;
-	}
-
-	@Nullable
-	@Override
-	public Alignment getAlignment()
-	{
-		return super.getAlignment();
-	}
-
-	@Nullable
-	@Override
-	protected Indent getChildIndent()
-	{
-		IElementType elementType = getElementType();
-
-		if (getIndentProcessor().getUnindentableContainers().contains(elementType))
-		{
-			return Indent.getNoneIndent();
-		}
-
-		if (getIndentProcessor().getBlockLikeContainers().contains(elementType))
-		{
-			return Indent.getNormalIndent();
-		}
-
-		return super.getChildIndent();
-	}
-
-	@NotNull
-	@Override
-	public ChildAttributes getChildAttributes(int newChildIndex)
-	{
-		return new ChildAttributes(getChildIndent(), getChildAlignment());
-	}
-
-	@Nullable
-	private Alignment getChildAlignment()
-	{
-
-		IElementType elementType = getElementType();
-		if (PerlIndentProcessor.COMMA_LIKE_SEQUENCES.contains(elementType))
-		{
-			return null;
-		}
-
-		// this is default algorythm from AbstractBlock#getFirstChildAlignment()
-		List<Block> subBlocks = getSubBlocks();
-		for (final Block subBlock : subBlocks)
-		{
-			Alignment alignment = subBlock.getAlignment();
-			if (alignment != null)
-			{
-				return alignment;
-			}
-		}
-		return null;
-	}
+        return alignmentMap.get(elementIndex[0]++);
+      };
+    }
+    else {
+      alignmentFunction = childElementType -> null;
+    }
 
 
-	@NotNull
-	@Override
-	public TextRange getTextRange()
-	{
-		int start = myNode.getStartOffset();
-		return new TextRange(start, start + myNode.getText().length());
-	}
+    Function<ASTNode, Wrap> wrapFunction;
 
-	public boolean isLast()
-	{
-		return myIsLast;
-	}
+    if (elementType == COMMA_SEQUENCE_EXPR) {
+      Wrap wrap = Wrap.createWrap(WrapType.NORMAL, true);
+      wrapFunction = childNode -> {
+        if (PsiUtilCore.getElementType(childNode) == COMMA || isNewLineForbidden(childNode)) {
+          return null;
+        }
+        return wrap;
+      };
+    }
+    else {
+      wrapFunction = childNode -> null;
+    }
 
-	public boolean isFirst()
-	{
-		return myIsFirst;
-	}
+    for (ASTNode child = myNode.getFirstChildNode(); child != null; child = child.getTreeNext()) {
+      if (!shouldCreateBlockFor(child)) {
+        if (StringUtil.containsLineBreak(child.getChars())) {
+          relativeLineNumber[0]++;
+        }
+        continue;
+      }
+      IElementType childElementType = PsiUtilCore.getElementType(child);
+      blocks.add(createBlock(child, wrapFunction.fun(child), alignmentFunction.fun(childElementType)));
+    }
+    return blocks;
+  }
 
-	public IElementType getElementType()
-	{
-		return myElementType;
-	}
+  protected PerlFormattingBlock createBlock(@NotNull ASTNode node,
+                                            @Nullable Wrap wrap,
+                                            @Nullable Alignment alignment) {
+    if (HEREDOC_BODIES_TOKENSET.contains(PsiUtilCore.getElementType(node))) {
+      return new PerlHeredocFormattingBlock(node, wrap, alignment, myContext);
+    }
+    return new PerlFormattingBlock(node, wrap, alignment, myContext);
+  }
 
-	public boolean isCodeBlock()
-	{
-		return getElementType() == BLOCK;
-	}
+  @Nullable
+  @Override
+  public Spacing getSpacing(Block child1, @NotNull Block child2) {
+    if (child1 instanceof PerlFormattingBlock && child2 instanceof PerlFormattingBlock) {
+      ASTNode child1Node = ((PerlFormattingBlock)child1).getNode();
+      IElementType child1Type = child1Node.getElementType();
+      ASTNode child2Node = ((PerlFormattingBlock)child2).getNode();
+      IElementType child2Type = child2Node.getElementType();
+      IElementType elementType = getElementType();
 
-	public boolean isBlockCloser()
-	{
-		return BLOCK_CLOSERS.contains(getElementType());
-	}
+      if (elementType == PARENTHESISED_EXPR &&
+          (child1Type == LEFT_PAREN || child2Type == RIGHT_PAREN) &&
+          myNode.getPsi().getParent() instanceof PsiPerlStatementModifier) {
+        return myContext.getSettings().SPACE_WITHIN_IF_PARENTHESES ?
+               Spacing.createSpacing(1, 1, 0, true, 1) :
+               Spacing.createSpacing(0, 0, 0, true, 1);
+      }
 
-	public boolean isBlockOpener()
-	{
-		return BLOCK_OPENERS.contains(getElementType());
-	}
+      // fix for number/concat
+      if (child2Type == OPERATOR_CONCAT) {
+        ASTNode run = child1Node;
+        while (run instanceof CompositeElement) {
+          run = run.getLastChildNode();
+        }
 
-	/**
-	 * Check if we are in grep map or sort
-	 *
-	 * @return check result
-	 */
-	public boolean inGrepMapSort()
-	{
-		ASTNode parent = myNode.getTreeParent();
-		IElementType parentElementType;
-		return parent != null && ((parentElementType = parent.getElementType()) == GREP_EXPR || parentElementType == SORT_EXPR || parentElementType == MAP_EXPR);
-	}
+        if (run != null) {
+          IElementType runType = run.getElementType();
+          if (runType == NUMBER_SIMPLE || runType == NUMBER && StringUtil.endsWith(run.getText(), ".")) {
+            return Spacing.createSpacing(1, 1, 0, true, 1);
+          }
+        }
+      }
 
-	/**
-	 * Checks if block contains more than specified number of meaningful children. Spaces and line comments are being ignored
-	 *
-	 * @return check result
-	 */
-	public boolean blockHasLessChildrenThan(int maxChildren)
-	{
-		int counter = -2; // for braces
-		ASTNode childNode = myNode.getFirstChildNode();
-		while (childNode != null)
-		{
-			IElementType nodeType = childNode.getElementType();
-			if (nodeType != TokenType.WHITE_SPACE && nodeType != COMMENT_LINE && nodeType != SEMICOLON)
-			{
-				if (++counter >= maxChildren)
-				{
-					return false;
-				}
-			}
-			childNode = childNode.getTreeNext();
-		}
-		return true;
-	}
+      // LF after opening brace and before closing need to check if here-doc opener is in the line
+      if (LF_ELEMENTS.contains(child1Type) && LF_ELEMENTS.contains(child2Type)) {
+        if (!isNewLineForbidden(child1Node)) {
+          return Spacing.createSpacing(0, 0, 1, true, 1);
+        }
+        else {
+          return Spacing.createSpacing(1, Integer.MAX_VALUE, 0, true, 1);
+        }
+      }
 
-	public InjectedLanguageBlockBuilder getInjectedLanguageBlockBuilder()
-	{
-		return myInjectedLanguageBlockBuilder;
-	}
+      // small inline blocks
+      if (isCodeBlock() && !inGrepMapSort() && !blockHasLessChildrenThan(2) &&
+          (BLOCK_OPENERS.contains(child1Type) && ((PerlFormattingBlock)child1).isFirst()
+           || BLOCK_CLOSERS.contains(child2Type) && ((PerlFormattingBlock)child2).isLast()
+          )
+          && !isNewLineForbidden(child1Node)
+        ) {
+        return Spacing.createSpacing(0, 0, 1, true, 1);
+      }
+
+      if (elementType == PARENTHESISED_CALL_ARGUMENTS &&
+          child2Type == RIGHT_PAREN &&
+          PsiUtilCore.getElementType(PsiTreeUtil.getDeepestLast(child1Node.getPsi())) == RIGHT_PAREN
+        ) {
+        return Spacing.createSpacing(0, 0, 0, true, 0);
+      }
+    }
+    return myContext.getSpacingBuilder().getSpacing(this, child1, child2);
+  }
+
+  // fixme should be moved to context
+  protected boolean isNewLineForbidden(@NotNull ASTNode node) {
+    return myContext.isNewLineForbiddenAt(node);
+  }
+
+  @Override
+  public boolean isLeaf() {
+    return myNode.getFirstChildNode() == null || LEAF_ELEMENTS.contains(myNode.getElementType());
+  }
+
+  @Override
+  public Indent getIndent() {
+    return myIndent;
+  }
+
+  @Nullable
+  @Override
+  protected Indent getChildIndent() {
+    IElementType elementType = getElementType();
+
+    if (myContext.getIndentProcessor().getUnindentableContainers().contains(elementType)) {
+      return Indent.getNoneIndent();
+    }
+
+    if (myContext.getIndentProcessor().getBlockLikeContainers().contains(elementType)) {
+      return Indent.getNormalIndent();
+    }
+
+    return super.getChildIndent();
+  }
+
+  @NotNull
+  @Override
+  public ChildAttributes getChildAttributes(int newChildIndex) {
+    return new ChildAttributes(getChildIndent(), getChildAlignment());
+  }
+
+  @Nullable
+  private Alignment getChildAlignment() {
+
+    IElementType elementType = getElementType();
+    if (PerlIndentProcessor.COMMA_LIKE_SEQUENCES.contains(elementType)) {
+      return null;
+    }
+
+    // this is default algorythm from AbstractBlock#getFirstChildAlignment()
+    List<Block> subBlocks = getSubBlocks();
+    for (final Block subBlock : subBlocks) {
+      Alignment alignment = subBlock.getAlignment();
+      if (alignment != null) {
+        return alignment;
+      }
+    }
+    return null;
+  }
+
+  public boolean isLast() {
+    return myIsLast;
+  }
+
+  public boolean isFirst() {
+    return myIsFirst;
+  }
+
+  public IElementType getElementType() {
+    return myElementType;
+  }
+
+  public boolean isCodeBlock() {
+    return getElementType() == BLOCK;
+  }
+
+  /**
+   * Check if we are in grep map or sort
+   *
+   * @return check result
+   */
+  public boolean inGrepMapSort() {
+    ASTNode parent = myNode.getTreeParent();
+    IElementType parentElementType;
+    return parent != null &&
+           ((parentElementType = parent.getElementType()) == GREP_EXPR || parentElementType == SORT_EXPR || parentElementType == MAP_EXPR);
+  }
+
+  /**
+   * Checks if block contains more than specified number of meaningful children. Spaces and line comments are being ignored
+   *
+   * @return check result
+   */
+  public boolean blockHasLessChildrenThan(int maxChildren) {
+    int counter = -2; // for braces
+    ASTNode childNode = myNode.getFirstChildNode();
+    while (childNode != null) {
+      IElementType nodeType = childNode.getElementType();
+      if (nodeType != TokenType.WHITE_SPACE && nodeType != COMMENT_LINE && nodeType != SEMICOLON) {
+        if (++counter >= maxChildren) {
+          return false;
+        }
+      }
+      childNode = childNode.getTreeNext();
+    }
+    return true;
+  }
+
+  @Override
+  public boolean isIncomplete() {
+    return myIsIncomple.getValue();
+  }
+
+  protected static boolean shouldCreateBlockFor(ASTNode node) {
+    IElementType elementType = PsiUtilCore.getElementType(node);
+    return elementType != TokenType.WHITE_SPACE && !node.getText().isEmpty() &&
+           !(HEREDOC_BODIES_TOKENSET.contains(elementType) && node.getTextLength() == 1);
+  }
 }

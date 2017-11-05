@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,7 @@
 
 package com.perl5.lang.mason2.filetypes;
 
-import com.intellij.openapi.editor.colors.EditorColorsScheme;
-import com.intellij.openapi.editor.highlighter.EditorHighlighter;
-import com.intellij.openapi.fileTypes.EditorHighlighterProvider;
-import com.intellij.openapi.fileTypes.FileType;
 import com.intellij.openapi.fileTypes.FileTypeEditorHighlighterProviders;
-import com.intellij.openapi.project.Project;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.perl5.lang.mason2.Mason2Icons;
 import com.perl5.lang.mason2.Mason2TemplatingLanguage;
 import com.perl5.lang.mason2.idea.highlighter.MasonHighlighter;
@@ -34,61 +28,47 @@ import javax.swing.*;
 /**
  * Created by hurricup on 20.12.2015.
  */
-public class MasonTopLevelComponentFileType extends MasonPurePerlComponentFileType
-{
-	public static final MasonTopLevelComponentFileType INSTANCE = new MasonTopLevelComponentFileType();
+public class MasonTopLevelComponentFileType extends MasonPurePerlComponentFileType {
+  public static final MasonTopLevelComponentFileType INSTANCE = new MasonTopLevelComponentFileType();
 
-	public MasonTopLevelComponentFileType()
-	{
-		super(Mason2TemplatingLanguage.INSTANCE);
-		FileTypeEditorHighlighterProviders.INSTANCE.addExplicitExtension(this, new EditorHighlighterProvider()
-		{
-			@Override
-			public EditorHighlighter getEditorHighlighter(@Nullable Project project, @NotNull FileType fileType, @Nullable VirtualFile virtualFile, @NotNull EditorColorsScheme editorColorsScheme)
-			{
-				return new MasonHighlighter(project, virtualFile, editorColorsScheme);
-			}
-		});
-	}
+  public MasonTopLevelComponentFileType() {
+    super(Mason2TemplatingLanguage.INSTANCE);
+    FileTypeEditorHighlighterProviders.INSTANCE.addExplicitExtension(this,
+                                                                     (project, fileType, virtualFile, editorColorsScheme) -> new MasonHighlighter(
+                                                                       project, virtualFile, editorColorsScheme));
+  }
 
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return "Mason2 top-level component";
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return "Mason2 top-level component";
+  }
 
-	@NotNull
-	@Override
-	public String getDescription()
-	{
-		return "Mason2 top-level component";
-	}
+  @NotNull
+  @Override
+  public String getDescription() {
+    return "Mason2 top-level component";
+  }
 
-	@NotNull
-	@Override
-	public String getDefaultExtension()
-	{
-		return "mc";
-	}
+  @NotNull
+  @Override
+  public String getDefaultExtension() {
+    return "mc";
+  }
 
-	@Nullable
-	@Override
-	public Icon getIcon()
-	{
-		return Mason2Icons.MASON_TOP_LEVEL_COMPONENT_ICON;
-	}
+  @Nullable
+  @Override
+  public Icon getIcon() {
+    return Mason2Icons.MASON_TOP_LEVEL_COMPONENT_ICON;
+  }
 
-	@Override
-	public boolean checkStrictPragma()
-	{
-		return false;
-	}
+  @Override
+  public boolean checkStrictPragma() {
+    return false;
+  }
 
-	@Override
-	public boolean checkWarningsPragma()
-	{
-		return false;
-	}
-
+  @Override
+  public boolean checkWarningsPragma() {
+    return false;
+  }
 }

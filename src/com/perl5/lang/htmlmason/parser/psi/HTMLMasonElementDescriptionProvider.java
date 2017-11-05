@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,7 +23,7 @@ import com.intellij.usageView.UsageViewLongNameLocation;
 import com.intellij.usageView.UsageViewNodeTextLocation;
 import com.intellij.usageView.UsageViewShortNameLocation;
 import com.intellij.usageView.UsageViewTypeLocation;
-import com.perl5.lang.htmlmason.HTMLMasonUtils;
+import com.perl5.lang.htmlmason.HTMLMasonUtil;
 import com.perl5.lang.htmlmason.parser.psi.impl.HTMLMasonFileImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -31,43 +31,40 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 20.03.2016.
  */
-public class HTMLMasonElementDescriptionProvider implements ElementDescriptionProvider
-{
-	@Nullable
-	@Override
-	public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location)
-	{
-		if (element instanceof HTMLMasonNamedElement)
-		{
-			if (location == UsageViewLongNameLocation.INSTANCE) // backref search results title "Find usages of {} in Project files
-			{
-				return ((HTMLMasonFileImpl) element.getContainingFile()).getAbsoluteComponentPath() + ":" + ((HTMLMasonMethodDefinition) element).getName();
-			}
-			else if (location == UsageViewNodeTextLocation.INSTANCE) // name inside type tree node
-			{
-				return ((HTMLMasonNamedElement) element).getName() + HTMLMasonUtils.getArgumentsListAsString((HTMLMasonParametrizedEntity) element);
-			}
-			else if (location == UsageViewShortNameLocation.INSTANCE) // ctrl+hover hint
-			{
-				return ((HTMLMasonNamedElement) element).getName() + HTMLMasonUtils.getArgumentsListAsString((HTMLMasonParametrizedEntity) element);
-			}
-			else if (element instanceof HTMLMasonMethodDefinition)
-			{
-				if (location == UsageViewTypeLocation.INSTANCE) // type tree node in search results
-				{
-					return "HTML::Mason method";
-				}
-				return "HTML::Mason method for " + location;
-			}
-			else if (element instanceof HTMLMasonSubcomponentDefitnition)
-			{
-				if (location == UsageViewTypeLocation.INSTANCE) // type tree node in search results
-				{
-					return "HTML::Mason subcomponent";
-				}
-				return "HTML::Mason subcomponent for " + location;
-			}
-		}
-		return null;
-	}
+public class HTMLMasonElementDescriptionProvider implements ElementDescriptionProvider {
+  @Nullable
+  @Override
+  public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location) {
+    if (element instanceof HTMLMasonNamedElement) {
+      if (location == UsageViewLongNameLocation.INSTANCE) // backref search results title "Find usages of {} in Project files
+      {
+        return ((HTMLMasonFileImpl)element.getContainingFile()).getAbsoluteComponentPath() +
+               ":" +
+               ((HTMLMasonMethodDefinition)element).getName();
+      }
+      else if (location == UsageViewNodeTextLocation.INSTANCE) // name inside type tree node
+      {
+        return ((HTMLMasonNamedElement)element).getName() + HTMLMasonUtil.getArgumentsListAsString((HTMLMasonParametrizedEntity)element);
+      }
+      else if (location == UsageViewShortNameLocation.INSTANCE) // ctrl+hover hint
+      {
+        return ((HTMLMasonNamedElement)element).getName() + HTMLMasonUtil.getArgumentsListAsString((HTMLMasonParametrizedEntity)element);
+      }
+      else if (element instanceof HTMLMasonMethodDefinition) {
+        if (location == UsageViewTypeLocation.INSTANCE) // type tree node in search results
+        {
+          return "HTML::Mason method";
+        }
+        return "HTML::Mason method for " + location;
+      }
+      else if (element instanceof HTMLMasonSubcomponentDefitnition) {
+        if (location == UsageViewTypeLocation.INSTANCE) // type tree node in search results
+        {
+          return "HTML::Mason subcomponent";
+        }
+        return "HTML::Mason subcomponent for " + location;
+      }
+    }
+    return null;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,18 +27,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 08.01.2016.
  */
-public class MojoliciousTypedHandler extends TypedHandlerDelegate implements MojoliciousElementTypes
-{
-	@Override
-	public Result charTyped(char c, final Project project, @NotNull final Editor editor, @NotNull PsiFile file)
-	{
-		if (file.getViewProvider() instanceof MojoliciousFileViewProvider)
-		{
-			if (c == ' ')
-			{
-				MojoliciousSmartKeysUtils.addCloseMarker(editor, file, " " + KEYWORD_MOJO_BLOCK_CLOSER);
-			}
-		}
-		return super.charTyped(c, project, editor, file);
-	}
+public class MojoliciousTypedHandler extends TypedHandlerDelegate implements MojoliciousElementTypes {
+  @Override
+  public Result charTyped(char c, final Project project, @NotNull final Editor editor, @NotNull PsiFile file) {
+    if (file.getViewProvider() instanceof MojoliciousFileViewProvider) {
+      if (c == ' ') {
+        MojoliciousSmartKeysUtil.addCloseMarker(editor, file, " " + KEYWORD_MOJO_BLOCK_CLOSER);
+      }
+    }
+    return super.charTyped(c, project, editor, file);
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,45 +27,33 @@ import com.intellij.psi.PsiNamedElement;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenameHandler;
 import com.intellij.refactoring.rename.inplace.MemberInplaceRenamer;
-import com.perl5.lang.perl.extensions.PerlRenameUsagesSubstitutor;
 import com.perl5.lang.perl.idea.refactoring.PerlRefactoringSupportProvider;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 07.04.2016.
  */
-public class PerlMemberInplaceRenameHandler extends MemberInplaceRenameHandler
-{
-	@NotNull
-	@Override
-	protected MemberInplaceRenamer createMemberRenamer(@NotNull PsiElement element, PsiNameIdentifierOwner elementToRename, Editor editor)
-	{
-		return new PerlMemberInplaceRenamer(elementToRename, element, editor);
-	}
+public class PerlMemberInplaceRenameHandler extends MemberInplaceRenameHandler {
+  @NotNull
+  @Override
+  protected MemberInplaceRenamer createMemberRenamer(@NotNull PsiElement element, PsiNameIdentifierOwner elementToRename, Editor editor) {
+    return new PerlMemberInplaceRenamer(elementToRename, element, editor);
+  }
 
-	@Override
-	protected boolean isAvailable(PsiElement element, Editor editor, PsiFile file)
-	{
-		return !(element instanceof PerlRenameUsagesSubstitutor) && isAvailableFromParent(element, editor, file);
-	}
+  @Override
+  protected boolean isAvailable(PsiElement element, Editor editor, PsiFile file) {
+    PsiElement nameSuggestionContext = file.findElementAt(editor.getCaretModel().getOffset());
+    if (nameSuggestionContext == null && editor.getCaretModel().getOffset() > 0) {
+      nameSuggestionContext = file.findElementAt(editor.getCaretModel().getOffset() - 1);
+    }
 
-	// this is a copy-paste from parent class, because it's uses RefactoringSupportProvider
-	protected boolean isAvailableFromParent(PsiElement element, Editor editor, PsiFile file)
-	{
-		PsiElement nameSuggestionContext = file.findElementAt(editor.getCaretModel().getOffset());
-		if (nameSuggestionContext == null && editor.getCaretModel().getOffset() > 0)
-		{
-			nameSuggestionContext = file.findElementAt(editor.getCaretModel().getOffset() - 1);
-		}
-
-		if (element == null && LookupManager.getActiveLookup(editor) != null)
-		{
-			element = PsiTreeUtil.getParentOfType(nameSuggestionContext, PsiNamedElement.class);
-		}
-		final RefactoringSupportProvider
-				supportProvider = element == null ? null : LanguageRefactoringSupport.INSTANCE.forLanguage(element.getLanguage());
-		return editor.getSettings().isVariableInplaceRenameEnabled()
-				&& supportProvider instanceof PerlRefactoringSupportProvider;
-	}
-
+    if (element == null && LookupManager.getActiveLookup(editor) != null) {
+      element = PsiTreeUtil.getParentOfType(nameSuggestionContext, PsiNamedElement.class);
+    }
+    final RefactoringSupportProvider
+      supportProvider = element == null ? null : LanguageRefactoringSupport.INSTANCE.forLanguage(element.getLanguage());
+    return editor.getSettings().isVariableInplaceRenameEnabled()
+           && supportProvider instanceof PerlRefactoringSupportProvider &&
+           ((PerlRefactoringSupportProvider)supportProvider).isPerlInplaceRenameAvailable(element, nameSuggestionContext);
+  }
 }

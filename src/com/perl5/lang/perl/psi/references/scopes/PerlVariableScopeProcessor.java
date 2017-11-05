@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 19.02.2016.
  */
-public abstract class PerlVariableScopeProcessor extends UserDataHolderBase implements PsiScopeProcessor
-{
-	@Nullable
-	@Override
-	public <T> T getHint(@NotNull Key<T> hintKey)
-	{
-		return null;
-	}
+@Deprecated // use BaseScopeProcessor instead
+public abstract class PerlVariableScopeProcessor extends UserDataHolderBase implements PsiScopeProcessor {
+  @Nullable
+  @Override
+  public <T> T getHint(@NotNull Key<T> hintKey) {
+    return null;
+  }
 
-	@Override
-	public void handleEvent(@NotNull Event event, @Nullable Object associated)
-	{
+  @Override
+  public void handleEvent(@NotNull Event event, @Nullable Object associated) {
 
-	}
+  }
 }

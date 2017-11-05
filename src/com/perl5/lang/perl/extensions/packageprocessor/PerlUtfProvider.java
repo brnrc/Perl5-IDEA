@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,6 +20,5 @@ package com.perl5.lang.perl.extensions.packageprocessor;
  * Created by hurricup on 25.08.2015.
  * Marks that this package modifies utf bits of $^H
  */
-public interface PerlUtfProvider extends PerlStrictProvider
-{
+public interface PerlUtfProvider extends PerlStrictProvider {
 }

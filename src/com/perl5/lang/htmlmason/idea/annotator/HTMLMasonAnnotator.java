@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,26 +19,22 @@ package com.perl5.lang.htmlmason.idea.annotator;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.htmlmason.parser.psi.HTMLMasonNamedElement;
-import com.perl5.lang.perl.idea.annotators.PerlAnnotator;
+import com.perl5.lang.perl.idea.annotators.PerlBaseAnnotator;
 import com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 19.03.2016.
  */
-public class HTMLMasonAnnotator extends PerlAnnotator
-{
-	@Override
-	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder)
-	{
-		if (element instanceof HTMLMasonNamedElement)
-		{
-			PsiElement nameIdentifier = ((HTMLMasonNamedElement) element).getNameIdentifier();
+public class HTMLMasonAnnotator extends PerlBaseAnnotator {
+  @Override
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (element instanceof HTMLMasonNamedElement) {
+      PsiElement nameIdentifier = ((HTMLMasonNamedElement)element).getNameIdentifier();
 
-			if (nameIdentifier != null)
-			{
-				holder.createInfoAnnotation(nameIdentifier, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DEFINITION);
-			}
-		}
-	}
+      if (nameIdentifier != null) {
+        holder.createInfoAnnotation(nameIdentifier, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DEFINITION);
+      }
+    }
+  }
 }

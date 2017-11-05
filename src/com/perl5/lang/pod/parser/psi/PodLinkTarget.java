@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,21 +22,20 @@ import org.jetbrains.annotations.Nullable;
  * Created by hurricup on 28.03.2016.
  * Means that file may be navigated from pod
  */
-public interface PodLinkTarget
-{
-	/**
-	 * Returns pod link to this element
-	 *
-	 * @return pod link
-	 */
-	@Nullable
-	String getPodLink();
+public interface PodLinkTarget {
+  /**
+   * Returns pod link to this element
+   *
+   * @return pod link
+   */
+  @Nullable
+  String getPodLink();
 
-	/**
-	 * Returns pod link text for this element
-	 *
-	 * @return pod link text
-	 */
-	@Nullable
-	String getPodLinkText();
+  /**
+   * Returns pod link text for this element
+   *
+   * @return pod link text
+   */
+  @Nullable
+  String getPodLinkText();
 }

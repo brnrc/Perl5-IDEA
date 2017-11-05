@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,15 +24,12 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 03.09.2015.
  */
-public class EmbeddedPerlTokenType extends IElementType
-{
-	public EmbeddedPerlTokenType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, EmbeddedPerlLanguage.INSTANCE);
-	}
+public class EmbeddedPerlTokenType extends IElementType {
+  public EmbeddedPerlTokenType(@NotNull @NonNls String debugName) {
+    super(debugName, EmbeddedPerlLanguage.INSTANCE);
+  }
 
-	public String toString()
-	{
-		return "EmbeddedPerlTokenType." + super.toString();
-	}
+  public String toString() {
+    return "Embedded Perl5: " + super.toString();
+  }
 }

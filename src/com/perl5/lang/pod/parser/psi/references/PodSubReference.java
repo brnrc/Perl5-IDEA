@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,12 +23,12 @@ import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.IncorrectOperationException;
-import com.perl5.lang.perl.psi.PerlSubBase;
-import com.perl5.lang.perl.psi.PerlSubDeclaration;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
+import com.perl5.lang.perl.psi.PerlSubDeclarationElement;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
+import com.perl5.lang.perl.psi.PerlSubElement;
+import com.perl5.lang.perl.psi.references.PerlCachingReference;
 import com.perl5.lang.perl.util.PerlPackageUtil;
 import com.perl5.lang.perl.util.PerlSubUtil;
 import com.perl5.lang.pod.parser.psi.impl.PodIdentifierImpl;
@@ -41,84 +41,58 @@ import java.util.List;
 /**
  * Created by hurricup on 05.04.2016.
  */
-public class PodSubReference extends PodReferenceBase<PodIdentifierImpl>
-{
-	protected static final ResolveCache.PolyVariantResolver<PodSubReference> RESOLVER = new PodSubReferenceResolver();
+public class PodSubReference extends PerlCachingReference<PodIdentifierImpl> {
+  public PodSubReference(PodIdentifierImpl element) {
+    super(element, new TextRange(0, element.getTextLength()), true);
+  }
 
-	public PodSubReference(PodIdentifierImpl element)
-	{
-		super(element, new TextRange(0, element.getTextLength()), true);
-	}
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    return (PsiElement)myElement.replaceWithText(newElementName);
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, incompleteCode);
-	}
+  @Override
+  public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException {
+    return super.bindToElement(element);
+  }
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		return (PsiElement) myElement.replaceWithText(newElementName);
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PsiElement element = getElement();
+    if (element != null) {
+      final Project project = element.getProject();
+      String subName = element.getText();
+      if (StringUtil.isNotEmpty(subName)) {
+        final PsiFile containingFile = element.getContainingFile();
+        String packageName = PodFileUtil.getPackageName(containingFile);
 
-	@Override
-	public PsiElement bindToElement(@NotNull PsiElement element) throws IncorrectOperationException
-	{
-		return super.bindToElement(element);
-	}
+        List<ResolveResult> results = new ArrayList<>();
 
-	private static class PodSubReferenceResolver implements ResolveCache.PolyVariantResolver<PodSubReference>
-	{
-		@NotNull
-		@Override
-		public ResolveResult[] resolve(@NotNull PodSubReference podSubReference, boolean incompleteCode)
-		{
-			PsiElement element = podSubReference.getElement();
-			if (element != null)
-			{
-				final Project project = element.getProject();
-				String subName = element.getText();
-				if (StringUtil.isNotEmpty(subName))
-				{
-					final PsiFile containingFile = element.getContainingFile();
-					String packageName = PodFileUtil.getPackageName(containingFile);
+        if (StringUtil.isNotEmpty(packageName)) {
+          String canonicalName = packageName + PerlPackageUtil.PACKAGE_SEPARATOR + subName;
+          for (PerlSubDefinitionElement target : PerlSubUtil.getSubDefinitions(project, canonicalName)) {
+            results.add(new PsiElementResolveResult(target));
+          }
+          for (PerlSubDeclarationElement target : PerlSubUtil.getSubDeclarations(project, canonicalName)) {
+            results.add(new PsiElementResolveResult(target));
+          }
+        }
 
-					List<ResolveResult> results = new ArrayList<ResolveResult>();
+        if (results.isEmpty()) {
+          final PsiFile perlFile = containingFile.getViewProvider().getStubBindingRoot();
 
-					if (StringUtil.isNotEmpty(packageName))
-					{
-						String canonicalName = packageName + PerlPackageUtil.PACKAGE_SEPARATOR + subName;
-						for (PerlSubDefinitionBase target : PerlSubUtil.getSubDefinitions(project, canonicalName))
-						{
-							results.add(new PsiElementResolveResult(target));
-						}
-						for (PerlSubDeclaration target : PerlSubUtil.getSubDeclarations(project, canonicalName))
-						{
-							results.add(new PsiElementResolveResult(target));
-						}
-					}
+          for (PerlSubElement subBase : PsiTreeUtil.findChildrenOfType(perlFile, PerlSubElement.class)) {
+            String subBaseName = subBase.getName();
+            if (subBaseName != null && StringUtil.equals(subBaseName, subName)) {
+              results.add(new PsiElementResolveResult(subBase));
+            }
+          }
+        }
 
-					if (results.isEmpty())
-					{
-						final PsiFile perlFile = containingFile.getViewProvider().getStubBindingRoot();
+        return results.toArray(new ResolveResult[results.size()]);
+      }
+    }
 
-						for (PerlSubBase subBase : PsiTreeUtil.findChildrenOfType(perlFile, PerlSubBase.class))
-						{
-							String subBaseName = subBase.getName();
-							if (subBaseName != null && StringUtil.equals(subBaseName, subName))
-							{
-								results.add(new PsiElementResolveResult(subBase));
-							}
-						}
-					}
-
-					return results.toArray(new ResolveResult[results.size()]);
-				}
-			}
-
-			return ResolveResult.EMPTY_ARRAY;
-		}
-	}
+    return ResolveResult.EMPTY_ARRAY;
+  }
 }

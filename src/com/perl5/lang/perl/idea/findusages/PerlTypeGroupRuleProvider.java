@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,20 +27,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 11.04.2016.
  */
-public class PerlTypeGroupRuleProvider implements FileStructureGroupRuleProvider
-{
-	@Nullable
-	@Override
-	public UsageGroupingRule getUsageGroupingRule(Project project)
-	{
-		return new UsageGroupingRule()
-		{
-			@Nullable
-			@Override
-			public UsageGroup groupUsage(@NotNull Usage usage)
-			{
-				return null;
-			}
-		};
-	}
+public class PerlTypeGroupRuleProvider implements FileStructureGroupRuleProvider {
+  @Nullable
+  @Override
+  public UsageGroupingRule getUsageGroupingRule(Project project) {
+    return new UsageGroupingRule() {
+      @Nullable
+      @Override
+      public UsageGroup groupUsage(@NotNull Usage usage) {
+        return null;
+      }
+    };
+  }
 }

@@ -1,0 +1,47 @@
+package <info descr="null">Foo::Bla</info>;
+
+use <info descr="null">constant</info> <info descr="null">ALONECONST1</info> => 123;
+use <info descr="null">constant</info> '<info descr="null">ALONECONST2</info>' => 123;
+use <info descr="null">constant</info> "<info descr="null">ALONECONST3</info>" => 123;
+use <info descr="null">constant</info> {
+    <info descr="null">MULTI_CONST1</info>   => 123,
+    '<info descr="null">MULTI_CONST2</info>' => 69,
+    "<info descr="null">MULTI_CONST3</info>" => 0,
+};
+
+use <info descr="null">constant</info> {
+    <info descr="null">TEST_a1</info>     => 42,
+    '<info descr="null">TEST_a2</info>'   => 69,
+    "<info descr="null">TEST_a3</info>"   => 88,
+    q'<info descr="null">TEST_a4</info>'  => 69,
+    qq"<info descr="null">TEST_a5</info>" => 88,
+};
+
+<info descr="Constant">TEST_a1</info>;
+<info descr="Constant">TEST_a2</info>;
+<info descr="Constant">TEST_a3</info>;
+<info descr="Constant">TEST_a4</info>;
+<info descr="Constant">TEST_a5</info>;
+
+package <info descr="null">main</info>;
+
+Foo::Bla::<info descr="Constant">ALONECONST1</info>;
+Foo::Bla::<info descr="Constant">ALONECONST2</info>;
+Foo::Bla::<info descr="Constant">ALONECONST3</info>;
+Foo::Bla::<info descr="Constant">MULTI_CONST1</info>;
+Foo::Bla::<info descr="Constant">MULTI_CONST2</info>;
+Foo::Bla::<info descr="Constant">MULTI_CONST3</info>;
+
+
+use <info descr="null">constant</info> {
+    <info descr="null">CONST1</info>     => 42,
+    '<info descr="null">CONST2</info>'   => 42,
+    "<info descr="null">CONST3</info>"   => 42,
+    q'<info descr="null">CONST4</info>'  => 42,
+    qq"<info descr="null">CONST5</info>" => 42,
+    qw/
+        <info descr="null">CONST6</info> 42
+        <info descr="null">CONST7</info> 42
+        <info descr="null">CONST8</info> 42
+        /
+};

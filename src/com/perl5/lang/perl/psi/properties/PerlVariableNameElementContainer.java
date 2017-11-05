@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,18 @@ import com.perl5.lang.perl.psi.PerlVariableNameElement;
 /**
  * Created by hurricup on 02.06.2015.
  */
-public interface PerlVariableNameElementContainer extends PerlDeprecatable
-{
-	/**
-	 * Returns variable name element
-	 *
-	 * @return PsiElement
-	 */
-	PerlVariableNameElement getVariableNameElement();
+public interface PerlVariableNameElementContainer extends PerlDeprecatable {
+  /**
+   * Returns variable name element
+   *
+   * @return PsiElement
+   */
+  PerlVariableNameElement getVariableNameElement();
 
-	/**
-	 * Checks if variable is built in
-	 *
-	 * @return result
-	 */
-	boolean isBuiltIn();
+  /**
+   * Checks if variable is built in
+   *
+   * @return result
+   */
+  boolean isBuiltIn();
 }

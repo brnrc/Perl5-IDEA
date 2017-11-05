@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,24 +27,18 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 04.03.2016.
  */
-public class PerlUnusedLabelInspection extends PerlInspection
-{
-	@NotNull
-	@Override
-	public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly)
-	{
-		return new PerlVisitor()
-		{
-			@Override
-			public void visitLabelDeclaration(@NotNull PsiPerlLabelDeclaration o)
-			{
-				if (ReferencesSearch.search(o).findFirst() == null)
-				{
-					holder.registerProblem(o, "Unused label declaration (possibly deprecated usage)", ProblemHighlightType.LIKE_UNUSED_SYMBOL);
-				}
-				super.visitLabelDeclaration(o);
-			}
-		};
-	}
-
+public class PerlUnusedLabelInspection extends PerlInspection {
+  @NotNull
+  @Override
+  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
+    return new PerlVisitor() {
+      @Override
+      public void visitLabelDeclaration(@NotNull PsiPerlLabelDeclaration o) {
+        if (ReferencesSearch.search(o).findFirst() == null) {
+          holder.registerProblem(o, "Unused label declaration (possibly deprecated usage)", ProblemHighlightType.LIKE_UNUSED_SYMBOL);
+        }
+        super.visitLabelDeclaration(o);
+      }
+    };
+  }
 }

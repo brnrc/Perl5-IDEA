@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,18 +25,15 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 11.04.2016.
  */
-public class PerlUsageTypeProvider implements UsageTypeProvider
-{
-	public static final UsageType DOCUMENT_USAGE = new UsageType("Documentation");
+public class PerlUsageTypeProvider implements UsageTypeProvider {
+  public static final UsageType DOCUMENT_USAGE = new UsageType("Documentation");
 
-	@Nullable
-	@Override
-	public UsageType getUsageType(PsiElement element)
-	{
-		if (element.getLanguage() == PodLanguage.INSTANCE)
-		{
-			return DOCUMENT_USAGE;
-		}
-		return null;
-	}
+  @Nullable
+  @Override
+  public UsageType getUsageType(PsiElement element) {
+    if (element.getLanguage() == PodLanguage.INSTANCE) {
+      return DOCUMENT_USAGE;
+    }
+    return null;
+  }
 }

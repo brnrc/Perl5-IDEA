@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,16 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 01.06.2015.
  */
-public class PerlCompletionWeighter extends CompletionWeigher
-{
-	public static final Key<Integer> WEIGHT = new Key<Integer>("WEIGHT");
+public class PerlCompletionWeighter extends CompletionWeigher {
+  public static final Key<Integer> WEIGHT = new Key<>("WEIGHT");
 
-	@Override
-	public Comparable weigh(@NotNull LookupElement element, @NotNull CompletionLocation location)
-	{
-		if (PsiUtilCore.findLanguageFromElement(location.getCompletionParameters().getPosition()).isKindOf(PerlLanguage.INSTANCE))
-		{
-			Integer weight = element.getUserData(WEIGHT);
-			return weight == null ? 0 : weight;
-		}
+  @Override
+  public Comparable weigh(@NotNull LookupElement element, @NotNull CompletionLocation location) {
+    if (PsiUtilCore.findLanguageFromElement(location.getCompletionParameters().getPosition()).isKindOf(PerlLanguage.INSTANCE)) {
+      Integer weight = element.getUserData(WEIGHT);
+      return weight == null ? 0 : weight;
+    }
 
-		return 0;
-	}
+    return 0;
+  }
 }

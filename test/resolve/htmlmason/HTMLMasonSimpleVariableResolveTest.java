@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -18,97 +18,10 @@ package resolve.htmlmason;
 
 /**
  * Created by hurricup on 13.03.2016.
- *
  */
-public class HTMLMasonSimpleVariableResolveTest extends HTMLMasonVariableResolveTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/resolve/htmlmason/simple";
-	}
-
-	@Override
-	protected boolean resolveFromOnce()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromShared()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromFilter()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromInit()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromCleanup()
-	{
-		return true;
-	}
-
-	@Override
-	protected boolean resolveFromLineAhead()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromLineBehind()
-	{
-		return true;
-	}
-
-	@Override
-	protected boolean resolveFromPerlBehind()
-	{
-		return true;
-	}
-
-	@Override
-	protected boolean resolveFromPerlAhead()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromFilteredBlockAhead()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromFilteredBlockBehind()
-	{
-		return true;
-	}
-
-	@Override
-	protected boolean resolveFromDef()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromMethod()
-	{
-		return false;
-	}
-
-	@Override
-	protected boolean resolveFromFileArgs()
-	{
-		return false;
-	}
+public class HTMLMasonSimpleVariableResolveTest extends HTMLMasonVariableResolveTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/resolve/htmlmason/simple";
+  }
 }

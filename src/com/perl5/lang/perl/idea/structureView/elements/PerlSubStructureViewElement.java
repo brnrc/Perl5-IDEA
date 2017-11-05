@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,30 @@
 
 package com.perl5.lang.perl.idea.structureView.elements;
 
-import com.perl5.lang.perl.psi.PerlSubBase;
-import com.perl5.lang.perl.psi.PerlSubDeclaration;
-import com.perl5.lang.perl.psi.PerlSubDefinitionBase;
-import com.perl5.lang.perl.psi.mixins.PerlSubBaseImpl;
+import com.perl5.lang.perl.parser.constant.psi.light.PerlLightConstantDefinitionElement;
+import com.perl5.lang.perl.psi.PerlSubDeclarationElement;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
+import com.perl5.lang.perl.psi.PerlSubElement;
 
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlSubStructureViewElement extends PerlStructureViewElement
-{
-	public PerlSubStructureViewElement(PerlSubDefinitionBase element)
-	{
-		super(element);
-	}
+public class PerlSubStructureViewElement extends PerlStructureViewElement {
+  public PerlSubStructureViewElement(PerlSubDefinitionElement element) {
+    super(element);
+  }
 
-	public PerlSubStructureViewElement(PerlSubDeclaration element)
-	{
-		super(element);
-	}
+  public PerlSubStructureViewElement(PerlSubDeclarationElement element) {
+    super(element);
+  }
 
-	public boolean isDeclaration()
-	{
-		return myElement instanceof PerlSubDeclaration;
-	}
+  public boolean isDeclaration() {
+    return myElement instanceof PerlSubDeclarationElement;
+  }
 
-	public boolean isMethod()
-	{
-		return myElement instanceof PerlSubBase && ((PerlSubBaseImpl) myElement).isMethod();
-	}
+  public boolean isMethod() {
+    return myElement instanceof PerlSubElement && ((PerlSubElement)myElement).isMethod();
+  }
 
+  public boolean isConstant() {return myElement instanceof PerlLightConstantDefinitionElement;}
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -20,35 +20,30 @@ import com.intellij.notification.Notification;
 import com.intellij.notification.NotificationType;
 import com.intellij.notification.Notifications;
 import com.intellij.openapi.util.text.StringUtil;
+import com.perl5.PerlBundle;
 
 /**
  * Created by hurricup on 08.05.2016.
  */
-public class PerlDebuggingEventReady extends PerlDebuggingEventBase
-{
-	private static final String MODULE_VERSION_PREFIX = "1.6.1.";
-	public String version;
+public class PerlDebuggingEventReady extends PerlDebuggingEventBase {
+  private static final String MODULE_VERSION_PREFIX = PerlBundle.message("perl.debugger.version.prefix");
+  public String version;
 
-	@Override
-	public void run()
-	{
-	}
+  @Override
+  public void run() {
+  }
 
-	public boolean isValid()
-	{
-		if (StringUtil.isNotEmpty(version) && StringUtil.startsWith(version, MODULE_VERSION_PREFIX))
-		{
-			return true;
-		}
+  public boolean isValid() {
+    if (StringUtil.isNotEmpty(version) && StringUtil.startsWith(version, MODULE_VERSION_PREFIX)) {
+      return true;
+    }
 
-		Notifications.Bus.notify(new Notification(
-				"PERL_DEBUGGER",
-				"Incorrect Devel::Camelcadedb version",
-				"Current plugin version requires Devel::Camelcadedb version " + MODULE_VERSION_PREFIX + "x, but we've got " + version + ". Please install appropriate version from CPAN.",
-				NotificationType.ERROR
-		));
-		return false;
-	}
-
-
+    Notifications.Bus.notify(new Notification(
+      "PERL_DEBUGGER",
+      PerlBundle.message("perl.debugger.incorrect.version.title"),
+      PerlBundle.message("perl.debugger.incorrect.version.message", MODULE_VERSION_PREFIX, version),
+      NotificationType.ERROR
+    ));
+    return false;
+  }
 }

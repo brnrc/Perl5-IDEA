@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,6 +26,7 @@ import com.intellij.psi.tree.TokenSet;
 import com.perl5.lang.pod.lexer.PodElementTypes;
 import com.perl5.lang.pod.lexer.PodLexerAdapter;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 
@@ -34,74 +35,69 @@ import static com.intellij.openapi.editor.colors.TextAttributesKey.createTextAtt
 /**
  * Created by hurricup on 21.04.2015.
  */
-public class PodSyntaxHighlighter extends SyntaxHighlighterBase implements PodElementTypes
-{
-	public static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
+public class PodSyntaxHighlighter extends SyntaxHighlighterBase implements PodElementTypes {
+  public static final TextAttributesKey[] EMPTY_KEYS = new TextAttributesKey[0];
+  public static final TextAttributesKey POD_TAG = createTextAttributesKey("POD_TAG", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG);
+  public static final TextAttributesKey POD_TEXT = createTextAttributesKey("POD_TEXT", DefaultLanguageHighlighterColors.DOC_COMMENT);
+  public static final TextAttributesKey POD_CODE = createTextAttributesKey("POD_CODE", DefaultLanguageHighlighterColors.DOC_COMMENT);
+  public static final HashMap<IElementType, TextAttributesKey[]> attributesMap = new HashMap<>();
+  private static final TokenSet POD_TOKENS = TokenSet.create(
+    POD_POD,
 
-	public static final TextAttributesKey POD_TAG = createTextAttributesKey("POD_TAG", DefaultLanguageHighlighterColors.DOC_COMMENT_TAG);
-	public static final TextAttributesKey POD_TEXT = createTextAttributesKey("POD_TEXT", DefaultLanguageHighlighterColors.DOC_COMMENT);
-	public static final TextAttributesKey POD_CODE = createTextAttributesKey("POD_CODE", DefaultLanguageHighlighterColors.DOC_COMMENT);
+    POD_HEAD1,
+    POD_HEAD2,
+    POD_HEAD3,
+    POD_HEAD4,
 
-	public static final HashMap<IElementType, TextAttributesKey[]> attributesMap = new HashMap<IElementType, TextAttributesKey[]>();
+    POD_OVER,
+    POD_ITEM,
+    POD_BACK,
 
-	private static final TokenSet POD_TOKENS = TokenSet.create(
-			POD_POD,
+    POD_BEGIN,
+    POD_END,
 
-			POD_HEAD1,
-			POD_HEAD2,
-			POD_HEAD3,
-			POD_HEAD4,
+    POD_FOR,
+    POD_ENCODING,
 
-			POD_OVER,
-			POD_ITEM,
-			POD_BACK,
+    POD_CUT,
+    POD_UNKNOWN
 
-			POD_BEGIN,
-			POD_END,
+  );
 
-			POD_FOR,
-			POD_ENCODING,
+  static {
+    attributesMap.put(POD_POD, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TAG});
+    //		ATTRIBUTES_MAP.put(PodElementTypes.POD_TEXT, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TEXT});
+    attributesMap.put(PodElementTypes.POD_NEWLINE, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TEXT});
+    attributesMap.put(PodElementTypes.POD_CODE, new TextAttributesKey[]{PodSyntaxHighlighter.POD_CODE});
+  }
 
-			POD_CUT,
-			POD_UNKNOWN
+  @Nullable
+  private final Project myProject;
 
-	);
+  public PodSyntaxHighlighter(@Nullable Project project) {
+    myProject = project;
+  }
 
-	static
-	{
-		attributesMap.put(POD_POD, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TAG});
-//		ATTRIBUTES_MAP.put(PodElementTypes.POD_TEXT, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TEXT});
-		attributesMap.put(PodElementTypes.POD_NEWLINE, new TextAttributesKey[]{PodSyntaxHighlighter.POD_TEXT});
-		attributesMap.put(PodElementTypes.POD_CODE, new TextAttributesKey[]{PodSyntaxHighlighter.POD_CODE});
-	}
+  @NotNull
+  @Override
+  public Lexer getHighlightingLexer() {
+    return new PodLexerAdapter(myProject);
+  }
 
-	private final Project myProject;
+  @NotNull
+  @Override
+  public TextAttributesKey[] getTokenHighlights(IElementType tokenType) {
+    return getTokenAttributes(tokenType);
+  }
 
-	public PodSyntaxHighlighter(Project myProject)
-	{
-		this.myProject = myProject;
-	}
+  public static TextAttributesKey[] getTokenAttributes(IElementType tokenType) {
+    if (POD_TOKENS.contains(tokenType)) {
+      return attributesMap.get(POD_POD);
+    }
+    else if (attributesMap.containsKey(tokenType)) {
+      return attributesMap.get(tokenType);
+    }
 
-	@NotNull
-	@Override
-	public Lexer getHighlightingLexer()
-	{
-		return new PodLexerAdapter(myProject);
-	}
-
-	@NotNull
-	@Override
-	public TextAttributesKey[] getTokenHighlights(IElementType tokenType)
-	{
-		if (POD_TOKENS.contains(tokenType))
-		{
-			return attributesMap.get(POD_POD);
-		}
-		else if (attributesMap.containsKey(tokenType))
-		{
-			return attributesMap.get(tokenType);
-		}
-
-		return EMPTY_KEYS;
-	}
+    return EMPTY_KEYS;
+  }
 }

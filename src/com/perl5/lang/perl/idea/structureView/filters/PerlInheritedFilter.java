@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,42 +19,30 @@ package com.perl5.lang.perl.idea.structureView.filters;
 import com.intellij.icons.AllIcons;
 import com.intellij.ide.util.treeView.smartTree.ActionPresentation;
 import com.intellij.ide.util.treeView.smartTree.ActionPresentationData;
-import com.intellij.ide.util.treeView.smartTree.Filter;
-import com.intellij.ide.util.treeView.smartTree.TreeElement;
 import com.perl5.lang.perl.idea.structureView.elements.PerlStructureViewElement;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 15.08.2015.
  */
-public class PerlInheritedFilter implements Filter
-{
-	public static final PerlInheritedFilter INSTANCE = new PerlInheritedFilter();
-	private static final String ID = "SHOW_INHERITED";
+public class PerlInheritedFilter extends PerlFilter {
+  public static final PerlInheritedFilter INSTANCE = new PerlInheritedFilter();
+  private static final String ID = "SHOW_INHERITED";
 
-	@Override
-	public boolean isVisible(TreeElement treeElement)
-	{
-		return !(treeElement instanceof PerlStructureViewElement && ((PerlStructureViewElement) treeElement).isInherited());
-	}
+  @Override
+  protected boolean isMyElement(@NotNull PerlStructureViewElement treeElement) {
+    return treeElement.isInherited();
+  }
 
-	@Override
-	public boolean isReverted()
-	{
-		return true;
-	}
+  @NotNull
+  @Override
+  public ActionPresentation getPresentation() {
+    return new ActionPresentationData("Show inherited", null, AllIcons.Hierarchy.Supertypes);
+  }
 
-	@NotNull
-	@Override
-	public ActionPresentation getPresentation()
-	{
-		return new ActionPresentationData("Show inherited", null, AllIcons.Hierarchy.Supertypes);
-	}
-
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return ID;
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return ID;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,13 +24,12 @@ import java.util.List;
 /**
  * Created by hurricup on 24.05.2016.
  */
-public interface PerlStringList extends PsiElement
-{
-	/**
-	 * Collects string contents
-	 *
-	 * @return list of strings
-	 */
-	@NotNull
-	List<String> getStringContents();
+public interface PerlStringList extends PsiElement {
+  /**
+   * Collects string contents
+   *
+   * @return list of strings
+   */
+  @NotNull
+  List<String> getStringContents();
 }

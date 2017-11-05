@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,14 +25,12 @@ import com.perl5.lang.pod.lexer.PodLexerAdapter;
 /**
  * Created by hurricup on 03.04.2016.
  */
-public class PodWordsScanner extends DefaultWordsScanner implements PodElementTypes
-{
+public class PodWordsScanner extends DefaultWordsScanner implements PodElementTypes {
 
-	public PodWordsScanner()
-	{
-		super(new PodLexerAdapter(null),
-				PodParserDefinition.IDENTIFIERS,
-				PodParserDefinition.COMMENTS,
-				TokenSet.EMPTY);
-	}
+  public PodWordsScanner() {
+    super(new PodLexerAdapter(null),
+          PodParserDefinition.IDENTIFIERS,
+          PodParserDefinition.COMMENTS,
+          TokenSet.EMPTY);
+  }
 }

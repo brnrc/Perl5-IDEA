@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,41 +25,35 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 08.05.2016.
  */
-public class PerlLineBreakpointHandler extends XBreakpointHandler
-{
-	private final PerlDebugThread myPerlDebugThread;
+public class PerlLineBreakpointHandler extends XBreakpointHandler {
+  private final PerlDebugThread myPerlDebugThread;
 
-	public PerlLineBreakpointHandler(@NotNull PerlDebugThread myThread)
-	{
-		super(PerlLineBreakpointType.class);
-		myPerlDebugThread = myThread;
-	}
+  public PerlLineBreakpointHandler(@NotNull PerlDebugThread myThread) {
+    super(PerlLineBreakpointType.class);
+    myPerlDebugThread = myThread;
+  }
 
-	@Override
-	public void registerBreakpoint(@NotNull XBreakpoint breakpoint)
-	{
-		if (breakpoint instanceof XLineBreakpoint)
-		{
-			//noinspection unchecked
-			myPerlDebugThread.queueLineBreakpointDescriptor(PerlLineBreakPointDescriptor.createFromBreakpoint((XLineBreakpoint) breakpoint, myPerlDebugThread));
-		}
-		else
-		{
-			System.err.println("Don't know how to register" + breakpoint);
-		}
-	}
+  @Override
+  public void registerBreakpoint(@NotNull XBreakpoint breakpoint) {
+    if (breakpoint instanceof XLineBreakpoint) {
+      //noinspection unchecked
+      myPerlDebugThread
+        .queueLineBreakpointDescriptor(PerlLineBreakPointDescriptor.createFromBreakpoint((XLineBreakpoint)breakpoint, myPerlDebugThread));
+    }
+    else {
+      System.err.println("Don't know how to register" + breakpoint);
+    }
+  }
 
-	@Override
-	public void unregisterBreakpoint(@NotNull XBreakpoint breakpoint, boolean temporary)
-	{
-		if (breakpoint instanceof XLineBreakpoint)
-		{
-			//noinspection unchecked
-			myPerlDebugThread.queueLineBreakpointDescriptor(PerlLineBreakPointDescriptor.createRemoveFromBreakpoint((XLineBreakpoint) breakpoint, myPerlDebugThread));
-		}
-		else
-		{
-			System.err.println("Don't know how to unregister" + breakpoint);
-		}
-	}
+  @Override
+  public void unregisterBreakpoint(@NotNull XBreakpoint breakpoint, boolean temporary) {
+    if (breakpoint instanceof XLineBreakpoint) {
+      //noinspection unchecked
+      myPerlDebugThread.queueLineBreakpointDescriptor(
+        PerlLineBreakPointDescriptor.createRemoveFromBreakpoint((XLineBreakpoint)breakpoint, myPerlDebugThread));
+    }
+    else {
+      System.err.println("Don't know how to unregister" + breakpoint);
+    }
+  }
 }

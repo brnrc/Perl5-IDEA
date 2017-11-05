@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,46 +26,40 @@ import com.perl5.lang.embedded.lexer.EmbeddedPerlLexerAdapter;
 import com.perl5.lang.embedded.psi.EmbeddedPerlElementTypes;
 import com.perl5.lang.embedded.psi.impl.EmbeddedPerlFileImpl;
 import com.perl5.lang.perl.PerlParserDefinition;
-import com.perl5.lang.perl.idea.stubs.PerlFileElementType;
+import com.perl5.lang.perl.psi.stubs.PerlFileElementType;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 18.05.2015.
  */
-public class EmbeddedPerlParserDefinition extends PerlParserDefinition implements EmbeddedPerlElementTypes
-{
-	public static final IFileElementType FILE = new PerlFileElementType("Embedded Perl5", EmbeddedPerlLanguage.INSTANCE);
+public class EmbeddedPerlParserDefinition extends PerlParserDefinition implements EmbeddedPerlElementTypes {
+  public static final IFileElementType FILE = new PerlFileElementType("Embedded Perl5", EmbeddedPerlLanguage.INSTANCE);
 
-	public static final TokenSet COMMENTS = TokenSet.orSet(PerlParserDefinition.COMMENTS,
-			TokenSet.create(
-					EMBED_TEMPLATE_BLOCK_HTML,
-					EMBED_MARKER_OPEN,
-					EMBED_MARKER_CLOSE
-			));
+  public static final TokenSet COMMENTS = TokenSet.orSet(PerlParserDefinition.COMMENTS,
+                                                         TokenSet.create(
+                                                           EMBED_TEMPLATE_BLOCK_HTML,
+                                                           EMBED_MARKER_OPEN,
+                                                           EMBED_MARKER_CLOSE
+                                                         ));
 
-	@NotNull
-	@Override
-	public TokenSet getCommentTokens()
-	{
-		return COMMENTS;
-	}
+  @NotNull
+  @Override
+  public TokenSet getCommentTokens() {
+    return COMMENTS;
+  }
 
-	@NotNull
-	@Override
-	public Lexer createLexer(Project project)
-	{
-		return new EmbeddedPerlLexerAdapter(project);
-	}
+  @NotNull
+  @Override
+  public Lexer createLexer(Project project) {
+    return new EmbeddedPerlLexerAdapter(project);
+  }
 
-	@Override
-	public IFileElementType getFileNodeType()
-	{
-		return FILE;
-	}
+  @Override
+  public IFileElementType getFileNodeType() {
+    return FILE;
+  }
 
-	public PsiFile createFile(FileViewProvider viewProvider)
-	{
-		return new EmbeddedPerlFileImpl(viewProvider);
-	}
-
+  public PsiFile createFile(FileViewProvider viewProvider) {
+    return new EmbeddedPerlFileImpl(viewProvider);
+  }
 }

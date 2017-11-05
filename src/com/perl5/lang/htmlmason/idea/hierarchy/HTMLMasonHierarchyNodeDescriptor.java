@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,25 +27,21 @@ import com.perl5.lang.perl.idea.hierarchy.namespace.PerlHierarchyNodeDescriptor;
 /**
  * Created by hurricup on 12.03.2016.
  */
-public class HTMLMasonHierarchyNodeDescriptor extends PerlHierarchyNodeDescriptor
-{
-	public HTMLMasonHierarchyNodeDescriptor(NodeDescriptor parentDescriptor, PsiElement element, boolean isBase)
-	{
-		super(parentDescriptor, element, isBase);
-	}
+public class HTMLMasonHierarchyNodeDescriptor extends PerlHierarchyNodeDescriptor {
+  public HTMLMasonHierarchyNodeDescriptor(NodeDescriptor parentDescriptor, PsiElement element, boolean isBase) {
+    super(parentDescriptor, element, isBase);
+  }
 
-	@Override
-	protected void adjustAppearance(CompositeAppearance appearance, ItemPresentation presentation)
-	{
-		String absoluteComponentPath = ((HTMLMasonFileImpl) getPerlElement()).getAbsoluteComponentContainerPath();
+  @Override
+  protected void adjustAppearance(CompositeAppearance appearance, ItemPresentation presentation) {
+    String absoluteComponentPath = ((HTMLMasonFileImpl)getPerlElement()).getAbsoluteComponentContainerPath();
 
-		if (absoluteComponentPath != null)
-		{
-			appearance.getEnding().addText(
-					" in " + absoluteComponentPath,
-					HierarchyNodeDescriptor.getPackageNameAttributes()
-//					UsageTreeColorsScheme.getInstance().getScheme().getAttributes(UsageTreeColors.USAGE_LOCATION)
-			);
-		}
-	}
+    if (absoluteComponentPath != null) {
+      appearance.getEnding().addText(
+        " in " + absoluteComponentPath,
+        HierarchyNodeDescriptor.getPackageNameAttributes()
+        //					UsageTreeColorsScheme.getInstance().getScheme().getAttributes(UsageTreeColors.USAGE_LOCATION)
+      );
+    }
+  }
 }

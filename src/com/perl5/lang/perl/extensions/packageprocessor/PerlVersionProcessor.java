@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -29,62 +29,42 @@ import java.util.Set;
 /**
  * Created by hurricup on 09.09.2015.
  */
-public class PerlVersionProcessor implements PerlPackageProcessor, PerlFeaturesProvider
-{
-	protected static final PerlVersionProcessor INSTANCE = new PerlVersionProcessor();
+public class PerlVersionProcessor implements PerlPackageProcessor, PerlFeaturesProvider {
+  protected static final PerlVersionProcessor INSTANCE = new PerlVersionProcessor();
 
-	protected PerlVersionProcessor()
-	{
-	}
+  protected PerlVersionProcessor() {
+  }
 
-	public static PerlVersionProcessor getProcessor(PerlUseStatement useStatement)
-	{
-		PerlVersionElement versionElement = useStatement.getVersionElement();
-		assert versionElement != null;
+  @Override
+  public boolean isPragma() {
+    return false;
+  }
 
-		if (versionElement.getPerlVersion().lesserThan(PerlVersion.V5_12))
-		{
-			return INSTANCE;
-		}
+  @Override
+  public void addExports(@NotNull PerlUseStatement useStatement, @NotNull Set<String> export, @NotNull Set<String> exportOk) {
 
-		return PerlVersionProcessor512.INSTANCE;
-	}
+  }
 
-	@Override
-	public boolean isPragma()
-	{
-		return false;
-	}
+  @Override
+  @NotNull
+  public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement) {
+    return Collections.emptyList();
+  }
 
-	@Override
-	public void use(PerlUseStatement useStatement)
-	{
+  @Override
+  public PerlFeaturesTable getFeaturesTable(PerlUseStatement useStatement, PerlFeaturesTable currentFeaturesTable) {
+    // fixme implement modification
+    return currentFeaturesTable == null ? new PerlFeaturesTable() : currentFeaturesTable.clone();
+  }
 
-	}
+  public static PerlVersionProcessor getProcessor(PerlUseStatement useStatement) {
+    PerlVersionElement versionElement = useStatement.getVersionElement();
+    assert versionElement != null;
 
-	@Override
-	public void no(PerlUseStatement noStatement)
-	{
+    if (versionElement.getPerlVersion().lesserThan(PerlVersion.V5_12)) {
+      return INSTANCE;
+    }
 
-	}
-
-	@Override
-	public void addExports(@NotNull PerlUseStatement useStatement, @NotNull Set<String> export, @NotNull Set<String> exportOk)
-	{
-
-	}
-
-	@Override
-	@NotNull
-	public List<PerlExportDescriptor> getImports(@NotNull PerlUseStatement useStatement)
-	{
-		return Collections.emptyList();
-	}
-
-	@Override
-	public PerlFeaturesTable getFeaturesTable(PerlUseStatement useStatement, PerlFeaturesTable currentFeaturesTable)
-	{
-		// fixme implement modification
-		return currentFeaturesTable == null ? new PerlFeaturesTable() : currentFeaturesTable.clone();
-	}
+    return PerlVersionProcessor512.INSTANCE;
+  }
 }

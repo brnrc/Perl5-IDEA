@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,37 +21,29 @@ import com.perl5.lang.pod.PodParserDefinition;
 /**
  * Created by hurricup on 24.03.2016.
  */
-public class PODParserTest extends PerlParserTestBase
-{
-	public PODParserTest()
-	{
-		super("", "pod", new PodParserDefinition());
-	}
+public class PODParserTest extends PerlParserTestBase {
+  public PODParserTest() {
+    super("", "pod", new PodParserDefinition());
+  }
 
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/parser/pod";
-	}
+  @Override
+  protected String getTestDataPath() {
+    return "testData/parser/pod";
+  }
 
-	public void testSyntax()
-	{
-		doTest("hierarchy");
-	}
+  public void testHierarchy() {
+    doTest();
+  }
 
-	public void testOverRecovery()
-	{
-		doTest("over_recovery", false);
-	}
+  public void testOverRecovery() {
+    doTest(false);
+  }
 
-	public void testForBeginContent()
-	{
-		doTest("for_begin_content", false);
-	}
+  public void testForBeginContent() {
+    doTest(false);
+  }
 
-	public void testBeginRecovery()
-	{
-		doTest("begin_recovery", false);
-	}
-
+  public void testBeginRecovery() {
+    doTest(false);
+  }
 }

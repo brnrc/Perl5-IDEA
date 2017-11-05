@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,18 @@ package com.perl5.lang.mason2.idea.annotator;
 import com.intellij.lang.annotation.AnnotationHolder;
 import com.intellij.psi.PsiElement;
 import com.perl5.lang.mason2.psi.MasonMethodModifierName;
-import com.perl5.lang.perl.idea.annotators.PerlAnnotator;
+import com.perl5.lang.perl.idea.annotators.PerlBaseAnnotator;
 import com.perl5.lang.perl.idea.highlighter.PerlSyntaxHighlighter;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 28.01.2016.
  */
-public class MasonAnnotator extends PerlAnnotator
-{
-	@Override
-	public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder)
-	{
-		if (element instanceof MasonMethodModifierName)
-		{
-			holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DEFINITION);
-		}
-	}
+public class MasonAnnotator extends PerlBaseAnnotator {
+  @Override
+  public void annotate(@NotNull PsiElement element, @NotNull AnnotationHolder holder) {
+    if (element instanceof MasonMethodModifierName) {
+      holder.createInfoAnnotation(element, null).setTextAttributes(PerlSyntaxHighlighter.PERL_SUB_DEFINITION);
+    }
+  }
 }

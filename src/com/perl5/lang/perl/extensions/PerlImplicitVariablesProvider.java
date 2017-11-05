@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.perl5.lang.perl.extensions;
 
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.PerlVariableDeclarationWrapper;
+import com.perl5.lang.perl.psi.PerlVariableDeclarationElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.List;
@@ -26,13 +26,12 @@ import java.util.List;
  * Created by hurricup on 08.01.2016.
  * This interfact must be implemented in psi elements, which providing implicit variables declarations
  */
-public interface PerlImplicitVariablesProvider extends PsiElement
-{
-	/**
-	 * Returns plain list of full-qualified variable names sigil and name
-	 *
-	 * @return variable names
-	 */
-	@NotNull
-	List<PerlVariableDeclarationWrapper> getImplicitVariables();
+public interface PerlImplicitVariablesProvider extends PsiElement {
+  /**
+   * Returns plain list of full-qualified variable names sigil and name
+   *
+   * @return variable names
+   */
+  @NotNull
+  List<PerlVariableDeclarationElement> getImplicitVariables();
 }

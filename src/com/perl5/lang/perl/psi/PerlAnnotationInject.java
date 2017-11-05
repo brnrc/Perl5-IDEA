@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,8 +21,7 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 21.04.2016.
  */
-public interface PerlAnnotationInject extends PerlAnnotation
-{
-	@Nullable
-	String getLanguageMarker();
+public interface PerlAnnotationInject extends PerlAnnotation, PsiPerlAnnotationInject {
+  @Nullable
+  String getLanguageMarker();
 }

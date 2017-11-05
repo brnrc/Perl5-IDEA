@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,10 +24,10 @@ import com.intellij.execution.runners.ExecutionEnvironment;
 import com.intellij.execution.runners.RunConfigurationWithSuppressedDefaultRunAction;
 import com.intellij.openapi.options.SettingsEditor;
 import com.intellij.openapi.project.Project;
-import com.intellij.openapi.util.DefaultJDOMExternalizer;
 import com.intellij.openapi.util.InvalidDataException;
 import com.intellij.openapi.util.WriteExternalException;
 import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.util.xmlb.XmlSerializer;
 import com.perl5.lang.perl.idea.run.debugger.PerlDebugOptions;
 import org.jdom.Element;
 import org.jetbrains.annotations.NotNull;
@@ -36,157 +36,131 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 09.05.2016.
  */
-public class PerlRemoteDebuggingConfiguration extends RunConfigurationBase implements RunConfigurationWithSuppressedDefaultRunAction, PerlDebugOptions
-{
-	public String debugHost = "localhost";
-	public int debugPort = 12345;
-	public String remoteProjectRoot = "/home/";
-	public String scriptCharset = "utf8";
-	public String perlRole = "client";
-	public String startMode = "RUN";
-	public boolean isNonInteractiveModeEnabled = false;
-	public boolean isCompileTimeBreakpointsEnabled = false;
-	public String initCode = "";
+public class PerlRemoteDebuggingConfiguration extends RunConfigurationBase
+  implements RunConfigurationWithSuppressedDefaultRunAction, PerlDebugOptions {
+  public String debugHost = "localhost";
+  public int debugPort = 12345;
+  public String remoteProjectRoot = "/home/";
+  public String scriptCharset = "utf8";
+  public String perlRole = "client";
+  public String startMode = "RUN";
+  public boolean isNonInteractiveModeEnabled = false;
+  public boolean isCompileTimeBreakpointsEnabled = false;
+  public String initCode = "";
 
-	public PerlRemoteDebuggingConfiguration(Project project, @NotNull ConfigurationFactory factory, String name)
-	{
-		super(project, factory, name);
-	}
+  public PerlRemoteDebuggingConfiguration(Project project, @NotNull ConfigurationFactory factory, String name) {
+    super(project, factory, name);
+  }
 
-	@NotNull
-	@Override
-	public SettingsEditor<? extends RunConfiguration> getConfigurationEditor()
-	{
-		return new PerlRemoteDebuggingConfigurationEditor(getProject());
-	}
+  @NotNull
+  @Override
+  public SettingsEditor<? extends RunConfiguration> getConfigurationEditor() {
+    return new PerlRemoteDebuggingConfigurationEditor(getProject());
+  }
 
-	@Override
-	public void checkConfiguration() throws RuntimeConfigurationException
-	{
+  @Override
+  public void checkConfiguration() throws RuntimeConfigurationException {
 
-	}
+  }
 
-	@Override
-	public void readExternal(Element element) throws InvalidDataException
-	{
-		super.readExternal(element);
-		DefaultJDOMExternalizer.readExternal(this, element);
-	}
+  @Override
+  public void readExternal(Element element) throws InvalidDataException {
+    super.readExternal(element);
+    XmlSerializer.deserializeInto(this, element);
+  }
 
-	@Override
-	public void writeExternal(Element element) throws WriteExternalException
-	{
-		super.writeExternal(element);
-		DefaultJDOMExternalizer.writeExternal(this, element);
-	}
+  @Override
+  public void writeExternal(Element element) throws WriteExternalException {
+    super.writeExternal(element);
+    XmlSerializer.serializeInto(this, element);
+  }
 
-	@Nullable
-	@Override
-	public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException
-	{
-		if (executor instanceof DefaultDebugExecutor)
-		{
-			return new PerlRemoteDebuggingRunProfileState(environment);
-		}
-		return null;
-	}
+  @Nullable
+  @Override
+  public RunProfileState getState(@NotNull Executor executor, @NotNull ExecutionEnvironment environment) throws ExecutionException {
+    if (executor instanceof DefaultDebugExecutor) {
+      return new PerlRemoteDebuggingRunProfileState(environment);
+    }
+    return null;
+  }
 
-	public String getDebugHost()
-	{
-		return debugHost;
-	}
+  public String getDebugHost() {
+    return debugHost;
+  }
 
-	public void setDebugHost(String debugHost)
-	{
-		this.debugHost = debugHost;
-	}
+  public void setDebugHost(String debugHost) {
+    this.debugHost = debugHost;
+  }
 
-	public int getDebugPort()
-	{
-		return debugPort;
-	}
+  public int getDebugPort() {
+    return debugPort;
+  }
 
-	public void setDebugPort(int debugPort)
-	{
-		this.debugPort = debugPort;
-	}
+  public void setDebugPort(int debugPort) {
+    this.debugPort = debugPort;
+  }
 
-	public String getRemoteProjectRoot()
-	{
-		return remoteProjectRoot;
-	}
+  public String getRemoteProjectRoot() {
+    return remoteProjectRoot;
+  }
 
-	public void setRemoteProjectRoot(String remoteWorkingDirectory)
-	{
-		while (StringUtil.endsWith(remoteWorkingDirectory, "/"))
-		{
-			remoteWorkingDirectory = remoteWorkingDirectory.substring(0, remoteWorkingDirectory.length() - 1);
-		}
-		this.remoteProjectRoot = remoteWorkingDirectory;
-	}
+  public void setRemoteProjectRoot(String remoteWorkingDirectory) {
+    while (StringUtil.endsWith(remoteWorkingDirectory, "/")) {
+      remoteWorkingDirectory = remoteWorkingDirectory.substring(0, remoteWorkingDirectory.length() - 1);
+    }
+    this.remoteProjectRoot = remoteWorkingDirectory;
+  }
 
-	public String getScriptCharset()
-	{
-		return scriptCharset;
-	}
+  public String getScriptCharset() {
+    return scriptCharset;
+  }
 
-	public void setScriptCharset(String scriptCharset)
-	{
-		this.scriptCharset = scriptCharset;
-	}
+  public void setScriptCharset(String scriptCharset) {
+    this.scriptCharset = scriptCharset;
+  }
 
-	@Override
-	public String getStartMode()
-	{
-		return startMode;
-	}
+  @Override
+  public String getStartMode() {
+    return startMode;
+  }
 
-	public void setStartMode(String startMode)
-	{
-		this.startMode = startMode;
-	}
+  public void setStartMode(String startMode) {
+    this.startMode = startMode;
+  }
 
-	@Override
-	public String getPerlRole()
-	{
-		return perlRole;
-	}
+  @Override
+  public String getPerlRole() {
+    return perlRole;
+  }
 
-	public void setPerlRole(String perlRole)
-	{
-		this.perlRole = perlRole;
-	}
+  public void setPerlRole(String perlRole) {
+    this.perlRole = perlRole;
+  }
 
-	@Override
-	public boolean isNonInteractiveModeEnabled()
-	{
-		return isNonInteractiveModeEnabled;
-	}
+  @Override
+  public boolean isNonInteractiveModeEnabled() {
+    return isNonInteractiveModeEnabled;
+  }
 
-	public void setNonInteractiveModeEnabled(boolean nonInteractiveModeEnabled)
-	{
-		isNonInteractiveModeEnabled = nonInteractiveModeEnabled;
-	}
+  public void setNonInteractiveModeEnabled(boolean nonInteractiveModeEnabled) {
+    isNonInteractiveModeEnabled = nonInteractiveModeEnabled;
+  }
 
-	@Override
-	public boolean isCompileTimeBreakpointsEnabled()
-	{
-		return isCompileTimeBreakpointsEnabled;
-	}
+  @Override
+  public boolean isCompileTimeBreakpointsEnabled() {
+    return isCompileTimeBreakpointsEnabled;
+  }
 
-	public void setCompileTimeBreakpointsEnabled(boolean compileTimeBreakpointsEnabled)
-	{
-		isCompileTimeBreakpointsEnabled = compileTimeBreakpointsEnabled;
-	}
+  public void setCompileTimeBreakpointsEnabled(boolean compileTimeBreakpointsEnabled) {
+    isCompileTimeBreakpointsEnabled = compileTimeBreakpointsEnabled;
+  }
 
-	@Override
-	public String getInitCode()
-	{
-		return initCode;
-	}
+  @Override
+  public String getInitCode() {
+    return initCode;
+  }
 
-	public void setInitCode(String initCode)
-	{
-		this.initCode = initCode;
-	}
+  public void setInitCode(String initCode) {
+    this.initCode = initCode;
+  }
 }

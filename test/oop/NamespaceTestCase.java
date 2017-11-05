@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,34 +16,30 @@
 
 package oop;
 
-import base.PerlLightCodeInsightFixtureTestCase;
+import base.PerlLightTestCase;
 import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.util.PsiTreeUtil;
-import com.perl5.lang.perl.psi.mixins.PerlNamespaceDefinitionImplMixin;
+import com.perl5.lang.perl.psi.mixins.PerlNamespaceDefinitionMixin;
 import org.jetbrains.annotations.NotNull;
 
 /**
  * Created by hurricup on 22.02.2016.
  */
-public abstract class NamespaceTestCase extends PerlLightCodeInsightFixtureTestCase
-{
-	protected PerlNamespaceDefinitionImplMixin getNamespaceInFile(@NotNull String fileName, @NotNull String namespaceName)
-	{
-		myFixture.configureByFile(fileName);
-		PsiFile file = myFixture.getFile();
+public abstract class NamespaceTestCase extends PerlLightTestCase {
+  protected PerlNamespaceDefinitionMixin getNamespaceInFile(@NotNull String fileName, @NotNull String namespaceName) {
+    myFixture.configureByFile(fileName);
+    PsiFile file = myFixture.getFile();
 
-		PerlNamespaceDefinitionImplMixin namespaceDefinition = null;
-		for (PerlNamespaceDefinitionImplMixin element : PsiTreeUtil.findChildrenOfType(file, PerlNamespaceDefinitionImplMixin.class))
-		{
-			if (StringUtil.equals(element.getName(), namespaceName))
-			{
-				namespaceDefinition = element;
-				break;
-			}
-		}
-		assertNotNull(namespaceDefinition);
-		namespaceDefinition.subtreeChanged();
-		return namespaceDefinition;
-	}
+    PerlNamespaceDefinitionMixin namespaceDefinition = null;
+    for (PerlNamespaceDefinitionMixin element : PsiTreeUtil.findChildrenOfType(file, PerlNamespaceDefinitionMixin.class)) {
+      if (StringUtil.equals(element.getName(), namespaceName)) {
+        namespaceDefinition = element;
+        break;
+      }
+    }
+    assertNotNull(namespaceDefinition);
+    namespaceDefinition.subtreeChanged();
+    return namespaceDefinition;
+  }
 }

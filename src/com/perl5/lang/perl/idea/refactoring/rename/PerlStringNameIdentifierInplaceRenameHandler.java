@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,7 +25,7 @@ import com.intellij.psi.search.LocalSearchScope;
 import com.intellij.refactoring.rename.inplace.VariableInplaceRenameHandler;
 import com.intellij.refactoring.rename.inplace.VariableInplaceRenamer;
 import com.perl5.lang.perl.PerlLanguage;
-import com.perl5.lang.perl.extensions.PerlRenameUsagesSubstitutor;
+import com.perl5.lang.perl.extensions.PerlRenameUsagesHelper;
 import com.perl5.lang.perl.psi.PerlStringContentElement;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -33,27 +33,24 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 20.09.2015.
  */
-public class PerlStringNameIdentifierInplaceRenameHandler extends VariableInplaceRenameHandler
-{
-	@Nullable
-	@Override
-	protected VariableInplaceRenamer createRenamer(@NotNull PsiElement elementToRename, Editor editor)
-	{
-		return new PerlVariableInplaceRenamer((PsiNamedElement) elementToRename, editor);
-	}
+public class PerlStringNameIdentifierInplaceRenameHandler extends VariableInplaceRenameHandler {
+  @Nullable
+  @Override
+  protected VariableInplaceRenamer createRenamer(@NotNull PsiElement elementToRename, Editor editor) {
+    return new PerlVariableInplaceRenamer((PsiNamedElement)elementToRename, editor);
+  }
 
-	@Override
-	protected boolean isAvailable(PsiElement element, Editor editor, PsiFile file)
-	{
+  @Override
+  protected boolean isAvailable(PsiElement element, Editor editor, PsiFile file) {
 
-		return
-				editor.getSettings().isVariableInplaceRenameEnabled()
-						&& element instanceof PsiNameIdentifierOwner
-						&& !(element instanceof PerlRenameUsagesSubstitutor)
-						&& element.getUseScope() instanceof LocalSearchScope
-						&& element.getLanguage() == PerlLanguage.INSTANCE
-						&& ((PsiNameIdentifierOwner) element).getNameIdentifier() instanceof PerlStringContentElement
-						&& element.getContainingFile().getViewProvider().getAllFiles().size() < 2
-				;
-	}
+    return
+      editor.getSettings().isVariableInplaceRenameEnabled()
+      && element instanceof PsiNameIdentifierOwner
+      && !(element instanceof PerlRenameUsagesHelper)
+      && element.getUseScope() instanceof LocalSearchScope
+      && element.getLanguage() == PerlLanguage.INSTANCE
+      && ((PsiNameIdentifierOwner)element).getNameIdentifier() instanceof PerlStringContentElement
+      && element.getContainingFile().getViewProvider().getAllFiles().size() < 2
+      ;
+  }
 }

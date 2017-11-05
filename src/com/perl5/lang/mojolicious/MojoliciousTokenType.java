@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,29 +27,23 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 22.12.2015.
  */
-public class MojoliciousTokenType extends IElementType implements ILeafElementType
-{
-	public MojoliciousTokenType(@NotNull @NonNls String debugName)
-	{
-		super(debugName, MojoliciousLanguage.INSTANCE);
-	}
+public class MojoliciousTokenType extends IElementType implements ILeafElementType {
+  public MojoliciousTokenType(@NotNull @NonNls String debugName) {
+    super(debugName, MojoliciousLanguage.INSTANCE);
+  }
 
-	public String toString()
-	{
-		return "MojoliciousTokenType." + super.toString();
-	}
+  public String toString() {
+    return "Mojolicious: " + super.toString();
+  }
 
-	@NotNull
-	@Override
-	public ASTNode createLeafNode(CharSequence leafText)
-	{
-		if (MojoliciousParserDefinition.COMMENTS.contains(this))
-		{
-			return new PsiCommentImpl(this, leafText);
-		}
-		else
-		{
-			return new LeafPsiElement(this, leafText);
-		}
-	}
+  @NotNull
+  @Override
+  public ASTNode createLeafNode(CharSequence leafText) {
+    if (MojoliciousParserDefinition.COMMENTS.contains(this)) {
+      return new PsiCommentImpl(this, leafText);
+    }
+    else {
+      return new LeafPsiElement(this, leafText);
+    }
+  }
 }

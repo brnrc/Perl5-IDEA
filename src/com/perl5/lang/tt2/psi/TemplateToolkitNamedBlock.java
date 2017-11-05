@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,6 +22,5 @@ import com.intellij.psi.PsiNameIdentifierOwner;
 /**
  * Created by hurricup on 15.06.2016.
  */
-public interface TemplateToolkitNamedBlock extends PsiElement, PsiNameIdentifierOwner, PsiNamedBlock
-{
+public interface TemplateToolkitNamedBlock extends PsiElement, PsiNameIdentifierOwner, PsiNamedBlock {
 }

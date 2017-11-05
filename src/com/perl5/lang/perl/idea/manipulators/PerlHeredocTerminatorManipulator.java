@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,16 +26,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 27.09.2015.
  */
-public class PerlHeredocTerminatorManipulator extends AbstractElementManipulator<PerlHeredocTerminatorElement>
-{
-	@Override
-	public PerlHeredocTerminatorElement handleContentChange(@NotNull PerlHeredocTerminatorElement element, @NotNull TextRange range, String newContent) throws IncorrectOperationException
-	{
-		if (newContent.isEmpty())
-		{
-			throw new IncorrectOperationException("You can't set heredoc terminator to the empty one");
-		}
-		return (PerlHeredocTerminatorElement) ((LeafPsiElement) element).replaceWithText(newContent);
-	}
-
+public class PerlHeredocTerminatorManipulator extends AbstractElementManipulator<PerlHeredocTerminatorElement> {
+  @Override
+  public PerlHeredocTerminatorElement handleContentChange(@NotNull PerlHeredocTerminatorElement element,
+                                                          @NotNull TextRange range,
+                                                          String newContent) throws IncorrectOperationException {
+    if (newContent.isEmpty()) {
+      throw new IncorrectOperationException("You can't set heredoc terminator to the empty one");
+    }
+    return (PerlHeredocTerminatorElement)((LeafPsiElement)element).replaceWithText(newContent);
+  }
 }

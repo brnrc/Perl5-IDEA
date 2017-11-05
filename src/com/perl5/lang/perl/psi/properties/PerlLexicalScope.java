@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,7 +24,6 @@ import org.jetbrains.annotations.NotNull;
  * Created by hurricup on 27.05.2015.
  * This interface marks that PsiElement has it's own scope
  */
-public interface PerlLexicalScope extends PerlLexicalScopeMember, PsiElement, PerlStatementsContainer
-{
-	void accept(@NotNull PsiElementVisitor visitor);
+public interface PerlLexicalScope extends PerlLexicalScopeMember, PsiElement, PerlStatementsContainer {
+  void accept(@NotNull PsiElementVisitor visitor);
 }

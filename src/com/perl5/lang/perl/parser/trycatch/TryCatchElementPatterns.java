@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,20 +26,19 @@ import static com.intellij.patterns.PlatformPatterns.psiElement;
 /**
  * Created by hurricup on 17.04.2016.
  */
-public interface TryCatchElementPatterns extends TryCatchElementTypes, PerlElementPatterns
-{
-	PsiElementPattern.Capture<PsiElement> ELEMENT_AFTER_TRY_CATCH =
-			psiElement().inside(
-					psiElement(PsiPerlStatement.class).afterSiblingSkipping(
-							WHITE_SPACE_AND_COMMENTS,
-							psiElement().andOr(
-									psiElement(TRY_COMPOUND),
-									psiElement(CATCH_COMPOUND))
+public interface TryCatchElementPatterns extends PerlElementPatterns {
+  PsiElementPattern.Capture<PsiElement> ELEMENT_AFTER_TRY_CATCH =
+    psiElement().inside(
+      psiElement(PsiPerlStatement.class).afterSiblingSkipping(
+        WHITE_SPACE_AND_COMMENTS,
+        psiElement().andOr(
+          psiElement(TRY_EXPR),
+          psiElement(CATCH_EXPR))
 
-					));
+      ));
 
-	PsiElementPattern.Capture<PsiElement> PACKAGE_IN_CATCH =
-			psiElement(PACKAGE).withParent(
-					psiElement(CATCH_CONDITION)
-			);
+  PsiElementPattern.Capture<PsiElement> PACKAGE_IN_CATCH =
+    psiElement(IDENTIFIER).withParent(
+      psiElement(CATCH_CONDITION)
+    );
 }

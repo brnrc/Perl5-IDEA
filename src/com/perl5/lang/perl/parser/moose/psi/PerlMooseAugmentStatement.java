@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,10 +26,9 @@ import org.jetbrains.annotations.Nullable;
  * Created by hurricup on 25.11.2015.
  */
 public interface PerlMooseAugmentStatement extends
-		StubBasedPsiElement<PerlMooseAugmentStatementStub>,
-		PsiPerlStatement,
-		PsiNameIdentifierOwner
-{
-	@Nullable
-	String getSubName();
+                                           StubBasedPsiElement<PerlMooseAugmentStatementStub>,
+                                           PsiPerlStatement,
+                                           PsiNameIdentifierOwner {
+  @Nullable
+  String getSubName();
 }

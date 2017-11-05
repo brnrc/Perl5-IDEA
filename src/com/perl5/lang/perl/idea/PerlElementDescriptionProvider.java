@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,124 +16,137 @@
 
 package com.perl5.lang.perl.idea;
 
-import com.intellij.codeInsight.highlighting.HighlightUsagesDescriptionLocation;
+import com.intellij.ide.util.DeleteNameDescriptionLocation;
+import com.intellij.ide.util.DeleteTypeDescriptionLocation;
+import com.intellij.openapi.util.text.StringUtil;
 import com.intellij.psi.*;
+import com.intellij.usageView.UsageViewLongNameLocation;
 import com.intellij.usageView.UsageViewNodeTextLocation;
 import com.intellij.usageView.UsageViewShortNameLocation;
 import com.intellij.usageView.UsageViewTypeLocation;
+import com.perl5.PerlBundle;
+import com.perl5.lang.mojolicious.psi.impl.MojoHelperDefinition;
 import com.perl5.lang.perl.PerlLanguage;
+import com.perl5.lang.perl.parser.Class.Accessor.psi.impl.PerlClassAccessorMethod;
+import com.perl5.lang.perl.parser.Exception.Class.psi.light.PerlLightExceptionClassDefinition;
+import com.perl5.lang.perl.parser.constant.psi.light.PerlLightConstantDefinitionElement;
+import com.perl5.lang.perl.parser.moose.psi.impl.PerlAttributeDefinition;
 import com.perl5.lang.perl.psi.*;
 import com.perl5.lang.perl.psi.impl.PerlFileImpl;
-import com.perl5.lang.perl.psi.properties.PerlNamedElement;
+import com.perl5.lang.perl.psi.mixins.PerlFuncDefinitionMixin;
+import com.perl5.lang.perl.psi.properties.PerlIdentifierOwner;
 import com.perl5.lang.perl.psi.properties.PerlPackageMember;
 import com.perl5.lang.perl.psi.utils.PerlVariableType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-public class PerlElementDescriptionProvider implements ElementDescriptionProvider
-{
-	@Nullable
-	@Override
-	public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location)
-	{
-//		PsiElement parent = element.getParent();
+import java.text.MessageFormat;
 
-//		System.out.println(element + " for " + location);
-		if (element.getLanguage() == PerlLanguage.INSTANCE)
-		{
-			if (location == HighlightUsagesDescriptionLocation.INSTANCE    // ???
-					|| location == UsageViewNodeTextLocation.INSTANCE        // child element of find usages
-					)
-			{
-				return getElementDescription(element, UsageViewShortNameLocation.INSTANCE);
-			}
-			else if (location == UsageViewTypeLocation.INSTANCE)
-			{
-				if (element instanceof PerlSubDeclaration)
-				{
-					return "Sub declaration";
-				}
-				else if (element instanceof PerlHeredocOpener)
-				{
-					return "Heredoc marker";
-				}
-				else if (element instanceof PerlSubDefinition)
-				{
-					return "Sub definition";
-				}
-				else if (element instanceof PerlMethodDefinition)
-				{
-					return "Method definition";
-				}
-				else if (element instanceof PerlFuncDefinition)
-				{
-					return "Function definition";
-				}
-				else if (element instanceof PerlConstantDefinition)
-				{
-					return "Constant definition";
-				}
-				else if (element instanceof PerlNamespaceDefinition)
-				{
-					return "Namespace definition";
-				}
-				else if (element instanceof PerlFileImpl)
-				{
-					return "perl file";
-				}
-				else if (element instanceof PsiDirectoryContainer)
-				{
-					return "Directory";
-				}
-				else if (element instanceof PerlVariableNameElement)
-				{
-					return getElementDescription(element.getParent(), location);
-				}
-				else if (element instanceof PerlGlobVariable)
-				{
-					return "Typeglob";
-				}
-				else if (element instanceof PerlVariable || element instanceof PerlVariableDeclarationWrapper)
-				{
-					if (element instanceof PerlVariableDeclarationWrapper)
-					{
-						element = ((PerlVariableDeclarationWrapper) element).getVariable();
-					}
+public class PerlElementDescriptionProvider implements ElementDescriptionProvider {
+  @Nullable
+  @Override
+  public String getElementDescription(@NotNull PsiElement element, @NotNull ElementDescriptionLocation location) {
+    if (!element.getLanguage().isKindOf(PerlLanguage.INSTANCE)) {
+      return null;
+    }
 
-					PerlVariableType actualType = ((PerlVariable) element).getActualType();
-					if (actualType == PerlVariableType.ARRAY)
-					{
-						return "array variable";
-					}
-					else if (actualType == PerlVariableType.HASH)
-					{
-						return "hash variable";
-					}
-					else if (actualType == PerlVariableType.SCALAR)
-					{
-						return "scalar variable";
-					}
-				}
-				return null;
-			}
-			// file renaming
-			else if (location == UsageViewShortNameLocation.INSTANCE)
-			{
-				if (element instanceof PerlNamedElement)
-				{
-					return ((PerlNamedElement) element).getPresentableName();
-				}
-				else if (element instanceof PerlPackageMember)
-				{
-					return ((PerlPackageMember) element).getCanonicalName();
-				}
-				else if (element instanceof PsiNamedElement)
-				{
-					return ((PsiNamedElement) element).getName();
-				}
-			}
-		}
-//		return "Unhandled description of "+ element.getClass() + " in " + location.getClass();
-		return null;
-	}
+    if (location == DeleteNameDescriptionLocation.INSTANCE) {
+      return ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE);
+    }
+    else if (location == UsageViewNodeTextLocation.INSTANCE) {
+      return ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE);
+    }
+    else if (location == DeleteTypeDescriptionLocation.SINGULAR) {
+      return ElementDescriptionUtil.getElementDescription(element, UsageViewTypeLocation.INSTANCE);
+    }
+    else if (location == DeleteTypeDescriptionLocation.PLURAL) {
+      return StringUtil.pluralize(ElementDescriptionUtil.getElementDescription(element, DeleteTypeDescriptionLocation.SINGULAR));
+    }
+    else if (location == UsageViewShortNameLocation.INSTANCE) {
+      if (element instanceof PerlIdentifierOwner) {
+        return ((PerlIdentifierOwner)element).getPresentableName();
+      }
+      else if (element instanceof PerlPackageMember) {
+        return ((PerlPackageMember)element).getCanonicalName();
+      }
+      else if (element instanceof PsiNamedElement) {
+        return ((PsiNamedElement)element).getName();
+      }
+    }
+    else if (location == UsageViewTypeLocation.INSTANCE) {
+      if (element instanceof MojoHelperDefinition) {
+        return PerlBundle.message("perl.type.mojo.helper");
+      }
+      else if (element instanceof PerlAttributeDefinition) {
+        return PerlBundle.message("perl.type.attribute");
+      }
+      else if (element instanceof PerlClassAccessorMethod) {
+        return PerlBundle.message("perl.type.class.accessor");
+      }
+      else if (element instanceof PerlLightExceptionClassDefinition) {
+        return PerlBundle.message("perl.type.exception");
+      }
+      else if (element instanceof PerlMethodDefinition || (element instanceof PerlSubElement && ((PerlSubElement)element).isMethod())) {
+        return PerlBundle.message("perl.type.method");
+      }
+      else if (element instanceof PerlSubDeclarationElement) {
+        return PerlBundle.message("perl.type.sub.declaration");
+      }
+      else if (element instanceof PerlHeredocOpener) {
+        return PerlBundle.message("perl.type.heredoc.marker");
+      }
+      else if (element instanceof PerlFuncDefinitionMixin) {
+        return PerlBundle.message("perl.type.function");
+      }
+      else if (element instanceof PerlLightConstantDefinitionElement) {
+        return PerlBundle.message("perl.type.constant");
+      }
+      else if (element instanceof PerlSubDefinitionElement) {
+        return PerlBundle.message("perl.type.sub.definition");
+      }
+      else if (element instanceof PerlNamespaceDefinitionWithIdentifier) {
+        return PerlBundle.message("perl.type.namespace");
+      }
+      else if (element instanceof PerlFileImpl) {
+        return PerlBundle.message("perl.type.file");
+      }
+      else if (element instanceof PsiDirectoryContainer) {
+        return PerlBundle.message("perl.type.directory");
+      }
+      else if (element instanceof PerlGlobVariable) {
+        return PerlBundle.message("perl.type.typeglob");
+      }
+      else if (element instanceof PerlVariable || element instanceof PerlVariableDeclarationElement) {
+        if (element instanceof PerlVariableDeclarationElement) {
+          element = ((PerlVariableDeclarationElement)element).getVariable();
+        }
+
+        PerlVariableType actualType = ((PerlVariable)element).getActualType();
+        if (actualType == PerlVariableType.ARRAY) {
+          return PerlBundle.message("perl.type.array");
+        }
+        else if (actualType == PerlVariableType.HASH) {
+          return PerlBundle.message("perl.type.hash");
+        }
+        else if (actualType == PerlVariableType.SCALAR) {
+          return PerlBundle.message("perl.type.scalar");
+        }
+      }
+      else if (element instanceof PerlVariableNameElement) {
+        return getElementDescription(element.getParent(), location);
+      }
+    }
+    else if (location == UsageViewLongNameLocation.INSTANCE) {
+      return MessageFormat.format(
+        "{0} ''{1}''",
+        ElementDescriptionUtil.getElementDescription(element, UsageViewTypeLocation.INSTANCE),
+        ElementDescriptionUtil.getElementDescription(element, UsageViewShortNameLocation.INSTANCE)
+      );
+    }
+    else {
+      return "Unhandled location " + location;
+    }
+
+    return null;
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,29 +16,23 @@
 
 package formatter;
 
-import base.PerlLightCodeInsightFixtureTestCase;
+import base.PerlLightTestCase;
 
 /**
  * Created by hurricup on 15.03.2016.
  */
-public class HTMLMasonFormatterTestCase extends PerlLightCodeInsightFixtureTestCase
-{
-	@Override
-	protected String getTestDataPath()
-	{
-		return "testData/formatter/htmlmason";
-	}
+public class HTMLMasonFormatterTestCase extends PerlLightTestCase {
+  @Override
+  protected String getTestDataPath() {
+    return "testData/formatter/htmlmason";
+  }
 
-	@Override
-	public String getFileExtension()
-	{
-		return "mas";
-	}
+  @Override
+  public String getFileExtension() {
+    return "mas";
+  }
 
-	public void testSpacelessTags() throws Exception
-	{
-		doFormatTest("spaceless", "");
-	}
-
-
+  public void testSpacelessTags() throws Exception {
+    doFormatTest("spaceless", "");
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,40 +22,34 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 25.04.2015.
  */
-public class PerlCommenter implements Commenter
-{
-	@Nullable
-	@Override
-	public String getLineCommentPrefix()
-	{
-		return "#";
-	}
+public class PerlCommenter implements Commenter {
+  @Nullable
+  @Override
+  public String getLineCommentPrefix() {
+    return "#";
+  }
 
-	@Nullable
-	@Override
-	public String getBlockCommentPrefix()
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getBlockCommentPrefix() {
+    return null;
+  }
 
-	@Nullable
-	@Override
-	public String getBlockCommentSuffix()
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getBlockCommentSuffix() {
+    return null;
+  }
 
-	@Nullable
-	@Override
-	public String getCommentedBlockCommentPrefix()
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getCommentedBlockCommentPrefix() {
+    return null;
+  }
 
-	@Nullable
-	@Override
-	public String getCommentedBlockCommentSuffix()
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public String getCommentedBlockCommentSuffix() {
+    return null;
+  }
 }

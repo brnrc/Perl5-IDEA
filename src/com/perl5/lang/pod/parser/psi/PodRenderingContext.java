@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,27 +19,22 @@ package com.perl5.lang.pod.parser.psi;
 /**
  * Created by hurricup on 26.03.2016.
  */
-public class PodRenderingContext
-{
-	private boolean myIsSafe;
+public class PodRenderingContext {
+  private boolean myIsSafe;
 
-	public PodRenderingContext()
-	{
-		this(false);
-	}
+  public PodRenderingContext() {
+    this(false);
+  }
 
-	public PodRenderingContext(boolean myIsSafe)
-	{
-		this.myIsSafe = myIsSafe;
-	}
+  public PodRenderingContext(boolean myIsSafe) {
+    this.myIsSafe = myIsSafe;
+  }
 
-	public boolean isSafe()
-	{
-		return myIsSafe;
-	}
+  public boolean isSafe() {
+    return myIsSafe;
+  }
 
-	public void setSafe(boolean safe)
-	{
-		myIsSafe = safe;
-	}
+  public void setSafe(boolean safe) {
+    myIsSafe = safe;
+  }
 }

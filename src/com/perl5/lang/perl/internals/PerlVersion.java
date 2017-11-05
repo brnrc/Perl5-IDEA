@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,242 +16,225 @@
 
 package com.perl5.lang.perl.internals;
 
+import com.perl5.PerlBundle;
+import gnu.trove.THashMap;
 import org.apache.commons.lang.StringUtils;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.regex.Matcher;
 
 /**
  * Created by hurricup on 23.08.2015.
  * Represents perl version
  */
-public class PerlVersion implements PerlVersionRegexps, Comparable<PerlVersion>
-{
-	public static final PerlVersion V5_12 = new PerlVersion(5.012);
+public class PerlVersion implements PerlVersionRegexps, Comparable<PerlVersion> {
+  public static final PerlVersion V5_10 = new PerlVersion(5.010);
+  public static final PerlVersion V5_12 = new PerlVersion(5.012);
+  public static final PerlVersion V5_14 = new PerlVersion(5.014);
+  public static final PerlVersion V5_16 = new PerlVersion(5.016);
+  public static final PerlVersion V5_18 = new PerlVersion(5.018);
+  public static final PerlVersion V5_20 = new PerlVersion(5.020);
+  public static final PerlVersion V5_22 = new PerlVersion(5.022);
+  public static final PerlVersion V5_24 = new PerlVersion(5.024);
+  public static final PerlVersion V5_26 = new PerlVersion(5.026);
+  public static final List<PerlVersion> ALL_VERSIONS = Arrays.asList(
+    V5_10, V5_12, V5_14, V5_16, V5_18, V5_20, V5_22, V5_24, V5_26
+  );
 
-	protected boolean isAlpha;
-	protected boolean isStrict;
-	protected boolean isValid;
-	protected int revision;
-	protected int major;
-	protected int minor;
-	protected List<Integer> extraChunks = Collections.emptyList();
+  public static final Map<PerlVersion, String> PERL_VERSION_DESCRIPTIONS = new THashMap<>();
 
-	public PerlVersion(double version)
-	{
-		try
-		{
-			parseDoubleVersion(version);
-		}
-		catch (Exception e)
-		{
-		}
-	}
+  static {
+    PERL_VERSION_DESCRIPTIONS.put(V5_10, PerlBundle.message("perl.version.description.5.10"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_12, PerlBundle.message("perl.version.description.5.12"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_14, PerlBundle.message("perl.version.description.5.14"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_16, PerlBundle.message("perl.version.description.5.16"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_18, PerlBundle.message("perl.version.description.5.18"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_20, PerlBundle.message("perl.version.description.5.20"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_22, PerlBundle.message("perl.version.description.5.22"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_24, PerlBundle.message("perl.version.description.5.24"));
+    PERL_VERSION_DESCRIPTIONS.put(V5_26, PerlBundle.message("perl.version.description.5.26"));
+  }
 
-	public PerlVersion(String versionString)
-	{
+  protected boolean isAlpha;
+  protected boolean isStrict;
+  protected boolean isValid;
+  protected int revision;
+  protected int major;
+  protected int minor;
+  protected List<Integer> extraChunks = Collections.emptyList();
 
-		try
-		{
-			Matcher matcher;
+  private PerlVersion() {}
 
-			if (numericVersion.matcher(versionString).matches())
-			{
-				parseDoubleVersion(Double.parseDouble(versionString.replace("_", "")));
-				isAlpha = versionString.contains("_"); // fixme not sure about this at all
-			}
-			else if ((matcher = dottedVersion.matcher(versionString)).matches())
-			{
-				List<String> versionChunks = new ArrayList<String>(Arrays.asList(versionString.replace("v", "").replace('_', '.').split("\\.")));
-				isAlpha = matcher.group(1) != null;
-				revision = Integer.parseInt(versionChunks.remove(0));
+  public PerlVersion(double version) {
+    try {
+      parseDoubleVersion(version);
+    }
+    catch (Exception e) {
+    }
+  }
 
-				if (!versionChunks.isEmpty())
-				{
-					if (versionChunks.get(0).length() > 3)
-					{
-						throw new Exception();
-					}
+  public PerlVersion(String versionString) {
 
-					major = Integer.parseInt(versionChunks.remove(0));
+    try {
+      Matcher matcher;
 
-					if (!versionChunks.isEmpty())
-					{
-						if (versionChunks.get(0).length() > 3)
-						{
-							throw new Exception();
-						}
+      if (numericVersion.matcher(versionString).matches()) {
+        parseDoubleVersion(Double.parseDouble(versionString.replace("_", "")));
+        isAlpha = versionString.contains("_"); // fixme not sure about this at all
+      }
+      else if ((matcher = dottedVersion.matcher(versionString)).matches()) {
+        List<String> versionChunks = new ArrayList<>(Arrays.asList(versionString.replace("v", "").replace('_', '.').split("\\.")));
+        isAlpha = matcher.group(1) != null;
+        revision = Integer.parseInt(versionChunks.remove(0));
 
-						minor = Integer.parseInt(versionChunks.remove(0));
+        if (!versionChunks.isEmpty()) {
+          if (versionChunks.get(0).length() > 3) {
+            throw new Exception();
+          }
 
-						if (!versionChunks.isEmpty())
-						{
-							extraChunks = new ArrayList<Integer>();
-							for (String chunk : versionChunks)
-							{
-								if (chunk.length() > 3)
-								{
-									throw new Exception();
-								}
-								else
-								{
-									extraChunks.add(Integer.parseInt(chunk));
-								}
-							}
-						}
-					}
-				}
+          major = Integer.parseInt(versionChunks.remove(0));
 
-			}
-			else
-			{
-				isValid = false;
-				return;
-			}
-			isStrict = strict.matcher(versionString).matches();
-			isValid = true;
-		}
-		catch (Exception e) // catching numberformat exception
-		{
-			isValid = isStrict = isAlpha = false;
-			revision = major = minor = 0;
-		}
-	}
+          if (!versionChunks.isEmpty()) {
+            if (versionChunks.get(0).length() > 3) {
+              throw new Exception();
+            }
 
-	public void parseDoubleVersion(double version) throws Exception
-	{
-		if (version <= Integer.MAX_VALUE)
-		{
-			long longVersion = (long) (version * 1000000);
-			isStrict = true;
-			isAlpha = false;
-			isValid = version > 0;
-			if (isValid)
-			{
-				revision = (int) version;
-				longVersion = (longVersion - revision * 1000000);
-				major = (int) (longVersion / 1000);
-				minor = (int) (longVersion % 1000);
-			}
-		}
-		else
-		{
-			throw new Exception("Version is too big");
-		}
-	}
+            minor = Integer.parseInt(versionChunks.remove(0));
 
-	public double getDoubleVersion()
-	{
-		double version = (double) revision + ((double) major / 1000) + ((double) minor / 1000000);
+            if (!versionChunks.isEmpty()) {
+              extraChunks = new ArrayList<>();
+              for (String chunk : versionChunks) {
+                if (chunk.length() > 3) {
+                  throw new Exception();
+                }
+                else {
+                  extraChunks.add(Integer.parseInt(chunk));
+                }
+              }
+            }
+          }
+        }
+      }
+      else {
+        isValid = false;
+        return;
+      }
+      isStrict = strict.matcher(versionString).matches();
+      isValid = true;
+    }
+    catch (Exception e) // catching numberformat exception
+    {
+      isValid = isStrict = isAlpha = false;
+      revision = major = minor = 0;
+    }
+  }
 
-		if (!extraChunks.isEmpty())
-		{
-			long divider = 1000000000;
-			for (Integer chunk : extraChunks)
-			{
-				version += ((double) chunk) / divider;
-				divider *= 1000;
-			}
-		}
+  public void parseDoubleVersion(double version) throws Exception {
+    if (version <= Integer.MAX_VALUE) {
+      long longVersion = (long)(version * 1000000);
+      isStrict = true;
+      isAlpha = false;
+      isValid = version > 0;
+      if (isValid) {
+        revision = (int)version;
+        longVersion = (longVersion - revision * 1000000);
+        major = (int)(longVersion / 1000);
+        minor = (int)(longVersion % 1000);
+      }
+    }
+    else {
+      throw new Exception("Version is too big");
+    }
+  }
 
-		return version;
-	}
+  public double getDoubleVersion() {
+    double version = (double)revision + ((double)major / 1000) + ((double)minor / 1000000);
 
-	public String getStrictDottedVersion()
-	{
-		List<String> result = new ArrayList<String>(Arrays.asList(Integer.toString(revision)));
+    if (!extraChunks.isEmpty()) {
+      long divider = 1000000000;
+      for (Integer chunk : extraChunks) {
+        version += ((double)chunk) / divider;
+        divider *= 1000;
+      }
+    }
 
-		if (major > 0 || minor > 0 || !extraChunks.isEmpty())
-		{
-			result.add(Integer.toString(major));
-		}
+    return version;
+  }
 
-		if (minor > 0 || !extraChunks.isEmpty())
-		{
-			result.add(Integer.toString(minor));
-		}
+  public String getStrictDottedVersion() {
+    List<String> result = new ArrayList<>(Arrays.asList(Integer.toString(revision)));
 
-		for (Integer chunk : extraChunks)
-		{
-			result.add(Integer.toString(chunk));
-		}
+    if (major > 0 || minor > 0 || !extraChunks.isEmpty()) {
+      result.add(Integer.toString(major));
+    }
 
-		return "v" + StringUtils.join(result, ".");
-	}
+    if (minor > 0 || !extraChunks.isEmpty()) {
+      result.add(Integer.toString(minor));
+    }
 
-	public String getStrictNumericVersion()
-	{
-		return Double.toString(getDoubleVersion());
-	}
+    for (Integer chunk : extraChunks) {
+      result.add(Integer.toString(chunk));
+    }
 
-	public int getRevision()
-	{
-		return revision;
-	}
+    return "v" + StringUtils.join(result, ".");
+  }
 
-	public void setRevision(int revision)
-	{
-		this.revision = revision;
-	}
+  public String getStrictNumericVersion() {
+    return Double.toString(getDoubleVersion());
+  }
 
-	public int getMajor()
-	{
-		return major;
-	}
+  public int getRevision() {
+    return revision;
+  }
 
-	public void setMajor(int major)
-	{
-		this.major = major;
-	}
+  public void setRevision(int revision) {
+    this.revision = revision;
+  }
 
-	public int getMinor()
-	{
-		return minor;
-	}
+  public int getMajor() {
+    return major;
+  }
 
-	public void setMinor(int minor)
-	{
-		this.minor = minor;
-	}
+  public void setMajor(int major) {
+    this.major = major;
+  }
 
-	public boolean isAlpha()
-	{
-		return isAlpha;
-	}
+  public int getMinor() {
+    return minor;
+  }
 
-	public boolean isStrict()
-	{
-		return isStrict;
-	}
+  public void setMinor(int minor) {
+    this.minor = minor;
+  }
 
-	public boolean isValid()
-	{
-		return isValid;
-	}
+  public boolean isAlpha() {
+    return isAlpha;
+  }
 
-	@Override
-	public int compareTo(@NotNull PerlVersion o)
-	{
-		return Double.compare(getDoubleVersion(), o.getDoubleVersion());
-	}
+  public boolean isStrict() {
+    return isStrict;
+  }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		return o instanceof PerlVersion && (this == o || this.getDoubleVersion() == ((PerlVersion) o).getDoubleVersion());
-	}
+  public boolean isValid() {
+    return isValid;
+  }
 
-	public boolean lesserThan(PerlVersion o)
-	{
-		return compareTo(o) == -1;
-	}
+  @Override
+  public int compareTo(@NotNull PerlVersion o) {
+    return Double.compare(getDoubleVersion(), o.getDoubleVersion());
+  }
 
-	public boolean greaterThan(PerlVersion o)
-	{
-		return compareTo(o) == 1;
-	}
+  @Override
+  public boolean equals(Object o) {
+    return o instanceof PerlVersion && (this == o || this.getDoubleVersion() == ((PerlVersion)o).getDoubleVersion());
+  }
+
+  public boolean lesserThan(PerlVersion o) {
+    return compareTo(o) == -1;
+  }
+
+  public boolean greaterThan(PerlVersion o) {
+    return compareTo(o) == 1;
+  }
 }

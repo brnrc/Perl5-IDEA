@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,61 +22,50 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 15.05.2016.
  */
-public class PerlLoadedFileDescriptor
-{
-	private String path;
-	private String name;
+public class PerlLoadedFileDescriptor {
+  private String path;
+  private String name;
 
-	@NotNull
-	public String getPath()
-	{
-		return path;
-	}
+  @NotNull
+  public String getPath() {
+    return path;
+  }
 
-	@Nullable
-	public String getName()
-	{
-		return name;
-	}
+  @Nullable
+  public String getName() {
+    return name;
+  }
 
-	@NotNull
-	public String getNameOrPath()
-	{
-		return name == null ? path : name;
-	}
+  @NotNull
+  public String getNameOrPath() {
+    return name == null ? path : name;
+  }
 
-	@NotNull
-	public String getPresentableName()
-	{
-		return isEval() && name != null ? name : path;
-	}
+  @NotNull
+  public String getPresentableName() {
+    return isEval() && name != null ? name : path;
+  }
 
-	public boolean isEval()
-	{
-		return path.startsWith(PerlStackFrameDescriptor.EVAL_PREFIX);
-	}
+  public boolean isEval() {
+    return path.startsWith(PerlStackFrameDescriptor.EVAL_PREFIX);
+  }
 
-	@Override
-	public boolean equals(Object o)
-	{
-		if (this == o)
-		{
-			return true;
-		}
-		if (!(o instanceof PerlLoadedFileDescriptor))
-		{
-			return false;
-		}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) {
+      return true;
+    }
+    if (!(o instanceof PerlLoadedFileDescriptor)) {
+      return false;
+    }
 
-		PerlLoadedFileDescriptor that = (PerlLoadedFileDescriptor) o;
+    PerlLoadedFileDescriptor that = (PerlLoadedFileDescriptor)o;
 
-		return getPath().equals(that.getPath());
+    return getPath().equals(that.getPath());
+  }
 
-	}
-
-	@Override
-	public int hashCode()
-	{
-		return getPath().hashCode();
-	}
+  @Override
+  public int hashCode() {
+    return getPath().hashCode();
+  }
 }

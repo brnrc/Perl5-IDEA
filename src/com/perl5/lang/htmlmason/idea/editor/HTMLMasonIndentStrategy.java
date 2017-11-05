@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,9 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 08.03.2016.
  */
-public class HTMLMasonIndentStrategy implements IndentStrategy
-{
-	@Override
-	public boolean canIndent(@NotNull PsiElement element)
-	{
-		return !HTMLMasonIndentProcessor.INSTANCE.getAbsoluteUnindentableTokens().contains(element.getNode().getElementType());
-	}
+public class HTMLMasonIndentStrategy implements IndentStrategy {
+  @Override
+  public boolean canIndent(@NotNull PsiElement element) {
+    return !HTMLMasonIndentProcessor.INSTANCE.getAbsoluteUnindentableTokens().contains(element.getNode().getElementType());
+  }
 }

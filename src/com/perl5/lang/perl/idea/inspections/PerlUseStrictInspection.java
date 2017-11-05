@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,6 +24,7 @@ import com.intellij.psi.PsiFile;
 import com.intellij.psi.impl.source.tree.injected.InjectedFileViewProvider;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.testFramework.LightVirtualFile;
+import com.perl5.PerlBundle;
 import com.perl5.lang.perl.extensions.packageprocessor.PerlStrictProvider;
 import com.perl5.lang.perl.fileTypes.PerlFileType;
 import com.perl5.lang.perl.idea.quickfixes.PerlUsePackageQuickFix;
@@ -34,44 +35,38 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 19.07.2015.
  */
-public class PerlUseStrictInspection extends PerlInspection
-{
-	@NotNull
-	@Override
-	public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly)
-	{
-		return new PerlVisitor()
-		{
-			@Override
-			public void visitFile(PsiFile file)
-			{
-				if (file.getViewProvider() instanceof InjectedFileViewProvider || !file.isWritable() || !file.isPhysical() || file.getVirtualFile() instanceof LightVirtualFile)
-				{
-					return;
-				}
+public class PerlUseStrictInspection extends PerlInspection {
+  @NotNull
+  @Override
+  public PsiElementVisitor buildVisitor(@NotNull final ProblemsHolder holder, boolean isOnTheFly) {
+    return new PerlVisitor() {
+      @Override
+      public void visitFile(PsiFile file) {
+        if (file.getViewProvider() instanceof InjectedFileViewProvider ||
+            !file.isWritable() ||
+            !file.isPhysical() ||
+            file.getVirtualFile() instanceof LightVirtualFile) {
+          return;
+        }
 
-				FileType fileType = file.getFileType();
-				if (!(fileType instanceof PerlFileType) || !((PerlFileType) fileType).checkStrictPragma())
-				{
-					return;
-				}
+        FileType fileType = file.getFileType();
+        if (!(fileType instanceof PerlFileType) || !((PerlFileType)fileType).checkStrictPragma()) {
+          return;
+        }
 
-				for (PerlUseStatement useStatement : PsiTreeUtil.findChildrenOfType(file, PerlUseStatement.class))
-				{
-					if (useStatement.getPackageProcessor() instanceof PerlStrictProvider)
-					{
-						return;
-					}
-				}
+        for (PerlUseStatement useStatement : PsiTreeUtil.findChildrenOfType(file, PerlUseStatement.class)) {
+          if (useStatement.getPackageProcessor() instanceof PerlStrictProvider) {
+            return;
+          }
+        }
 
-				holder.registerProblem(
-						file,
-						"No strict pragma found in the file",
-						ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
-						new PerlUsePackageQuickFix("strict")
-				);
-			}
-
-		};
-	}
+        holder.registerProblem(
+          file,
+          PerlBundle.message("perl.inspection.use.strict"),
+          ProblemHighlightType.GENERIC_ERROR_OR_WARNING,
+          new PerlUsePackageQuickFix("strict")
+        );
+      }
+    };
+  }
 }

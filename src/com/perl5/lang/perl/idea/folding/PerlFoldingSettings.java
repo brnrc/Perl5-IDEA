@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,20 +21,17 @@ import com.intellij.openapi.components.ServiceManager;
 /**
  * Created by hurricup on 28.09.2015.
  */
-public class PerlFoldingSettings
-{
-	public boolean COLLAPSE_COMMENTS = true;
-	public boolean COLLAPSE_CONSTANT_BLOCKS = false;
-	public boolean COLLAPSE_ANON_ARRAYS = false;
-	public boolean COLLAPSE_ANON_HASHES = false;
-	public boolean COLLAPSE_PARENTHESISED = false;
-	public boolean COLLAPSE_HEREDOCS = false;
-	public boolean COLLAPSE_TEMPLATES = false;
-	public boolean COLLAPSE_QW = false;
+public class PerlFoldingSettings {
+  public boolean COLLAPSE_COMMENTS = true;
+  public boolean COLLAPSE_CONSTANT_BLOCKS = false;
+  public boolean COLLAPSE_ANON_ARRAYS = false;
+  public boolean COLLAPSE_ANON_HASHES = false;
+  public boolean COLLAPSE_PARENTHESISED = false;
+  public boolean COLLAPSE_HEREDOCS = false;
+  public boolean COLLAPSE_TEMPLATES = false;
+  public boolean COLLAPSE_QW = false;
 
-	public static PerlFoldingSettings getInstance()
-	{
-		return ServiceManager.getService(PerlFoldingSettings.class);
-	}
-
+  public static PerlFoldingSettings getInstance() {
+    return ServiceManager.getService(PerlFoldingSettings.class);
+  }
 }

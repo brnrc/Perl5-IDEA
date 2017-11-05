@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,16 +16,21 @@
 
 package com.perl5.lang.perl.psi.references;
 
+import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementResolveResult;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
 import com.intellij.util.IncorrectOperationException;
-import com.perl5.lang.perl.extensions.PerlRenameUsagesSubstitutor;
-import com.perl5.lang.perl.psi.*;
-import com.perl5.lang.perl.psi.properties.PerlNamedElement;
-import com.perl5.lang.perl.psi.references.resolvers.PerlSubReferenceResolverSimple;
+import com.perl5.lang.perl.extensions.PerlRenameUsagesHelper;
+import com.perl5.lang.perl.parser.constant.psi.light.PerlLightConstantDefinitionElement;
+import com.perl5.lang.perl.psi.PerlGlobVariable;
+import com.perl5.lang.perl.psi.PerlSubDeclarationElement;
+import com.perl5.lang.perl.psi.PerlSubDefinitionElement;
+import com.perl5.lang.perl.psi.PerlSubElement;
+import com.perl5.lang.perl.psi.mro.PerlMroDfs;
+import com.perl5.lang.perl.psi.properties.PerlIdentifierOwner;
+import com.perl5.lang.perl.util.PerlPackageUtil;
 import com.perl5.lang.perl.util.PerlSubUtil;
 import org.jetbrains.annotations.NotNull;
 
@@ -36,165 +41,156 @@ import java.util.List;
  * Created by hurricup on 26.11.2015.
  * Basic class for sub reference. Uses context package to resolve. Used in string contents, moose, etc.
  */
-public class PerlSubReferenceSimple extends PerlPolyVariantReference<PsiElement>
-{
-	protected static final int FLAG_AUTOLOADED = 1;
-	protected static final int FLAG_CONSTANT = 2;
-	protected static final int FLAG_DECLARED = 4;
-	protected static final int FLAG_DEFINED = 8;
-	protected static final int FLAG_ALIASED = 16;
-	protected static final int FLAG_IMPORTED = 32;    // fixme this is not set anyway
-	protected static final int FLAG_XSUB = 64;
+public class PerlSubReferenceSimple extends PerlCachingReference<PsiElement> {
+  protected static final int FLAG_AUTOLOADED = 1;
+  protected static final int FLAG_CONSTANT = 2;
+  protected static final int FLAG_DECLARED = 4;
+  protected static final int FLAG_DEFINED = 8;
+  protected static final int FLAG_ALIASED = 16;
+  protected static final int FLAG_IMPORTED = 32;    // fixme this is not set anyway
+  protected static final int FLAG_XSUB = 64;
 
-	private static final ResolveCache.PolyVariantResolver<PerlSubReferenceSimple> RESOLVER = new PerlSubReferenceResolverSimple();
-	protected int FLAGS = 0;
+  protected int FLAGS = 0;
 
-	public PerlSubReferenceSimple(@NotNull PsiElement element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+  public PerlSubReferenceSimple(PsiElement psiElement) {
+    super(psiElement);
+  }
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, false);
-	}
+  public PerlSubReferenceSimple(@NotNull PsiElement element, TextRange textRange) {
+    super(element, textRange);
+  }
 
-	public boolean isAutoloaded()
-	{
-		return (FLAGS & FLAG_AUTOLOADED) > 0;
-	}
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    // fixme not dry with super resolver, need some generics fix
+    PsiElement myElement = getElement();
+    List<PsiElement> relatedItems = new ArrayList<>();
 
-	public boolean isDefined()
-	{
-		return (FLAGS & FLAG_DEFINED) > 0;
-	}
+    String packageName = PerlPackageUtil.getContextPackageName(myElement);
+    String subName = myElement.getNode().getText();
+    Project project = myElement.getProject();
 
-	public boolean isDeclared()
-	{
-		return (FLAGS & FLAG_DECLARED) > 0;
-	}
+    relatedItems.addAll(PerlMroDfs.resolveSub(
+      project,
+      packageName,
+      subName,
+      false
+    ));
 
-	public boolean isAliased()
-	{
-		return (FLAGS & FLAG_ALIASED) > 0;
-	}
+    List<ResolveResult> result = getResolveResults(relatedItems);
 
-	public boolean isConstant()
-	{
-		return (FLAGS & FLAG_CONSTANT) > 0;
-	}
+    return result.toArray(new ResolveResult[result.size()]);
+  }
 
-	public boolean isImported()
-	{
-		return (FLAGS & FLAG_IMPORTED) > 0;
-	}
+  public boolean isAutoloaded() {
+    return (FLAGS & FLAG_AUTOLOADED) > 0;
+  }
 
-	public boolean isXSub()
-	{
-		return (FLAGS & FLAG_XSUB) > 0;
-	}
+  public boolean isDefined() {
+    return (FLAGS & FLAG_DEFINED) > 0;
+  }
 
-	public void resetFlags()
-	{
-		FLAGS = 0;
-	}
+  public boolean isDeclared() {
+    return (FLAGS & FLAG_DECLARED) > 0;
+  }
 
-	public void setAutoloaded()
-	{
-		FLAGS |= FLAG_AUTOLOADED;
-	}
+  public boolean isAliased() {
+    return (FLAGS & FLAG_ALIASED) > 0;
+  }
 
-	public void setDefined()
-	{
+  public boolean isConstant() {
+    return (FLAGS & FLAG_CONSTANT) > 0;
+  }
 
-		FLAGS |= FLAG_DEFINED;
-	}
+  public boolean isImported() {
+    return (FLAGS & FLAG_IMPORTED) > 0;
+  }
 
-	public void setXSub()
-	{
+  public boolean isXSub() {
+    return (FLAGS & FLAG_XSUB) > 0;
+  }
 
-		FLAGS |= FLAG_XSUB;
-	}
+  public void resetFlags() {
+    FLAGS = 0;
+  }
 
-	public void setDeclared()
-	{
+  public void setAutoloaded() {
+    FLAGS |= FLAG_AUTOLOADED;
+  }
 
-		FLAGS |= FLAG_DECLARED;
-	}
+  public void setDefined() {
 
-	public void setAliased()
-	{
-		FLAGS |= FLAG_ALIASED;
-	}
+    FLAGS |= FLAG_DEFINED;
+  }
 
-	public void setConstant()
-	{
+  public void setXSub() {
 
-		FLAGS |= FLAG_CONSTANT;
-	}
+    FLAGS |= FLAG_XSUB;
+  }
 
-	public void setImported()
-	{
-		FLAGS |= FLAG_IMPORTED;
-	}
+  public void setDeclared() {
 
-	@NotNull
-	public List<ResolveResult> getResolveResults(List<PsiElement> relatedItems)
-	{
-		List<ResolveResult> result = new ArrayList<ResolveResult>();
+    FLAGS |= FLAG_DECLARED;
+  }
 
-		resetFlags();
+  public void setAliased() {
+    FLAGS |= FLAG_ALIASED;
+  }
 
-		for (PsiElement element : relatedItems)
-		{
-			if (!isAutoloaded() && element instanceof PerlNamedElement && PerlSubUtil.SUB_AUTOLOAD.equals(((PerlNamedElement) element).getName()))
-			{
-				setAutoloaded();
-			}
+  public void setConstant() {
 
-			if (!isConstant() && element instanceof PerlConstantDefinition)
-			{
-				setConstant();
-			}
+    FLAGS |= FLAG_CONSTANT;
+  }
 
-			if (!isDeclared() && element instanceof PerlSubDeclaration)
-			{
-				setDeclared();
-			}
+  public void setImported() {
+    FLAGS |= FLAG_IMPORTED;
+  }
 
-			if (!isDefined() && element instanceof PerlSubDefinitionBase)
-			{
-				setDefined();
-			}
+  @NotNull
+  public List<ResolveResult> getResolveResults(List<PsiElement> relatedItems) {
+    List<ResolveResult> result = new ArrayList<>();
 
-			if (!isXSub() && element instanceof PerlSubBase && ((PerlSubBase) element).isXSub())
-			{
-				setXSub();
-			}
+    resetFlags();
 
-			if (!isAliased() && element instanceof PerlGlobVariable)
-			{
-				setAliased();
-			}
+    for (PsiElement element : relatedItems) {
+      if (!isAutoloaded() &&
+          element instanceof PerlIdentifierOwner &&
+          PerlSubUtil.SUB_AUTOLOAD.equals(((PerlIdentifierOwner)element).getName())) {
+        setAutoloaded();
+      }
 
-			result.add(new PsiElementResolveResult(element));
-		}
-		return result;
-	}
+      if (!isConstant() && element instanceof PerlLightConstantDefinitionElement) {
+        setConstant();
+      }
+
+      if (!isDeclared() && element instanceof PerlSubDeclarationElement) {
+        setDeclared();
+      }
+
+      if (!isDefined() && element instanceof PerlSubDefinitionElement) {
+        setDefined();
+      }
+
+      if (!isXSub() && element instanceof PerlSubElement && ((PerlSubElement)element).isXSub()) {
+        setXSub();
+      }
+
+      if (!isAliased() && element instanceof PerlGlobVariable) {
+        setAliased();
+      }
+
+      result.add(new PsiElementResolveResult(element));
+    }
+    return result;
+  }
 
 
-	@Override
-	public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException
-	{
-		PsiElement target = resolve();
-		if (target instanceof PerlRenameUsagesSubstitutor)
-		{
-			newElementName = ((PerlRenameUsagesSubstitutor) target).getSubstitutedUsageName(newElementName, myElement);
-		}
-		return super.handleElementRename(newElementName);
-	}
-
-
+  @Override
+  public PsiElement handleElementRename(String newElementName) throws IncorrectOperationException {
+    PsiElement target = resolve();
+    if (target instanceof PerlRenameUsagesHelper) {
+      newElementName = ((PerlRenameUsagesHelper)target).getSubstitutedUsageName(newElementName, myElement);
+    }
+    return super.handleElementRename(newElementName);
+  }
 }

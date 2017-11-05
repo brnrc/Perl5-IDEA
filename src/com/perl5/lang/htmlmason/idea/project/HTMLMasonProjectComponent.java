@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,45 +24,36 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 11.03.2016.
  */
-public class HTMLMasonProjectComponent implements ProjectComponent
-{
-	private Project myProject;
+public class HTMLMasonProjectComponent implements ProjectComponent {
+  private Project myProject;
 
-	public HTMLMasonProjectComponent(Project myProject)
-	{
-		this.myProject = myProject;
-	}
+  public HTMLMasonProjectComponent(Project myProject) {
+    this.myProject = myProject;
+  }
 
-	@Override
-	public void projectOpened()
-	{
-		HTMLMasonSettings settings = HTMLMasonSettings.getInstance(myProject);
-		settings.updateSubstitutors();
-		settings.prepareLexerConfiguration();
-	}
+  @Override
+  public void projectOpened() {
+    HTMLMasonSettings settings = HTMLMasonSettings.getInstance(myProject);
+    settings.prepareLexerConfiguration();
+  }
 
-	@Override
-	public void projectClosed()
-	{
-		HTMLMasonSettings.getInstance(myProject).removeSubstitutors();
-	}
+  @Override
+  public void projectClosed() {
+  }
 
-	@Override
-	public void initComponent()
-	{
+  @Override
+  public void initComponent() {
 
-	}
+  }
 
-	@Override
-	public void disposeComponent()
-	{
+  @Override
+  public void disposeComponent() {
 
-	}
+  }
 
-	@NotNull
-	@Override
-	public String getComponentName()
-	{
-		return "HTMLMasonProjectComponent";
-	}
+  @NotNull
+  @Override
+  public String getComponentName() {
+    return "HTMLMasonProjectComponent";
+  }
 }

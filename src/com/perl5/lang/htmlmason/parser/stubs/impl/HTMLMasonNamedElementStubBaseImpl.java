@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -25,19 +25,17 @@ import com.perl5.lang.htmlmason.parser.stubs.HTMLMasonNamedElementStubBase;
 /**
  * Created by hurricup on 19.03.2016.
  */
-public abstract class HTMLMasonNamedElementStubBaseImpl<T extends StubBasedPsiElement> extends StubBase<T> implements HTMLMasonNamedElementStubBase
-{
-	private final String myName;
+public abstract class HTMLMasonNamedElementStubBaseImpl<T extends StubBasedPsiElement> extends StubBase<T>
+  implements HTMLMasonNamedElementStubBase {
+  private final String myName;
 
-	public HTMLMasonNamedElementStubBaseImpl(StubElement parent, IStubElementType elementType, String myName)
-	{
-		super(parent, elementType);
-		this.myName = myName;
-	}
+  public HTMLMasonNamedElementStubBaseImpl(StubElement parent, IStubElementType elementType, String myName) {
+    super(parent, elementType);
+    this.myName = myName;
+  }
 
-	@Override
-	public String getName()
-	{
-		return myName;
-	}
+  @Override
+  public String getName() {
+    return myName;
+  }
 }

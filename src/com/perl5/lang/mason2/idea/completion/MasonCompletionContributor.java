@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,19 +22,17 @@ import com.intellij.codeInsight.completion.CompletionType;
 /**
  * Created by hurricup on 10.01.2016.
  */
-public class MasonCompletionContributor extends CompletionContributor implements MasonElementPatterns
-{
-	public MasonCompletionContributor()
-	{
-		extend(
-				CompletionType.BASIC,
-				MASON_EXTENDS_VALUE_TEXT_PATTERN,
-				new MasonComponentsCompletionProvider()
-		);
-		extend(
-				CompletionType.BASIC,
-				MASON_CALL_TEMPLATE_PATTERN,
-				new MasonComponentsCompletionProvider()
-		);
-	}
+public class MasonCompletionContributor extends CompletionContributor implements MasonElementPatterns {
+  public MasonCompletionContributor() {
+    extend(
+      CompletionType.BASIC,
+      MASON_EXTENDS_VALUE_TEXT_PATTERN,
+      new MasonComponentsCompletionProvider()
+    );
+    extend(
+      CompletionType.BASIC,
+      MASON_CALL_TEMPLATE_PATTERN,
+      new MasonComponentsCompletionProvider()
+    );
+  }
 }

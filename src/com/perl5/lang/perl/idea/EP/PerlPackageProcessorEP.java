@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,16 +24,13 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 18.08.2015.
  */
-public class PerlPackageProcessorEP extends KeyedLazyInstanceEP<PerlPackageProcessor>
-{
-	public static final KeyedExtensionCollector<PerlPackageProcessor, String> EP = new KeyedExtensionCollector<PerlPackageProcessor, String>("com.perl5.packageProcessor")
-	{
-		@NotNull
-		@Override
-		protected String keyToString(@NotNull String key)
-		{
-			return key;
-		}
-
-	};
+public class PerlPackageProcessorEP extends KeyedLazyInstanceEP<PerlPackageProcessor> {
+  public static final KeyedExtensionCollector<PerlPackageProcessor, String> EP =
+    new KeyedExtensionCollector<PerlPackageProcessor, String>("com.perl5.packageProcessor") {
+      @NotNull
+      @Override
+      protected String keyToString(@NotNull String key) {
+        return key;
+      }
+    };
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,6 +21,7 @@ import com.intellij.openapi.project.Project;
 import com.intellij.util.xmlb.XmlSerializerUtil;
 import com.perl5.lang.htmlmason.idea.configuration.AbstractMasonSettings;
 import com.perl5.lang.perl.idea.PerlPathMacros;
+import com.perl5.lang.perl.idea.modules.PerlSourceRootType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -32,45 +33,44 @@ import java.util.List;
  * Created by hurricup on 03.01.2016.
  */
 @State(
-		name = "Perl5MasonSettings",
-		storages = {
-				@Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
-				@Storage(id = "dir", file = PerlPathMacros.PERL5_PROJECT_SHARED_SETTINGS_FILE, scheme = StorageScheme.DIRECTORY_BASED)
-		}
+  name = "Perl5MasonSettings",
+  storages = {
+    @Storage(id = "default", file = StoragePathMacros.PROJECT_FILE),
+    @Storage(id = "dir", file = PerlPathMacros.PERL5_PROJECT_SHARED_SETTINGS_FILE, scheme = StorageScheme.DIRECTORY_BASED)
+  }
 )
 
-public class MasonSettings extends AbstractMasonSettings implements PersistentStateComponent<MasonSettings>
-{
-	public List<String> autobaseNames = new ArrayList<String>(Arrays.asList("Base.mp", "Base.mc"));
+public class MasonSettings extends AbstractMasonSettings implements PersistentStateComponent<MasonSettings> {
+  public List<String> autobaseNames = new ArrayList<>(Arrays.asList("Base.mp", "Base.mc"));
 
-	public MasonSettings()
-	{
-		globalVariables.add(new VariableDescription("$m", "Mason::Request"));
-		changeCounter++;
-	}
+  public MasonSettings() {
+    globalVariables.add(new VariableDescription("$m", "Mason::Request"));
+    changeCounter++;
+  }
 
-	public static MasonSettings getInstance(@NotNull Project project)
-	{
-		MasonSettings persisted = ServiceManager.getService(project, MasonSettings.class);
-		if (persisted == null)
-		{
-			persisted = new MasonSettings();
-		}
+  @Override
+  protected PerlSourceRootType getSourceRootType() {
+    return Mason2SourceRootType.INSTANCE;
+  }
 
-		return (MasonSettings) persisted.setProject(project);
-	}
+  @Nullable
+  @Override
+  public MasonSettings getState() {
+    return this;
+  }
 
-	@Nullable
-	@Override
-	public MasonSettings getState()
-	{
-		return this;
-	}
+  @Override
+  public void loadState(MasonSettings state) {
+    XmlSerializerUtil.copyBean(state, this);
+    changeCounter++;
+  }
 
-	@Override
-	public void loadState(MasonSettings state)
-	{
-		XmlSerializerUtil.copyBean(state, this);
-		changeCounter++;
-	}
+  public static MasonSettings getInstance(@NotNull Project project) {
+    MasonSettings persisted = ServiceManager.getService(project, MasonSettings.class);
+    if (persisted == null) {
+      persisted = new MasonSettings();
+    }
+
+    return (MasonSettings)persisted.setProject(project);
+  }
 }

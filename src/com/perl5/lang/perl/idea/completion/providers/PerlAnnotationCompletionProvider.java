@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -31,28 +31,23 @@ import java.util.HashSet;
 /**
  * Created by hurricup on 03.06.2015.
  */
-public class PerlAnnotationCompletionProvider extends CompletionProvider<CompletionParameters>
-{
-	public static final HashSet<LookupElementBuilder> ANNOTATIONS_LOOKUP_ELEMENTS = new HashSet<LookupElementBuilder>();
+public class PerlAnnotationCompletionProvider extends CompletionProvider<CompletionParameters> {
+  public static final HashSet<LookupElementBuilder> ANNOTATIONS_LOOKUP_ELEMENTS = new HashSet<>();
 
-	static
-	{
-		for (String annotation : PerlAnnotations.TOKENS_MAP.keySet())
-		{
-			ANNOTATIONS_LOOKUP_ELEMENTS.add(LookupElementBuilder
-					.create(annotation)
-					.withInsertHandler(PerlAnnotationInsertHandler.INSTANCE)
-					.withIcon(PerlIcons.ANNOTATION_GUTTER_ICON)
-			);
-		}
-	}
+  static {
+    for (String annotation : PerlAnnotations.TOKENS_MAP.keySet()) {
+      ANNOTATIONS_LOOKUP_ELEMENTS.add(LookupElementBuilder
+                                        .create(annotation)
+                                        .withInsertHandler(PerlAnnotationInsertHandler.INSTANCE)
+                                        .withIcon(PerlIcons.ANNOTATION_GUTTER_ICON)
+      );
+    }
+  }
 
-
-	@Override
-	protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet resultSet)
-	{
-		resultSet.addAllElements(ANNOTATIONS_LOOKUP_ELEMENTS);
-	}
-
-
+  @Override
+  protected void addCompletions(@NotNull CompletionParameters parameters,
+                                ProcessingContext context,
+                                @NotNull CompletionResultSet resultSet) {
+    resultSet.addAllElements(ANNOTATIONS_LOOKUP_ELEMENTS);
+  }
 }

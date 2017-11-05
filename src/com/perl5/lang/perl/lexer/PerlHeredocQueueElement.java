@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,27 +16,32 @@
 
 package com.perl5.lang.perl.lexer;
 
+import com.intellij.psi.tree.IElementType;
+import org.jetbrains.annotations.NotNull;
+
 /**
  * Created by hurricup on 01.03.2016.
  */
-public class PerlHeredocQueueElement
-{
-	private final int myState;
-	private final String myMarker;
+public class PerlHeredocQueueElement {
+  private final IElementType myTargetElement;
+  private final CharSequence myMarker;
+  private final boolean myIsIndentable;
 
-	public PerlHeredocQueueElement(int myState, String myMarker)
-	{
-		this.myState = myState;
-		this.myMarker = myMarker;
-	}
+  public PerlHeredocQueueElement(@NotNull IElementType targetElement, @NotNull CharSequence marker, boolean isIndentable) {
+    myTargetElement = targetElement;
+    myMarker = marker;
+    myIsIndentable = isIndentable;
+  }
 
-	public int getState()
-	{
-		return myState;
-	}
+  public IElementType getTargetElement() {
+    return myTargetElement;
+  }
 
-	public String getMarker()
-	{
-		return myMarker;
-	}
+  public CharSequence getMarker() {
+    return myMarker;
+  }
+
+  public boolean isIndentable() {
+    return myIsIndentable;
+  }
 }

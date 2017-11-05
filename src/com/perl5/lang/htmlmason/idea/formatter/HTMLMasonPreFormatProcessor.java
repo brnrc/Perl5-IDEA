@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,11 +24,9 @@ import com.perl5.lang.perl.idea.formatter.PerlPreFormatProcessor;
 /**
  * Created by hurricup on 07.03.2016.
  */
-public class HTMLMasonPreFormatProcessor extends PerlPreFormatProcessor
-{
-	@Override
-	protected boolean canProcess(PsiElement element, TextRange range)
-	{
-		return element.getLanguage().is(HTMLMasonLanguage.INSTANCE);
-	}
+public class HTMLMasonPreFormatProcessor extends PerlPreFormatProcessor {
+  @Override
+  protected boolean canProcess(PsiElement element, TextRange range) {
+    return element.getLanguage().is(HTMLMasonLanguage.INSTANCE);
+  }
 }

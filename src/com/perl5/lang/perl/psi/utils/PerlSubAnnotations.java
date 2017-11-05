@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,123 +16,177 @@
 
 package com.perl5.lang.perl.psi.utils;
 
+import com.intellij.openapi.util.text.StringUtil;
+import com.intellij.psi.PsiElement;
 import com.intellij.psi.stubs.StubInputStream;
 import com.intellij.psi.stubs.StubOutputStream;
-import com.intellij.util.io.StringRef;
+import com.perl5.lang.perl.psi.*;
+import com.perl5.lang.perl.psi.stubs.PerlStubSerializationUtil;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.IOException;
+import java.util.List;
 
 /**
  * Created by hurricup on 03.06.2015.
  */
-public class PerlSubAnnotations
-{
-	boolean isMethod = false;
-	boolean isDeprecated = false;
-	boolean isAbstract = false;
-	boolean isOverride = false;
-	PerlReturnType returnType = PerlReturnType.VALUE;
-	String returns = null;
+public class PerlSubAnnotations {
+  private static final byte IS_METHOD = 0x01;
+  private static final byte IS_DEPRECATED = 0x02;
+  private static final byte IS_ABSTRACT = 0x04;
+  private static final byte IS_OVERRIDE = 0x08;
 
-	public PerlSubAnnotations()
-	{
-	}
+  private byte myFlags = 0;
+  private PerlReturnType myReturnType = PerlReturnType.VALUE;
+  private String myReturns = null;
 
-	public PerlSubAnnotations(boolean isMethod, boolean isDeprecated, boolean isAbstract, boolean isOverride, String returns, PerlReturnType returnType)
-	{
-		this.isMethod = isMethod;
-		this.isDeprecated = isDeprecated;
-		this.isAbstract = isAbstract;
-		this.isOverride = isOverride;
-		this.returns = returns;
-		this.returnType = returnType;
-	}
+  public PerlSubAnnotations() {
+  }
 
-	public PerlSubAnnotations(boolean isMethod, boolean isDeprecated, boolean isAbstract, boolean isOverride, StringRef returns, PerlReturnType returnType)
-	{
-		this(isMethod, isDeprecated, isAbstract, isOverride, returns == null ? null : returns.toString(), returnType);
-	}
+  public PerlSubAnnotations(byte flags, String returns, PerlReturnType returnType) {
+    myFlags = flags;
+    myReturnType = returnType;
+    myReturns = returns;
+  }
 
-	public static PerlSubAnnotations deserialize(@NotNull StubInputStream dataStream) throws IOException
-	{
-		return new PerlSubAnnotations(
-				dataStream.readBoolean(),
-				dataStream.readBoolean(),
-				dataStream.readBoolean(),
-				dataStream.readBoolean(),
-				dataStream.readName(),
-				PerlReturnType.valueOf(dataStream.readName().toString())
-		);
-	}
+  public void serialize(@NotNull StubOutputStream dataStream) throws IOException {
+    dataStream.writeByte(myFlags);
+    dataStream.writeName(myReturns);
+    myReturnType.serialize(dataStream);
+  }
 
-	public void serialize(@NotNull StubOutputStream dataStream) throws IOException
-	{
-		dataStream.writeBoolean(isMethod);
-		dataStream.writeBoolean(isDeprecated);
-		dataStream.writeBoolean(isAbstract);
-		dataStream.writeBoolean(isOverride);
-		dataStream.writeName(returns);
-		dataStream.writeName(returnType.toString());
-	}
+  public boolean isMethod() {
+    return (myFlags & IS_METHOD) == IS_METHOD;
+  }
 
-	public boolean isMethod()
-	{
-		return isMethod;
-	}
+  public void setIsMethod() {
+    myFlags |= IS_METHOD;
+  }
 
-	public void setIsMethod(boolean isMethod)
-	{
-		this.isMethod = isMethod;
-	}
+  public boolean isDeprecated() {
+    return (myFlags & IS_DEPRECATED) == IS_DEPRECATED;
+  }
 
-	public boolean isDeprecated()
-	{
-		return isDeprecated;
-	}
+  public void setIsDeprecated() {
+    myFlags |= IS_DEPRECATED;
+  }
 
-	public void setIsDeprecated(boolean isDeprecated)
-	{
-		this.isDeprecated = isDeprecated;
-	}
+  public boolean isAbstract() {
+    return (myFlags & IS_ABSTRACT) == IS_ABSTRACT;
+  }
 
-	public boolean isAbstract()
-	{
-		return isAbstract;
-	}
+  public void setIsAbstract() {
+    myFlags |= IS_ABSTRACT;
+  }
 
-	public void setIsAbstract(boolean isAbstract)
-	{
-		this.isAbstract = isAbstract;
-	}
+  public boolean isOverride() {
+    return (myFlags & IS_OVERRIDE) == IS_OVERRIDE;
+  }
 
-	public boolean isOverride()
-	{
-		return isOverride;
-	}
+  public void setIsOverride() {
+    myFlags |= IS_OVERRIDE;
+  }
 
-	public void setIsOverride(boolean isOverride)
-	{
-		this.isOverride = isOverride;
-	}
+  public String getReturns() {
+    return myReturns;
+  }
 
-	public String getReturns()
-	{
-		return returns;
-	}
+  public void setReturns(String returns) {
+    myReturns = returns;
+  }
 
-	public void setReturns(String returns)
-	{
-		this.returns = returns;
-	}
+  public PerlReturnType getReturnType() {
+    return myReturnType;
+  }
 
-	public PerlReturnType getReturnType()
-	{
-		return returnType;
-	}
+  public void setReturnType(PerlReturnType returnType) {
+    this.myReturnType = returnType;
+  }
 
-	public void setReturnType(PerlReturnType returnType)
-	{
-		this.returnType = returnType;
-	}
+  @Override
+  public boolean equals(Object o) {
+    if (this == o) return true;
+    if (!(o instanceof PerlSubAnnotations)) return false;
+
+    PerlSubAnnotations that = (PerlSubAnnotations)o;
+
+    if (myFlags != that.myFlags) return false;
+    if (getReturnType() != that.getReturnType()) return false;
+    return getReturns() != null ? getReturns().equals(that.getReturns()) : that.getReturns() == null;
+  }
+
+  @Override
+  public int hashCode() {
+    int result = (int)myFlags;
+    result = 31 * result + (getReturnType() != null ? getReturnType().hashCode() : 0);
+    result = 31 * result + (getReturns() != null ? getReturns().hashCode() : 0);
+    return result;
+  }
+
+  public static PerlSubAnnotations deserialize(@NotNull StubInputStream dataStream) throws IOException {
+    return new PerlSubAnnotations(
+      dataStream.readByte(),
+      PerlStubSerializationUtil.readNullableString(dataStream),
+      PerlReturnType.deserialize(dataStream)
+    );
+  }
+
+  /**
+   * Attempts to build sub annotations from one of the base elements. Fist wins
+   *
+   * @param baseElements elements to process, e.g. identifier or use constant
+   * @return Sub annotations
+   */
+  @Nullable
+  public static PerlSubAnnotations tryToFindAnnotations(@NotNull PsiElement... baseElements) {
+    for (PsiElement element : baseElements) {
+      List<PerlAnnotation> annotations = PerlPsiUtil.collectAnnotations(element);
+      if (!annotations.isEmpty()) {
+        return createFromAnnotationsList(annotations);
+      }
+    }
+
+    return null;
+  }
+
+  @Nullable
+  public static PerlSubAnnotations tryToFindAnnotations(@NotNull List<PsiElement> baseElements) {
+    return tryToFindAnnotations(baseElements.toArray(new PsiElement[baseElements.size()]));
+  }
+
+  @Nullable
+  public static PerlSubAnnotations createFromAnnotationsList(List<PerlAnnotation> annotations) {
+    if (annotations.isEmpty()) {
+      return null;
+    }
+
+    PerlSubAnnotations myAnnotations = new PerlSubAnnotations();
+
+    for (PerlAnnotation annotation : annotations) {
+      if (annotation instanceof PsiPerlAnnotationAbstract) {
+        myAnnotations.setIsAbstract();
+      }
+      else if (annotation instanceof PsiPerlAnnotationDeprecated) {
+        myAnnotations.setIsDeprecated();
+      }
+      else if (annotation instanceof PsiPerlAnnotationMethod) {
+        myAnnotations.setIsMethod();
+      }
+      else if (annotation instanceof PsiPerlAnnotationOverride) {
+        myAnnotations.setIsOverride();
+      }
+      else if (annotation instanceof PsiPerlAnnotationReturns) // returns
+      {
+        String returnClass = ((PsiPerlAnnotationReturns)annotation).getReturnClass();
+        if (StringUtil.isNotEmpty(returnClass)) {
+          myAnnotations.setReturns(returnClass);
+          myAnnotations.setReturnType(PerlReturnType.REF);
+          // todo implement brackets and braces
+        }
+      }
+    }
+
+    return myAnnotations;
+  }
 }

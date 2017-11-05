@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,22 +26,14 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 05.03.2016.
  */
-public class HTMLMasonElementType extends HTMLMasonTokenType implements PsiElementProvider
-{
-	public HTMLMasonElementType(@NotNull @NonNls String debugName)
-	{
-		super(debugName);
-	}
+public class HTMLMasonElementType extends HTMLMasonTokenType implements PsiElementProvider {
+  public HTMLMasonElementType(@NotNull @NonNls String debugName) {
+    super(debugName);
+  }
 
-	public String toString()
-	{
-		return "HTML::Mason::Element." + super.toString();
-	}
-
-	@NotNull
-	@Override
-	public PsiElement getPsiElement(@NotNull ASTNode node)
-	{
-		return new PerlCompositeElementImpl(node);
-	}
+  @NotNull
+  @Override
+  public PsiElement getPsiElement(@NotNull ASTNode node) {
+    return new PerlCompositeElementImpl(node);
+  }
 }

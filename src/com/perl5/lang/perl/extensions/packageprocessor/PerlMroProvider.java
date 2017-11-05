@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -22,7 +22,6 @@ import com.perl5.lang.perl.psi.mro.PerlMroType;
 /**
  * Created by evstigneev on 21.08.2015.
  */
-public interface PerlMroProvider
-{
-	public PerlMroType getMroType(PerlUseStatement useStatement);
+public interface PerlMroProvider {
+  public PerlMroType getMroType(PerlUseStatement useStatement);
 }

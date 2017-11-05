@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,43 +16,197 @@
 
 package com.perl5.lang.perl.psi.references;
 
-import com.intellij.openapi.util.TextRange;
+import com.intellij.openapi.project.Project;
 import com.intellij.psi.PsiElement;
+import com.intellij.psi.PsiFile;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.resolve.ResolveCache;
-import com.perl5.lang.perl.psi.references.resolvers.PerlSubReferenceResolver;
-import org.jetbrains.annotations.NotNull;
+import com.intellij.psi.search.GlobalSearchScope;
+import com.perl5.lang.perl.extensions.packageprocessor.PerlExportDescriptor;
+import com.perl5.lang.perl.idea.configuration.settings.PerlSharedSettings;
+import com.perl5.lang.perl.psi.*;
+import com.perl5.lang.perl.psi.mro.PerlMro;
+import com.perl5.lang.perl.psi.properties.PerlNamespaceElementContainer;
+import com.perl5.lang.perl.util.PerlGlobUtil;
+import com.perl5.lang.perl.util.PerlPackageUtil;
+import com.perl5.lang.perl.util.PerlSubUtil;
 
-public class PerlSubReference extends PerlSubReferenceSimple
-{
-	private static final ResolveCache.PolyVariantResolver<PerlSubReference> RESOLVER = new PerlSubReferenceResolver();
+import java.util.ArrayList;
+import java.util.List;
 
-	public PerlSubReference(@NotNull PsiElement element, TextRange textRange)
-	{
-		super(element, textRange);
-	}
+public class PerlSubReference extends PerlSubReferenceSimple {
 
-	@NotNull
-	@Override
-	public ResolveResult[] multiResolve(boolean incompleteCode)
-	{
-		return ResolveCache.getInstance(myElement.getProject()).resolveWithCaching(this, RESOLVER, true, false);
-	}
+  public PerlSubReference(PsiElement psiElement) {
+    super(psiElement);
+  }
 
-/*
-	@Override
-	public TextRange getRangeInElement()
-	{
-		TextRange range = super.getRangeInElement();
+  @Override
+  protected ResolveResult[] resolveInner(boolean incompleteCode) {
+    PsiElement myElement = getElement();
+    assert myElement instanceof PerlSubNameElement;
 
-		// fixme this should be some kinda interface
-		PsiElement resolveResult = resolve();
-		if( resolveResult instanceof PerlClassAccessorDeclaration && ((PerlClassAccessorDeclaration) resolveResult).isFollowsBestPractice() && range.getEndOffset() > 4)
-		{
-			range = new TextRange(4, range.getEndOffset());
-		}
+    PsiElement parent = myElement.getParent();
+    if (parent instanceof PerlSubDeclarationElement || parent instanceof PerlSubDefinitionElement) {
+      return ResolveResult.EMPTY_ARRAY;
+    }
 
-		return range;
-	}
-*/
+    PerlSubNameElement subNameElement = (PerlSubNameElement)myElement;
+
+    List<PsiElement> relatedItems = new ArrayList<>();
+
+    String packageName = subNameElement.getPackageName();
+    String subName = subNameElement.getName();
+    Project project = subNameElement.getProject();
+
+    PerlNamespaceElement expliclitPackageElement = null;
+    if (parent instanceof PerlNamespaceElementContainer) {
+      expliclitPackageElement = ((PerlNamespaceElementContainer)parent).getNamespaceElement();
+    }
+
+    if (!subName.isEmpty()) {
+      if (parent instanceof PerlMethod && ((PerlMethod)parent).isObjectMethod()) {
+        boolean isSuper = expliclitPackageElement != null && expliclitPackageElement.isSUPER();
+        relatedItems.addAll(PerlMro.resolveSub(
+          project,
+          isSuper ? PerlPackageUtil.getContextPackageName(subNameElement) : packageName,
+          subName,
+          isSuper
+        ));
+      }
+      else    // static resolution
+      {
+        if (PerlSharedSettings.getInstance(project).SIMPLE_MAIN_RESOLUTION &&
+            PerlPackageUtil.isMain(packageName))    // fixme this is a dirty hack until proper names resolution implemented
+        {
+          PsiFile file = subNameElement.getContainingFile();
+          GlobalSearchScope fileScope = GlobalSearchScope.fileScope(file);
+
+          collectRelatedItems(
+            packageName + PerlPackageUtil.PACKAGE_SEPARATOR + subName,
+            project,
+            parent,
+            relatedItems
+            , fileScope
+          );
+
+          //				if (file instanceof PerlFile)
+          //					((PerlFile) file).getElementsResolveScope();
+
+          //				System.err.println("Checking for " + subName);
+        }
+
+        if (relatedItems.isEmpty()) {
+          GlobalSearchScope globalSearchScope = GlobalSearchScope.allScope(project);
+
+          // check indexes for defined subs
+          collectRelatedItems(
+            packageName + PerlPackageUtil.PACKAGE_SEPARATOR + subName,
+            project,
+            parent,
+            relatedItems,
+            globalSearchScope
+          );
+
+          if (expliclitPackageElement == null) {
+            // check for imports to the current file
+            PerlNamespaceDefinitionElement namespaceContainer = PerlPackageUtil.getNamespaceContainerForElement(subNameElement);
+
+            if (namespaceContainer != null) {
+              for (PerlExportDescriptor exportDescriptor : namespaceContainer.getImportedSubsDescriptors()) {
+                if (exportDescriptor.getImportedName().equals(subName)) {
+                  int currentSize = relatedItems.size();
+                  collectRelatedItems(
+                    exportDescriptor.getTargetCanonicalName(),
+                    project,
+                    parent,
+                    relatedItems,
+                    globalSearchScope
+                  );
+
+                  if (relatedItems.size() == currentSize)    // imported, but not found, attempting autoload
+                  {
+                    collectRelatedItems(
+                      exportDescriptor.getRealPackage() + PerlSubUtil.SUB_AUTOLOAD_WITH_PREFIX,
+                      project,
+                      parent,
+                      relatedItems,
+                      globalSearchScope
+                    );
+                  }
+                }
+              }
+            }
+          }
+          else    // check imports to target namespace
+          {
+            String targetPackageName = expliclitPackageElement.getCanonicalName();
+            if (targetPackageName != null) {
+              // fixme partially not DRY with previous block
+              for (PerlNamespaceDefinitionElement namespaceDefinition : PerlPackageUtil
+                .getNamespaceDefinitions(project, targetPackageName)) {
+                for (PerlExportDescriptor exportDescriptor : namespaceDefinition.getImportedSubsDescriptors()) {
+                  if (exportDescriptor.getImportedName().equals(subName)) {
+                    collectRelatedItems(
+                      exportDescriptor.getTargetCanonicalName(),
+                      project,
+                      parent,
+                      relatedItems,
+                      globalSearchScope
+                    );
+                  }
+                }
+              }
+            }
+          }
+
+          // check for builtins
+          if (relatedItems.isEmpty()) {
+            PerlSubDefinitionElement builtInSub = PerlBuiltInSubsService.getInstance(project).findSub(subName);
+            if (builtInSub != null) {
+              relatedItems.add(builtInSub);
+            }
+          }
+
+          // check for autoload
+          if (relatedItems.isEmpty()
+              && !PerlPackageUtil.isUNIVERSAL(packageName)    // don't check for UNIVERSAL::AUTOLOAD
+            ) {
+            collectRelatedItems(
+              packageName + PerlSubUtil.SUB_AUTOLOAD_WITH_PREFIX,
+              project,
+              parent,
+              relatedItems,
+              globalSearchScope
+            );
+          }
+        }
+      }
+    }
+
+
+    List<ResolveResult> result = getResolveResults(relatedItems);
+
+    return result.toArray(new ResolveResult[result.size()]);
+  }
+
+  public static void collectRelatedItems(String canonicalName,
+                                         Project project,
+                                         PsiElement exclusion,
+                                         List<PsiElement> relatedItems,
+                                         GlobalSearchScope searchScope) {
+    for (PerlSubDefinitionElement target : PerlSubUtil.getSubDefinitions(project, canonicalName, searchScope)) {
+      if (!target.isEquivalentTo(exclusion)) {
+        relatedItems.add(target);
+      }
+    }
+    for (PerlSubDeclarationElement target : PerlSubUtil.getSubDeclarations(project, canonicalName, searchScope)) {
+      if (!target.isEquivalentTo(exclusion)) {
+        relatedItems.add(target);
+      }
+    }
+    for (PerlGlobVariable target : PerlGlobUtil.getGlobsDefinitions(project, canonicalName, searchScope)) {
+      if (!target.isEquivalentTo(exclusion)) {
+        relatedItems.add(target);
+      }
+    }
+  }
 }

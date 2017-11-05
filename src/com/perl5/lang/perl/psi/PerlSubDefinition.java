@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,11 +16,32 @@
 
 package com.perl5.lang.perl.psi;
 
-import com.perl5.lang.perl.idea.stubs.subsdefinitions.PerlSubDefinitionStub;
+import com.perl5.lang.perl.psi.utils.PerlSubArgument;
+import com.perl5.lang.perl.util.PerlSubUtil;
+import org.jetbrains.annotations.NotNull;
 
-/**
- * Created by hurricup on 31.05.2015.
- */
-public interface PerlSubDefinition extends PerlSubDefinitionBase<PerlSubDefinitionStub>
-{
+import java.util.Collections;
+import java.util.List;
+
+public interface PerlSubDefinition extends PerlSub {
+  /**
+   * Returns list of accepted arguments
+   *
+   * @return list of accepted arguments
+   */
+  @NotNull
+  List<PerlSubArgument> getSubArgumentsList();
+
+  default List<PerlSubArgument> getSubArgumentsListWithoutSelf() {
+    List<PerlSubArgument> subArguments = getSubArgumentsList();
+
+    if (isMethod() && !subArguments.isEmpty()) {
+      return subArguments.size() > 1 ? subArguments.subList(1, subArguments.size()) : Collections.emptyList();
+    }
+    return subArguments;
+  }
+
+  default String getSubArgumentsListAsString() {
+    return PerlSubUtil.getArgumentsListAsString(getSubArgumentsListWithoutSelf());
+  }
 }

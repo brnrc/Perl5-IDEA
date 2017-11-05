@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -32,57 +32,48 @@ import java.util.List;
 /**
  * Created by hurricup on 13.06.2016.
  */
-public class TemplateToolkitFilterNameMacro extends Macro implements TemplateToolkitFilterNames
-{
-	public static final LookupElement[] LOOKUP_ELEMENTS;
+public class TemplateToolkitFilterNameMacro extends Macro implements TemplateToolkitFilterNames {
+  public static final LookupElement[] LOOKUP_ELEMENTS;
 
-	static
-	{
-		List<LookupElement> list = new ArrayList<LookupElement>();
-		for (String filterName : FILTER_NAMES)
-		{
-			list.add(LookupElementBuilder.create(filterName));
-		}
-		LOOKUP_ELEMENTS = list.toArray(new LookupElement[list.size()]);
-	}
+  static {
+    List<LookupElement> list = new ArrayList<>();
+    for (String filterName : FILTER_NAMES) {
+      list.add(LookupElementBuilder.create(filterName));
+    }
+    LOOKUP_ELEMENTS = list.toArray(new LookupElement[list.size()]);
+  }
 
-	@Override
-	public String getName()
-	{
-		return "tt2FilterName";
-	}
+  @Override
+  public String getName() {
+    return "tt2FilterName";
+  }
 
-	@Override
-	public String getPresentableName()
-	{
-		return "tt2FilterName()";
-	}
+  @Override
+  public String getPresentableName() {
+    return "tt2FilterName()";
+  }
 
-	@NotNull
-	@Override
-	public String getDefaultValue()
-	{
-		return "filtername";
-	}
+  @NotNull
+  @Override
+  public String getDefaultValue() {
+    return "filtername";
+  }
 
-	@Nullable
-	@Override
-	public Result calculateResult(@NotNull Expression[] params, ExpressionContext context)
-	{
-		return null;
-	}
+  @Nullable
+  @Override
+  public Result calculateResult(@NotNull Expression[] params, ExpressionContext context) {
+    return null;
+  }
 
-	@Nullable
-	@Override
-	public Result calculateQuickResult(@NotNull Expression[] params, ExpressionContext context)
-	{
-		return calculateResult(params, context);
-	}
+  @Nullable
+  @Override
+  public Result calculateQuickResult(@NotNull Expression[] params, ExpressionContext context) {
+    return calculateResult(params, context);
+  }
 
-	@Nullable
-	@Override
-	public LookupElement[] calculateLookupItems(@NotNull Expression[] params, ExpressionContext context)
-	{
-		return LOOKUP_ELEMENTS;
-	}
+  @Nullable
+  @Override
+  public LookupElement[] calculateLookupItems(@NotNull Expression[] params, ExpressionContext context) {
+    return LOOKUP_ELEMENTS;
+  }
 }

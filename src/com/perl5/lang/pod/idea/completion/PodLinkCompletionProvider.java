@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -23,14 +23,12 @@ import com.intellij.codeInsight.lookup.LookupElementBuilder;
 import com.intellij.openapi.project.Project;
 import com.intellij.openapi.util.TextRange;
 import com.intellij.openapi.util.text.StringUtil;
-import com.intellij.openapi.vfs.VirtualFile;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiFile;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.util.PsiTreeUtil;
 import com.intellij.util.ProcessingContext;
-import com.intellij.util.Processor;
 import com.perl5.PerlIcons;
 import com.perl5.lang.perl.idea.completion.util.PerlPackageCompletionUtil;
 import com.perl5.lang.perl.util.PerlPackageUtil;
@@ -52,149 +50,111 @@ import java.util.Set;
 /**
  * Created by hurricup on 16.04.2016.
  */
-public class PodLinkCompletionProvider extends CompletionProvider<CompletionParameters> implements PodElementTypes
-{
-	protected static void addFilesCompletions(PsiPodFormatLink link, @NotNull final CompletionResultSet result)
-	{
-		final Project project = link.getProject();
-		final Set<String> foundPods = new THashSet<String>();
+public class PodLinkCompletionProvider extends CompletionProvider<CompletionParameters> implements PodElementTypes {
+  @Override
+  protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result) {
+    PsiElement element = parameters.getOriginalPosition();
+    if (element == null) {
+      return;
+    }
 
-		PerlPackageUtil.processFilesForPsiElement(link, new PerlPackageUtil.ClassRootVirtualFileProcessor()
-		{
-			@Override
-			public boolean process(VirtualFile file, VirtualFile classRoot)
-			{
-				String className = PodFileUtil.getPackageNameFromVirtualFile(file, classRoot);
-				if (StringUtil.isNotEmpty(className))
-				{
-					boolean isBuiltIn = false;
-					if (StringUtil.startsWith(className, "pods::"))
-					{
-						isBuiltIn = true;
-						className = className.substring(6);
-					}
-					if (!foundPods.contains(className))
-					{
-						result.addElement(LookupElementBuilder.create(className).withIcon(PerlIcons.POD_FILE).withBoldness(isBuiltIn));
-						foundPods.add(className);
-					}
-				}
-				return true;
-			}
-		}, PodFileType.INSTANCE);
+    PsiPodFormatLink psiPodFormatLink = PsiTreeUtil.getParentOfType(element, PsiPodFormatLink.class);
+    if (psiPodFormatLink == null) {
+      return;
+    }
 
-		PerlPackageUtil.processPackageFilesForPsiElement(link, new Processor<String>()
-		{
-			@Override
-			public boolean process(String s)
-			{
-				if (StringUtil.isNotEmpty(s))
-				{
-					if (!foundPods.contains(s))
-					{
-						result.addElement(PerlPackageCompletionUtil.getPackageLookupElement(project, s));
-						foundPods.add(s);
-					}
-				}
-				return true;
-			}
-		});
-	}
+    TextRange elementRange = element.getTextRange().shiftRight(-psiPodFormatLink.getTextOffset());
+    PsiReference[] references = psiPodFormatLink.getReferences();
+    for (PsiReference reference : references) {
+      TextRange referenceRange = reference.getRangeInElement();
+      if (referenceRange.contains(elementRange)) {
+        if (reference instanceof PodLinkToFileReference) {
+          addFilesCompletions(psiPodFormatLink, result);
+          return;
+        }
+        else if (reference instanceof PodLinkToSectionReference) {
+          addSectionsCompletions(result, psiPodFormatLink.getTargetFile());
+          return;
+        }
+      }
+    }
 
-	private static boolean atSectionPosition(PsiElement element)
-	{
-		if (element == null)
-		{
-			return false;
-		}
+    // checking for an empty section
+    if (atSectionPosition(element)) {
+      addSectionsCompletions(result, psiPodFormatLink.getTargetFile());
+    }
+  }
 
-		IElementType elementType = element.getNode().getElementType();
+  protected static void addFilesCompletions(@NotNull PsiPodFormatLink link, @NotNull final CompletionResultSet result) {
+    final Project project = link.getProject();
+    final Set<String> foundPods = new THashSet<>();
 
-		PsiElement prevElement = element.getPrevSibling();
+    PerlPackageUtil.processIncFilesForPsiElement(link, (file, classRoot) -> {
+      String className = PodFileUtil.getPackageNameFromVirtualFile(file, classRoot);
+      if (StringUtil.isNotEmpty(className)) {
+        boolean isBuiltIn = false;
+        if (StringUtil.startsWith(className, "pods::")) {
+          isBuiltIn = true;
+          className = className.substring(6);
+        }
+        if (!foundPods.contains(className)) {
+          result.addElement(LookupElementBuilder.create(className).withIcon(PerlIcons.POD_FILE).withBoldness(isBuiltIn));
+          foundPods.add(className);
+        }
+      }
+      return true;
+    }, PodFileType.INSTANCE);
 
-		if (elementType == POD_ANGLE_RIGHT && prevElement != null)
-		{
-			prevElement = prevElement.getLastChild();
-		}
+    PerlPackageUtil.processPackageFilesForPsiElement(link, s -> {
+      if (StringUtil.isNotEmpty(s)) {
+        if (!foundPods.contains(s)) {
+          result.addElement(PerlPackageCompletionUtil.getPackageLookupElement(s, null));
+          foundPods.add(s);
+        }
+      }
+      return true;
+    });
+  }
 
-		IElementType prevElementType = prevElement == null ? null : prevElement.getNode().getElementType();
+  private static boolean atSectionPosition(PsiElement element) {
+    if (element == null) {
+      return false;
+    }
 
-		if (elementType == POD_ANGLE_RIGHT && prevElementType == POD_DIV)
-		{
-			return true;
-		}
+    IElementType elementType = element.getNode().getElementType();
 
-		PsiElement prevPrevElement = prevElement == null ? null : prevElement.getPrevSibling();
-		IElementType prevPrevElementType = prevPrevElement == null ? null : prevPrevElement.getNode().getElementType();
+    PsiElement prevElement = element.getPrevSibling();
 
-		return elementType == POD_QUOTE_DOUBLE && prevElementType == POD_QUOTE_DOUBLE && prevPrevElementType == POD_DIV;
-	}
+    if (elementType == POD_ANGLE_RIGHT && prevElement != null) {
+      prevElement = prevElement.getLastChild();
+    }
 
-	protected static void addSectionsCompletions(@NotNull final CompletionResultSet result, PsiFile targetFile)
-	{
-		if (targetFile != null)
-		{
-			targetFile.accept(new PodRecursiveVisitor()
-			{
-				@Override
-				public void visitTargetableSection(PodTitledSection o)
-				{
-					String title = o.getTitleText();
-					if (StringUtil.isNotEmpty(title))
-					{
-						if (!(o instanceof PodSectionItem) || o.getListLevel() < PodDocumentPattern.DEFAULT_MAX_LIST_LEVEL)
-						{
-							result.addElement(LookupElementBuilder.create(title).withIcon(PerlIcons.POD_FILE));
-						}
-					}
-					super.visitTargetableSection(o);
-				}
-			});
-		}
-	}
+    IElementType prevElementType = prevElement == null ? null : prevElement.getNode().getElementType();
 
-	@Override
-	protected void addCompletions(@NotNull CompletionParameters parameters, ProcessingContext context, @NotNull CompletionResultSet result)
-	{
-		PsiElement element = parameters.getOriginalPosition();
-		if (element == null)
-		{
-			return;
-		}
+    if (elementType == POD_ANGLE_RIGHT && prevElementType == POD_DIV) {
+      return true;
+    }
 
-		PsiPodFormatLink psiPodFormatLink = PsiTreeUtil.getParentOfType(element, PsiPodFormatLink.class);
-		if (psiPodFormatLink == null)
-		{
-			return;
-		}
+    PsiElement prevPrevElement = prevElement == null ? null : prevElement.getPrevSibling();
+    IElementType prevPrevElementType = prevPrevElement == null ? null : prevPrevElement.getNode().getElementType();
 
-		TextRange elementRange = element.getTextRange().shiftRight(-psiPodFormatLink.getTextOffset());
-		CharSequence linkText = psiPodFormatLink.getText();
-		PsiReference[] references = psiPodFormatLink.getReferences();
-		for (PsiReference reference : references)
-		{
-			TextRange referenceRange = reference.getRangeInElement();
-			if (referenceRange.contains(elementRange))
-			{
-				if (reference instanceof PodLinkToFileReference)
-				{
-					addFilesCompletions(psiPodFormatLink, result);
-					return;
-				}
-				else if (reference instanceof PodLinkToSectionReference)
-				{
-					addSectionsCompletions(result, psiPodFormatLink.getTargetFile());
-					return;
-				}
-			}
-		}
+    return elementType == POD_QUOTE_DOUBLE && prevElementType == POD_QUOTE_DOUBLE && prevPrevElementType == POD_DIV;
+  }
 
-		// checking for an empty section
-		if (atSectionPosition(element))
-		{
-			addSectionsCompletions(result, psiPodFormatLink.getTargetFile());
-		}
-	}
-
-
+  protected static void addSectionsCompletions(@NotNull final CompletionResultSet result, PsiFile targetFile) {
+    if (targetFile != null) {
+      targetFile.accept(new PodRecursiveVisitor() {
+        @Override
+        public void visitTargetableSection(PodTitledSection o) {
+          String title = o.getTitleText();
+          if (StringUtil.isNotEmpty(title)) {
+            if (!(o instanceof PodSectionItem) || o.getListLevel() < PodDocumentPattern.DEFAULT_MAX_LIST_LEVEL) {
+              result.addElement(LookupElementBuilder.create(title).withIcon(PerlIcons.POD_FILE));
+            }
+          }
+          super.visitTargetableSection(o);
+        }
+      });
+    }
+  }
 }

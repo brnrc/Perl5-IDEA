@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,18 @@ import com.perl5.lang.tt2.parser.TemplateToolkitParserUtil;
 /**
  * Created by hurricup on 12.06.2016.
  */
-public class TemplateToolkitQuoteHandler extends SimpleTokenSetQuoteHandler implements TemplateToolkitElementTypes
-{
-	public TemplateToolkitQuoteHandler()
-	{
-		super(TemplateToolkitParserUtil.OPEN_QUOTES);
-	}
+public class TemplateToolkitQuoteHandler extends SimpleTokenSetQuoteHandler implements TemplateToolkitElementTypes {
+  public TemplateToolkitQuoteHandler() {
+    super(TemplateToolkitParserUtil.OPEN_QUOTES);
+  }
 
-	@Override
-	public boolean isClosingQuote(HighlighterIterator iterator, int offset)
-	{
-		return TemplateToolkitParserUtil.CLOSE_QUOTES.contains(iterator.getTokenType());
-	}
+  @Override
+  public boolean isClosingQuote(HighlighterIterator iterator, int offset) {
+    return TemplateToolkitParserUtil.CLOSE_QUOTES.contains(iterator.getTokenType());
+  }
 
-	@Override
-	public boolean isOpeningQuote(HighlighterIterator iterator, int offset)
-	{
-		return TemplateToolkitParserUtil.OPEN_QUOTES.contains(iterator.getTokenType());
-	}
+  @Override
+  public boolean isOpeningQuote(HighlighterIterator iterator, int offset) {
+    return TemplateToolkitParserUtil.OPEN_QUOTES.contains(iterator.getTokenType());
+  }
 }

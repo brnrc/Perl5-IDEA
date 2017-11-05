@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,10 +17,13 @@
 package com.perl5.lang.perl.idea.intellilang;
 
 import com.intellij.openapi.util.TextRange;
+import com.intellij.psi.ElementManipulator;
+import com.intellij.psi.ElementManipulators;
 import com.intellij.psi.LiteralTextEscaper;
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.lexer.RegexBlock;
-import com.perl5.lang.perl.psi.mixins.PerlStringImplMixin;
+import com.perl5.lang.perl.idea.manipulators.PerlStringManipulator;
+import com.perl5.lang.perl.lexer.PerlLexer;
+import com.perl5.lang.perl.psi.mixins.PerlStringMixin;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.HashMap;
@@ -29,89 +32,81 @@ import java.util.Map;
 /**
  * Created by hurricup on 27.02.2016.
  */
-public class PerlStringLiteralEscaper extends LiteralTextEscaper<PerlStringImplMixin>
-{
-	private Map<Integer, Integer> offsetsMap;
-	public PerlStringLiteralEscaper(@NotNull PerlStringImplMixin host)
-	{
-		super(host);
-	}
+public class PerlStringLiteralEscaper extends LiteralTextEscaper<PerlStringMixin> {
+  private Map<Integer, Integer> offsetsMap;
 
-	@Override
-	public boolean decode(@NotNull TextRange rangeInsideHost, @NotNull StringBuilder outChars)
-	{
-		PsiElement openQuoteElement = myHost.getOpeningQuote();
-		char openQuote = openQuoteElement.getText().charAt(0);
-		char closeQuote = RegexBlock.getQuoteCloseChar(openQuote);
-		offsetsMap = new HashMap<Integer, Integer>();
-		CharSequence sourceText = rangeInsideHost.subSequence(myHost.getText());
-		Integer sourceOffset = 0;
-		Integer targetOffset = 0;
-		Integer sourceLength = sourceText.length();
-		boolean isEscaped = false;
+  public PerlStringLiteralEscaper(@NotNull PerlStringMixin host) {
+    super(host);
+  }
 
-		while (sourceOffset < sourceLength)
-		{
-			char currentChar = sourceText.charAt(sourceOffset);
+  @Override
+  public boolean decode(@NotNull TextRange rangeInsideHost, @NotNull StringBuilder outChars) {
+    ElementManipulator<PerlStringMixin> manipulator = ElementManipulators.getNotNullManipulator(myHost);
+    assert manipulator instanceof PerlStringManipulator;
+    PsiElement openQuoteElement = ((PerlStringManipulator)manipulator).getOpeningQuote(myHost);
+    char openQuote = openQuoteElement.getText().charAt(0);
+    char closeQuote = PerlLexer.getQuoteCloseChar(openQuote);
+    offsetsMap = new HashMap<>();
+    CharSequence sourceText = rangeInsideHost.subSequence(myHost.getText());
+    Integer sourceOffset = 0;
+    Integer targetOffset = 0;
+    Integer sourceLength = sourceText.length();
+    boolean isEscaped = false;
 
-			if (isEscaped)
-			{
-				if (currentChar != openQuote && currentChar != closeQuote)
-				{
-					assert sourceOffset > 0;
-					outChars.append('\\');
-					offsetsMap.put(targetOffset++, sourceOffset - 1);
-				}
-				outChars.append(currentChar);
-				offsetsMap.put(targetOffset++, sourceOffset);
-				isEscaped = false;
-			}
-			else if (currentChar == '\\')
-			{
-				isEscaped = true;
-			}
-			else
-			{
-				outChars.append(currentChar);
-				offsetsMap.put(targetOffset++, sourceOffset);
-			}
+    while (sourceOffset < sourceLength) {
+      char currentChar = sourceText.charAt(sourceOffset);
 
-			sourceOffset++;
-		}
-		if (isEscaped) // end with escape, not sure if possible
-		{
-			assert sourceOffset > 0;
-			outChars.append('\\');
-			offsetsMap.put(targetOffset++, sourceOffset - 1);
-		}
+      if (isEscaped) {
+        if (currentChar != openQuote && currentChar != closeQuote) {
+          assert sourceOffset > 0;
+          outChars.append('\\');
+          offsetsMap.put(targetOffset++, sourceOffset - 1);
+        }
+        outChars.append(currentChar);
+        offsetsMap.put(targetOffset++, sourceOffset);
+        isEscaped = false;
+      }
+      else if (currentChar == '\\') {
+        isEscaped = true;
+      }
+      else {
+        outChars.append(currentChar);
+        offsetsMap.put(targetOffset++, sourceOffset);
+      }
 
-		offsetsMap.put(targetOffset, sourceOffset);    // end marker
+      sourceOffset++;
+    }
+    if (isEscaped) // end with escape, not sure if possible
+    {
+      assert sourceOffset > 0;
+      outChars.append('\\');
+      offsetsMap.put(targetOffset++, sourceOffset - 1);
+    }
 
-		return true;
-	}
+    offsetsMap.put(targetOffset, sourceOffset);    // end marker
+
+    return true;
+  }
 
 
-	@Override
-	public int getOffsetInHost(int offsetInDecoded, @NotNull TextRange rangeInsideHost)
-	{
-		Integer offsetInEncoded = offsetsMap.get(offsetInDecoded);
-		assert offsetInEncoded != null : "Missing offset: " + offsetInDecoded +
-				"; text: " + rangeInsideHost.subSequence(myHost.getText()) +
-				"; range in host " + rangeInsideHost;
+  @Override
+  public int getOffsetInHost(int offsetInDecoded, @NotNull TextRange rangeInsideHost) {
+    Integer offsetInEncoded = offsetsMap.get(offsetInDecoded);
+    assert offsetInEncoded != null : "Missing offset: " + offsetInDecoded +
+                                     "; text: " + rangeInsideHost.subSequence(myHost.getText()) +
+                                     "; range in host " + rangeInsideHost;
 
-		return offsetInEncoded + rangeInsideHost.getStartOffset();
-	}
+    return offsetInEncoded + rangeInsideHost.getStartOffset();
+  }
 
-	@Override
-	public boolean isOneLine()
-	{
-		return false;
-	}
+  @Override
+  public boolean isOneLine() {
+    return false;
+  }
 
-	@NotNull
-	@Override
-	public TextRange getRelevantTextRange()
-	{
-		return myHost.getContentTextRangeInParent();
-	}
+  @NotNull
+  @Override
+  public TextRange getRelevantTextRange() {
+    return ElementManipulators.getValueTextRange(myHost);
+  }
 }

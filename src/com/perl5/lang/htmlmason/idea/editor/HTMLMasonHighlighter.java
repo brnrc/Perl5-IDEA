@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -33,19 +33,16 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 06.03.2016.
  */
-public class HTMLMasonHighlighter extends LayeredLexerEditorHighlighter implements HTMLMasonElementTypes
-{
-	public HTMLMasonHighlighter(@Nullable final Project project,
-								@Nullable final VirtualFile virtualFile,
-								@NotNull final EditorColorsScheme colors)
-	{
-		super(new HTMLMasonSyntaxHighlighter(project), colors);
-		registerLayer(HTML_MASON_TEMPLATE_BLOCK_HTML, new LayerDescriptor(
-				SyntaxHighlighterFactory.getSyntaxHighlighter(StdFileTypes.HTML, project, virtualFile), ""));
-		registerLayer(PerlElementTypes.POD, new LayerDescriptor(
-				SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
-				""
-		));
-
-	}
+public class HTMLMasonHighlighter extends LayeredLexerEditorHighlighter implements HTMLMasonElementTypes {
+  public HTMLMasonHighlighter(@Nullable final Project project,
+                              @Nullable final VirtualFile virtualFile,
+                              @NotNull final EditorColorsScheme colors) {
+    super(new HTMLMasonSyntaxHighlighter(project), colors);
+    registerLayer(HTML_MASON_TEMPLATE_BLOCK_HTML, new LayerDescriptor(
+      SyntaxHighlighterFactory.getSyntaxHighlighter(StdFileTypes.HTML, project, virtualFile), ""));
+    registerLayer(PerlElementTypes.POD, new LayerDescriptor(
+      SyntaxHighlighterFactory.getSyntaxHighlighter(PodFileType.INSTANCE, project, virtualFile),
+      ""
+    ));
+  }
 }

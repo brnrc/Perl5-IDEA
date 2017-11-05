@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,7 +17,7 @@
 package com.perl5.lang.perl.idea.hierarchy.namespace.treestructures;
 
 import com.intellij.psi.PsiElement;
-import com.perl5.lang.perl.psi.PerlNamespaceDefinition;
+import com.perl5.lang.perl.psi.PerlNamespaceDefinitionElement;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -26,17 +26,14 @@ import java.util.Collection;
 /**
  * Created by hurricup on 16.08.2015.
  */
-public class PerlSuperTypesHierarchyTreeStructure extends PerlSubTypesHierarchyTreeStructure
-{
-	public PerlSuperTypesHierarchyTreeStructure(@NotNull PsiElement element)
-	{
-		super(element);
-	}
+public class PerlSuperTypesHierarchyTreeStructure extends PerlSubTypesHierarchyTreeStructure {
+  public PerlSuperTypesHierarchyTreeStructure(@NotNull PsiElement element) {
+    super(element);
+  }
 
-	@Override
-	protected Collection<PsiElement> getSubElements(PsiElement element)
-	{
-		assert element instanceof PerlNamespaceDefinition;
-		return new ArrayList<PsiElement>(((PerlNamespaceDefinition) element).getParentNamespaceDefinitions());
-	}
+  @Override
+  protected Collection<PsiElement> getSubElements(PsiElement element) {
+    assert element instanceof PerlNamespaceDefinitionElement;
+    return new ArrayList<>(((PerlNamespaceDefinitionElement)element).getParentNamespaceDefinitions());
+  }
 }

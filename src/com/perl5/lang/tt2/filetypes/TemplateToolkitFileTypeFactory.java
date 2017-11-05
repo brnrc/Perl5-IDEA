@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -27,19 +27,16 @@ import java.util.List;
 /**
  * Created by hurricup on 05.06.2016.
  */
-public class TemplateToolkitFileTypeFactory extends FileTypeFactory
-{
-	public static final List<String> DEFAULT_EXTENSIONS = new ArrayList<String>(Arrays.asList(
-			"tt",
-			"tt2"
-	));
+public class TemplateToolkitFileTypeFactory extends FileTypeFactory {
+  public static final List<String> DEFAULT_EXTENSIONS = new ArrayList<>(Arrays.asList(
+    "tt",
+    "tt2"
+  ));
 
-	@Override
-	public void createFileTypes(@NotNull FileTypeConsumer consumer)
-	{
-		for (String ext : DEFAULT_EXTENSIONS)
-		{
-			consumer.consume(TemplateToolkitFileType.INSTANCE, ext);
-		}
-	}
+  @Override
+  public void createFileTypes(@NotNull FileTypeConsumer consumer) {
+    for (String ext : DEFAULT_EXTENSIONS) {
+      consumer.consume(TemplateToolkitFileType.INSTANCE, ext);
+    }
+  }
 }

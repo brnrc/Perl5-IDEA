@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -19,21 +19,13 @@ package resolve.htmlmason;
 /**
  * Created by hurricup on 13.03.2016.
  */
-public abstract class HTMLMasonBlockVariablesResolveTestCase extends HTMLMasonVariableResolveTestCase
-{
+public abstract class HTMLMasonBlockVariablesResolveTestCase extends HTMLMasonVariableResolveTestCase {
 
-	protected abstract boolean resolveSecondEntry();
+  public void testSecondEntry() throws Exception {
+    doTestResolve();
+  }
 
-	protected abstract boolean resolveFromSecondEntryBackwards();
-
-	public void testSecondEntry() throws Exception
-	{
-		doTest("second_entry", resolveSecondEntry());
-	}
-
-	public void testFromSecondEntryBackwards() throws Exception
-	{
-		doTest("from_second_entry_backwards", resolveFromSecondEntryBackwards());
-	}
-
+  public void testFromSecondEntryBackwards() throws Exception {
+    doTestResolve();
+  }
 }

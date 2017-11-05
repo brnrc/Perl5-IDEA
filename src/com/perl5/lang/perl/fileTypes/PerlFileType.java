@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,66 +17,25 @@
 package com.perl5.lang.perl.fileTypes;
 
 import com.intellij.lang.Language;
-import com.intellij.openapi.fileTypes.LanguageFileType;
-import com.perl5.PerlIcons;
 import com.perl5.lang.perl.PerlLanguage;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
-
-import javax.swing.*;
 
 /**
  * Created by hurricup on 26.04.2015.
  */
-public class PerlFileType extends LanguageFileType
-{
-	public static final PerlFileType INSTANCE = new PerlFileType();
+public abstract class PerlFileType extends PerlPluginBaseFileType {
+  public PerlFileType() {
+    this(PerlLanguage.INSTANCE);
+  }
 
-	public PerlFileType()
-	{
-		super(PerlLanguage.INSTANCE);
-	}
+  public PerlFileType(Language language) {
+    super(language);
+  }
 
-	public PerlFileType(Language language)
-	{
-		super(language);
-	}
+  public boolean checkStrictPragma() {
+    return true;
+  }
 
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return "Perl5 script";
-	}
-
-	@NotNull
-	@Override
-	public String getDescription()
-	{
-		return "Perl5 script file";
-	}
-
-	@NotNull
-	@Override
-	public String getDefaultExtension()
-	{
-		return "pl";
-	}
-
-	@Nullable
-	@Override
-	public Icon getIcon()
-	{
-		return PerlIcons.PERL_SCRIPT_FILE_ICON;
-	}
-
-	public boolean checkStrictPragma()
-	{
-		return true;
-	}
-
-	public boolean checkWarningsPragma()
-	{
-		return true;
-	}
+  public boolean checkWarningsPragma() {
+    return true;
+  }
 }

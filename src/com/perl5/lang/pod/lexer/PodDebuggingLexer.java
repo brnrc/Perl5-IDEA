@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -24,22 +24,19 @@ import java.io.Reader;
 /**
  * Created by hurricup on 25.03.2016.
  */
-public class PodDebuggingLexer extends PodLexer
-{
-	public PodDebuggingLexer(Reader in)
-	{
-		super(in);
-	}
+public class PodDebuggingLexer extends PodLexer {
+  public PodDebuggingLexer(Reader in) {
+    super(in);
+  }
 
-	@Override
-	public IElementType advance() throws IOException
-	{
-		return super.advance();
+  @Override
+  public IElementType advance() throws IOException {
+    return super.advance();
 /*
-		IElementType result = super.advance();
+                IElementType result = super.advance();
 		System.err.println(String.format("Type: %s Value: %s Range: %d - %d State: %d", result, yytext(), getTokenStart(), getTokenEnd(), yystate()));
 		return result;
 */
 
-	}
+  }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2016 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -26,26 +26,23 @@ import org.jetbrains.annotations.Nullable;
 /**
  * Created by hurricup on 07.01.2016.
  */
-public class EmbeddedPerlFoldingBuilder extends PerlFoldingBuilder implements EmbeddedPerlElementTypes
-{
-	protected static final TokenSet COMMENT_EXCLUDED_TOKENS = TokenSet.orSet(
-			PerlFoldingBuilder.COMMENT_EXCLUDED_TOKENS,
-			TokenSet.create(
-					EMBED_MARKER_OPEN,
-					EMBED_MARKER_CLOSE
-			));
+public class EmbeddedPerlFoldingBuilder extends PerlFoldingBuilder implements EmbeddedPerlElementTypes {
+  protected static final TokenSet COMMENT_EXCLUDED_TOKENS = TokenSet.orSet(
+    PerlFoldingBuilder.COMMENT_EXCLUDED_TOKENS,
+    TokenSet.create(
+      EMBED_MARKER_OPEN,
+      EMBED_MARKER_CLOSE
+    ));
 
-	@Nullable
-	@Override
-	protected IElementType getTemplateBlockElementType()
-	{
-		return EMBED_TEMPLATE_BLOCK_HTML;
-	}
+  @Nullable
+  @Override
+  protected IElementType getTemplateBlockElementType() {
+    return EMBED_TEMPLATE_BLOCK_HTML;
+  }
 
-	@NotNull
-	@Override
-	protected TokenSet getCommentExcludedTokens()
-	{
-		return COMMENT_EXCLUDED_TOKENS;
-	}
+  @NotNull
+  @Override
+  protected TokenSet getCommentExcludedTokens() {
+    return COMMENT_EXCLUDED_TOKENS;
+  }
 }

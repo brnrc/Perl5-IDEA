@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -17,6 +17,7 @@
 package com.perl5.lang.perl.parser;
 
 import com.intellij.lang.PsiBuilder;
+import com.intellij.lang.PsiParser;
 import com.intellij.psi.tree.IElementType;
 import com.intellij.psi.tree.TokenSet;
 import com.perl5.lang.perl.PerlParserDefinition;
@@ -27,124 +28,106 @@ import org.jetbrains.annotations.NotNull;
 /**
  * Created by hurricup on 28.12.2015.
  */
-public class PerlParserImpl extends PerlParserGenerated implements PerlParser
-{
+public class PerlParserImpl extends PerlParserGenerated implements PerlParser {
+  public static final PsiParser INSTANCE = new PerlParserImpl();
 
-	/*
-		@Override
-		public ASTNode parse(IElementType t, PsiBuilder b)
-		{
-			if (t instanceof PerlFileElementType)
-			{
-				PsiFile file = b.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY);
-				if (file != null && file.getVirtualFile() != null)
-					System.err.println("Parsed file " + file.getVirtualFile());
-			}
-			return super.parse(t, b);
-		}
-	*/
-	public boolean parseStatement(PsiBuilder b, int l)
-	{
-		for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS)
-		{
-			if (parserExtension.parseStatement((PerlBuilder) b, l))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+  public PerlParserImpl() {
+  }
 
-	public boolean parseTerm(PsiBuilder b, int l)
-	{
-		for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS)
-		{
-			if (parserExtension.parseTerm((PerlBuilder) b, l))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+  /*
+                  @Override
+                  public ASTNode parse(IElementType t, PsiBuilder b)
+                  {
+                          if (t instanceof PerlFileElementType)
+                          {
+                                  PsiFile file = b.getUserDataUnprotected(FileContextUtil.CONTAINING_FILE_KEY);
+                                  if (file != null && file.getVirtualFile() != null)
+                                          System.err.println("Parsed file " + file.getVirtualFile());
+                          }
+                          return super.parse(t, b);
+                  }
+          */
+  public boolean parseStatement(PsiBuilder b, int l) {
+    for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS) {
+      if (parserExtension.parseStatement((PerlBuilder)b, l)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-	public boolean parseStatementModifier(PsiBuilder b, int l)
-	{
-		for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS)
-		{
-			if (parserExtension.parseStatementModifier((PerlBuilder) b, l))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+  public boolean parseTerm(PsiBuilder b, int l) {
+    for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS) {
+      if (parserExtension.parseTerm((PerlBuilder)b, l)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-	public boolean parseNestedElementVariation(PsiBuilder b, int l)
-	{
-		for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS)
-		{
-			if (parserExtension.parseNestedElement((PerlBuilder) b, l))
-			{
-				return true;
-			}
-		}
-		return false;
-	}
+  public boolean parseStatementModifier(PsiBuilder b, int l) {
+    for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS) {
+      if (parserExtension.parseStatementModifier((PerlBuilder)b, l)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-	@NotNull
-	public TokenSet getBadCharacterForbiddenTokens()
-	{
-		return BAD_CHARACTER_FORBIDDEN_TOKENS;
-	}
+  public boolean parseNestedElementVariation(PsiBuilder b, int l) {
+    for (PerlParserExtension parserExtension : PerlParserDefinition.PARSER_EXTENSIONS) {
+      if (parserExtension.parseNestedElement((PerlBuilder)b, l)) {
+        return true;
+      }
+    }
+    return false;
+  }
 
-	@NotNull
-	public TokenSet getStatementRecoveryConsumableTokenSet()
-	{
-		return STATEMENT_RECOVERY_CONSUMABLE_TOKENS;
-	}
+  @NotNull
+  public TokenSet getBadCharacterForbiddenTokens() {
+    return BAD_CHARACTER_FORBIDDEN_TOKENS;
+  }
 
-	@NotNull
-	public TokenSet getConsumableSemicolonTokens()
-	{
-		return CONSUMABLE_SEMI_TOKENS;
-	}
+  @NotNull
+  public TokenSet getStatementRecoveryConsumableTokenSet() {
+    return STATEMENT_RECOVERY_CONSUMABLE_TOKENS;
+  }
 
-	@NotNull
-	public TokenSet getAnonHashSuffixTokens()
-	{
-		return ANON_HASH_TOKEN_SUFFIXES;
-	}
+  @NotNull
+  public TokenSet getConsumableSemicolonTokens() {
+    return CONSUMABLE_SEMI_TOKENS;
+  }
 
-	@NotNull
-	public TokenSet getUnconsumableSemicolonTokens()
-	{
-		return UNCONSUMABLE_SEMI_TOKENS;
-	}
+  @NotNull
+  public TokenSet getAnonHashSuffixTokens() {
+    return ANON_HASH_TOKEN_SUFFIXES;
+  }
 
-	public boolean parseFileContents(PsiBuilder b, int l)
-	{
-		return PerlParserGenerated.file_items(b, l);
-	}
+  @NotNull
+  public TokenSet getUnconsumableSemicolonTokens() {
+    return UNCONSUMABLE_SEMI_TOKENS;
+  }
 
-	public boolean parseStatementSemi(PsiBuilder b, int l)
-	{
-		IElementType tokenType = b.getTokenType();
-		if (((PerlBuilder) b).getPerlParser().getConsumableSemicolonTokens().contains(tokenType))
-		{
-			b.advanceLexer();
-			return true;
-		}
-		else if (((PerlBuilder) b).getPerlParser().getUnconsumableSemicolonTokens().contains(tokenType))
-		{
-			return true;
-		}
-		else if (b.eof()) // eof
-		{
-			return true;
-		}
+  public boolean parseFileContents(PsiBuilder b, int l) {
+    return PerlParserGenerated.file_items(b, l);
+  }
 
-		b.mark().error("Semicolon expected");
+  public boolean parseStatementSemi(PsiBuilder b, int l) {
+    IElementType tokenType = b.getTokenType();
+    if (((PerlBuilder)b).getPerlParser().getConsumableSemicolonTokens().contains(tokenType)) {
+      b.advanceLexer();
+      return true;
+    }
+    else if (((PerlBuilder)b).getPerlParser().getUnconsumableSemicolonTokens().contains(tokenType)) {
+      return true;
+    }
+    else if (b.eof()) // eof
+    {
+      return true;
+    }
 
-		return true;
-	}
+    b.mark().error("Semicolon expected");
+
+    return true;
+  }
 }

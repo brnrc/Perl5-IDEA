@@ -1,5 +1,5 @@
 /*
- * Copyright 2015 Alexandr Evstigneev
+ * Copyright 2015-2017 Alexandr Evstigneev
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,13 +16,10 @@
 
 package com.perl5.lang.perl.psi.impl;
 
-import com.intellij.openapi.util.AtomicNotNullLazyValue;
-import com.intellij.openapi.util.TextRange;
 import com.intellij.psi.PsiElement;
 import com.intellij.psi.PsiElementVisitor;
 import com.intellij.psi.PsiReference;
 import com.intellij.psi.ResolveResult;
-import com.intellij.psi.impl.source.tree.LeafPsiElement;
 import com.intellij.psi.tree.IElementType;
 import com.perl5.lang.perl.psi.*;
 import com.perl5.lang.perl.psi.references.PerlNamespaceFileReference;
@@ -33,192 +30,131 @@ import org.jetbrains.annotations.NotNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.perl5.lang.perl.lexer.PerlElementTypesGenerated.TAG_PACKAGE;
+
 /**
  * Created by hurricup on 25.05.2015.
  */
-public class PerlNamespaceElementImpl extends LeafPsiElement implements PerlNamespaceElement
-{
-	protected AtomicNotNullLazyValue<PsiReference[]> myReferences;
+public class PerlNamespaceElementImpl extends PerlLeafPsiElementWithReferences implements PerlNamespaceElement {
+  public PerlNamespaceElementImpl(@NotNull IElementType type, CharSequence text) {
+    super(type, text);
+  }
 
-	public PerlNamespaceElementImpl(@NotNull IElementType type, CharSequence text)
-	{
-		super(type, text);
-		createMyReferences();
-	}
+  @Override
+  public PsiReference[] computeReferences() {
+    PsiElement nameSpaceContainer = getParent();
 
-	private void createMyReferences()
-	{
-		myReferences = new AtomicNotNullLazyValue<PsiReference[]>()
-		{
-			@NotNull
-			@Override
-			protected PsiReference[] compute()
-			{
-				PerlNamespaceElement element = PerlNamespaceElementImpl.this;
-				PsiElement nameSpaceContainer = element.getParent();
+    if (nameSpaceContainer instanceof PsiPerlUseStatement
+        || nameSpaceContainer instanceof PsiPerlRequireExpr
+      ) {
+      return new PsiReference[]{new PerlNamespaceFileReference(this)};
+    }
+    else if (nameSpaceContainer instanceof PerlNamespaceDefinitionWithIdentifier) {
+      return PsiReference.EMPTY_ARRAY;
+    }
+    else {
+      return new PsiReference[]{new PerlNamespaceReference(this)};
+    }
+  }
 
-				if (nameSpaceContainer instanceof PsiPerlUseStatement
-						|| nameSpaceContainer instanceof PsiPerlRequireExpr
-						)
-				{
-					return new PsiReference[]{new PerlNamespaceFileReference(element, null)};
-				}
-				else if (nameSpaceContainer instanceof PerlNamespaceDefinition)
-				{
-					return PsiReference.EMPTY_ARRAY;
-				}
-				else
-				{
-					return new PsiReference[]{new PerlNamespaceReference(element, null)};
-				}
-			}
-		};
-	}
+  @Override
+  public void accept(@NotNull PsiElementVisitor visitor) {
+    if (visitor instanceof PerlVisitor) {
+      ((PerlVisitor)visitor).visitNamespaceElement(this);
+    }
+    else {
+      super.accept(visitor);
+    }
+  }
 
-	@Override
-	public void accept(@NotNull PsiElementVisitor visitor)
-	{
-		if (visitor instanceof PerlVisitor)
-		{
-			((PerlVisitor) visitor).visitNamespaceElement(this);
-		}
-		else
-		{
-			super.accept(visitor);
-		}
-	}
+  @NotNull
+  @Override
+  public String getName() {
+    return isTag() ? PerlPackageUtil.getContextPackageName(this) : this.getText();
+  }
 
-	@NotNull
-	@Override
-	public String getName()
-	{
-		return this.getText();
-	}
+  public String getCanonicalName() {
+    return PerlPackageUtil.getCanonicalPackageName(getName());
+  }
 
-	public String getCanonicalName()
-	{
-		return PerlPackageUtil.getCanonicalPackageName(getName());
-	}
+  public boolean isTag() {return getNode().getElementType() == TAG_PACKAGE;}
 
-	@NotNull
-	@Override
-	public PsiReference[] getReferences()
-	{
-		return myReferences.getValue();
-	}
+  @Override
+  public boolean isPragma() {
+    return PerlPackageUtil.CORE_PACKAGES_PRAGMAS.contains(getCanonicalName());
+  }
 
-	@Override
-	public PsiReference getReference()
-	{
-		return myReferences.getValue().length > 0 ? myReferences.getValue()[0] : null;
-	}
+  @Override
+  public boolean isSUPER() {
+    return PerlPackageUtil.isSUPER(getCanonicalName());
+  }
 
-	@Override
-	public boolean isBuiltin()
-	{
-		return PerlPackageUtil.isBuiltIn(getCanonicalName());
-	}
+  @Override
+  public boolean isMain() {
+    return PerlPackageUtil.isMain(getCanonicalName());
+  }
 
-	@Override
-	public boolean isPragma()
-	{
-		return PerlPackageUtil.BUILT_IN_PRAGMA.contains(getCanonicalName());
-	}
+  @Override
+  public boolean isCORE() {
+    return PerlPackageUtil.isCORE(getCanonicalName());
+  }
 
-	@Override
-	public boolean isSUPER()
-	{
-		return PerlPackageUtil.isSUPER(getCanonicalName());
-	}
+  @Override
+  public boolean isUNIVERSAL() {
+    return PerlPackageUtil.isUNIVERSAL(getCanonicalName());
+  }
 
-	@Override
-	public boolean isMain()
-	{
-		return PerlPackageUtil.isMain(getCanonicalName());
-	}
+  @Override
+  public boolean isDeprecated() {
+    PsiElement parent = getParent();
+    if (parent instanceof PerlNamespaceDefinitionWithIdentifier) {
+      return ((PerlNamespaceDefinitionElement)parent).isDeprecated();
+    }
+    return PerlPackageUtil.isDeprecated(getProject(), getCanonicalName());
+  }
 
-	@Override
-	public boolean isCORE()
-	{
-		return PerlPackageUtil.isCORE(getCanonicalName());
-	}
+  @Override
+  public List<PerlNamespaceDefinitionElement> getNamespaceDefinitions() {
+    List<PerlNamespaceDefinitionElement> namespaceDefinitions = new ArrayList<>();
 
-	@Override
-	public boolean isUNIVERSAL()
-	{
-		return PerlPackageUtil.isUNIVERSAL(getCanonicalName());
-	}
+    PsiReference[] references = getReferences();
 
-	@Override
-	public boolean isDeprecated()
-	{
-		return PerlPackageUtil.isDeprecated(getProject(), getCanonicalName());
-	}
+    for (PsiReference reference : references) {
+      if (reference instanceof PerlNamespaceReference) {
+        ResolveResult[] results = ((PerlNamespaceReference)reference).multiResolve(false);
 
-	@Override
-	public List<PerlNamespaceDefinition> getNamespaceDefinitions()
-	{
-		List<PerlNamespaceDefinition> namespaceDefinitions = new ArrayList<PerlNamespaceDefinition>();
+        for (ResolveResult result : results) {
+          PsiElement targetElement = result.getElement();
+          assert targetElement != null;
+          assert targetElement instanceof PerlNamespaceDefinitionElement;
 
-		PsiReference[] references = getReferences();
+          namespaceDefinitions.add((PerlNamespaceDefinitionElement)targetElement);
+        }
+      }
+    }
+    return namespaceDefinitions;
+  }
 
-		for (PsiReference reference : references)
-		{
-			if (reference instanceof PerlNamespaceReference)
-			{
-				ResolveResult[] results = ((PerlNamespaceReference) reference).multiResolve(false);
+  @Override
+  public List<PerlFileImpl> getNamespaceFiles() {
+    List<PerlFileImpl> namespaceFiles = new ArrayList<>();
 
-				for (ResolveResult result : results)
-				{
-					PsiElement targetElement = result.getElement();
-					assert targetElement != null;
-					assert targetElement instanceof PerlNamespaceDefinition;
+    PsiReference[] references = getReferences();
 
-					namespaceDefinitions.add((PerlNamespaceDefinition) targetElement);
-				}
-			}
-		}
-		return namespaceDefinitions;
-	}
+    for (PsiReference reference : references) {
+      if (reference instanceof PerlNamespaceFileReference) {
+        ResolveResult[] results = ((PerlNamespaceFileReference)reference).multiResolve(false);
 
-	@Override
-	public List<PerlFileImpl> getNamespaceFiles()
-	{
-		List<PerlFileImpl> namespaceFiles = new ArrayList<PerlFileImpl>();
+        for (ResolveResult result : results) {
+          PsiElement targetElement = result.getElement();
+          assert targetElement != null;
 
-		PsiReference[] references = getReferences();
-
-		for (PsiReference reference : references)
-		{
-			if (reference instanceof PerlNamespaceFileReference)
-			{
-				ResolveResult[] results = ((PerlNamespaceFileReference) reference).multiResolve(false);
-
-				for (ResolveResult result : results)
-				{
-					PsiElement targetElement = result.getElement();
-					assert targetElement != null;
-
-					if (targetElement instanceof PerlFileImpl)
-					{
-						namespaceFiles.add((PerlFileImpl) targetElement);
-					}
-				}
-			}
-		}
-		return namespaceFiles;
-	}
-
-	@Override
-	public TextRange getTextRange()
-	{
-		return PerlPackageUtil.getPackageRangeFromOffset(getStartOffset(), getText());
-	}
-
-	@Override
-	public void clearCaches()
-	{
-		super.clearCaches();
-		createMyReferences();
-	}
+          if (targetElement instanceof PerlFileImpl) {
+            namespaceFiles.add((PerlFileImpl)targetElement);
+          }
+        }
+      }
+    }
+    return namespaceFiles;
+  }
 }
